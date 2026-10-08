@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin — Sunpowers</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="favicon-32.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{--g:#1e8e3e;--g-d:#14692c;--g-l:#e8f5e9;--bg:#f3f6f2;--txt:#1c2b20;--mut:#66756a;--line:#dfe7de;--red:#d93025;--org:#e8590c;--r:14px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans Devanagari',sans-serif;background:var(--bg);color:var(--txt);font-size:15px;line-height:1.4}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+a{color:var(--g-d)}
+.hide{display:none!important}
+.top{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px solid var(--line)}
+.top-in{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:8px;padding:10px 12px}
+.top h1{font-size:18px;font-weight:800;color:var(--g-d);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tabs{max-width:1100px;margin:0 auto;display:flex;gap:6px;overflow-x:auto;padding:0 12px 10px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;font-weight:600;font-size:14px;white-space:nowrap}
+.tab.on{background:var(--g);border-color:var(--g);color:#fff}
+.tcnt{margin-left:6px;background:var(--red);color:#fff;border-radius:999px;font-size:11px;padding:1px 7px;font-weight:800}
+.tab.on .tcnt{background:#fff;color:var(--red)}
+.chk2{display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:6px 0}.chk2 input{width:18px;height:18px;margin-top:2px;flex:none}
+main{max-width:1100px;margin:0 auto;padding:14px 12px 120px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:12px;padding:9px 14px;font-weight:700;font-size:14px;background:var(--g);color:#fff;white-space:nowrap}
+.btn.out{background:#fff;color:var(--g-d);border:1.5px solid var(--g)}
+.btn.gray{background:#eef2ed;color:var(--txt)}
+.btn.red{background:#fff;color:var(--red);border:1.5px solid #f2b8b3}
+.btn.sm{padding:6px 10px;font-size:13px;border-radius:10px}
+.btn.full{width:100%}
+.btn[disabled]{opacity:.55;pointer-events:none}
+.ib{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:#fff;display:inline-grid;place-items:center;font-size:15px;flex:none}
+.ib:disabled{opacity:.35}
+.ib.red{color:var(--red)}
+.card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:12px}
+.card h2{font-size:17px;margin-bottom:8px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.bar .grow{flex:1;min-width:160px}
+.inp{width:100%;border:1px solid #cdd7cc;border-radius:10px;padding:9px 11px;background:#fff;outline:0}
+.inp:focus{border-color:var(--g);box-shadow:0 0 0 3px var(--g-l)}
+.row{display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:10px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.row.dim{opacity:.55}
+.th{width:52px;height:52px;border-radius:10px;flex:none;display:grid;place-items:center;font-size:26px;overflow:hidden;position:relative;background:var(--g-l)}
+.th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.rm{flex:1;min-width:0}
+.rm b{display:block;font-size:14px;line-height:1.25;overflow:hidden;text-overflow:ellipsis}
+.rm small{display:block;color:var(--mut);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acts{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:560px){.row{flex-wrap:wrap}.row .rm{flex:1 1 calc(100% - 66px)}.row .acts{width:100%;padding-top:6px;border-top:1px dashed var(--line)}.row small{white-space:normal}}
+.tag{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;background:var(--g-l);color:var(--g-d);margin-right:4px}
+.tag.o{background:#fff1e0;color:#b45309}.tag.r{background:#fdecea;color:var(--red)}.tag.b{background:#e3f2fd;color:#0d47a1}
+.note{background:#fff8e1;border:1px solid #ffe08a;border-radius:12px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+.note.g{background:var(--g-l);border-color:#bfe3c4}
+.note.r{background:#fdecea;border-color:#f5c2bd}
+.empty{text-align:center;color:var(--mut);padding:30px 10px}
+/* forms */
+.fg{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:700px){.fg{grid-template-columns:1fr 1fr}.fld.full{grid-column:1/-1}}
+.fld label.l{display:block;font-size:13px;font-weight:700;margin-bottom:4px}
+.fld input[type=text],.fld input[type=number],.fld input[type=password],.fld select,.fld textarea{width:100%;border:1px solid #cdd7cc;border-radius:10px;padding:9px 11px;background:#fff;outline:0}
+.fld textarea{min-height:80px;resize:vertical}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--g);box-shadow:0 0 0 3px var(--g-l)}
+.fld input[type=color]{width:56px;height:38px;border:1px solid #cdd7cc;border-radius:10px;padding:2px;background:#fff}
+.fld .help{display:block;color:var(--mut);font-size:12px;margin-top:3px}
+.fld .err{display:block;color:var(--red);font-size:12px;margin-top:3px}
+.fld.bad input,.fld.bad select,.fld.bad textarea,.fld.bad .secs{border-color:var(--red)!important}
+.chk{display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer;padding:8px 0}
+.chk input{width:20px;height:20px;accent-color:var(--g)}
+.imgf{display:grid;gap:8px}
+.imgprev{width:100%;max-width:260px;aspect-ratio:16/10;border-radius:12px;border:1px dashed #b7c4b6;display:grid;place-items:center;color:var(--mut);font-size:13px;overflow:hidden;position:relative;background:#fafcf9}
+.imgprev img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.imgbtns{display:flex;gap:6px;flex-wrap:wrap}
+.upl{position:relative;overflow:hidden}
+.upl input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.mimgs{display:flex;gap:8px;flex-wrap:wrap}
+.mimg{width:74px;height:74px;border-radius:10px;overflow:hidden;position:relative;border:1px solid var(--line);background:#fafcf9}
+.mimg img{width:100%;height:100%;object-fit:cover}
+.mimg button{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:12px}
+.secs{display:grid;gap:4px;border:1px solid #cdd7cc;border-radius:10px;padding:8px;max-height:260px;overflow:auto;background:#fff}
+.secs label{display:flex;gap:8px;align-items:center;padding:4px;border-radius:8px;cursor:pointer}
+.secs label:hover{background:var(--g-l)}
+.secs input{width:18px;height:18px;accent-color:var(--g)}
+.lnk{display:grid;grid-template-columns:150px 1fr;gap:6px}
+@media(max-width:480px){.lnk{grid-template-columns:1fr}}
+/* modal */
+.mb{position:fixed;inset:0;background:rgba(10,20,12,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+@media(min-width:700px){.mb{align-items:center;padding:20px}}
+.md{background:#fff;width:100%;max-width:760px;max-height:92vh;border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden}
+@media(min-width:700px){.md{border-radius:20px}}
+.md-h{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.md-h b{flex:1;font-size:17px}
+.md-b{padding:16px;overflow:auto;flex:1}
+.md-f{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--line);background:#fafcf9;padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+.md-f .btn{flex:1}
+@media(min-width:700px){.md-f .btn{flex:none;min-width:120px}}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#1c2b20;color:#fff;padding:10px 16px;border-radius:12px;font-weight:600;font-size:14px;z-index:300;opacity:0;transition:all .25s;pointer-events:none;max-width:92vw;text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--red)}
+.savebar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:#fdecea;border-top:1px solid #f5c2bd;padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:center;font-weight:600}
+.login{max-width:380px;margin:12vh auto 0;padding:0 16px}
+.login .card{padding:22px}
+.status{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:#eef2ed}
+.status.new{background:#fff1e0;color:#b45309}.status.confirmed,.status.contacted{background:#e3f2fd;color:#0d47a1}
+.status.paid,.status.shipped{background:#ede7f6;color:#4527a0}.status.delivered,.status.closed{background:var(--g-l);color:var(--g-d)}.status.cancelled{background:#fdecea;color:var(--red)}
+.kv{font-size:14px;display:grid;gap:3px;margin:6px 0}
+.kv span{color:var(--mut)}
+.sl-list .row{padding:8px}
+.pos{border:2px solid var(--g);background:var(--g-l);border-radius:12px;padding:10px;margin-bottom:12px}
+.pos label{font-weight:800;display:block;margin-bottom:6px}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:12px}
+.stat{background:#fff;border-radius:14px;padding:12px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.stat b{display:block;font-size:22px;color:var(--g-d)}
+.stat small{color:var(--mut)}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-3px}
+@keyframes sp{to{transform:rotate(360deg)}}
+table.imp{width:100%;border-collapse:collapse;font-size:14px}
+table.imp td,table.imp th{padding:6px;border-bottom:1px solid var(--line);text-align:left}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+<script src="config.js"></script>
+<script src="lic.js?v=1" data-app="admin"></script>
+<script src="core.js"></script>
+<script src="xlsx-lite.js"></script>
+<script src="auth.js"></script>
+<script>
+(function () {
+'use strict';
+var esc = SP.esc;
+var $ = function (s, r) { return (r || document).querySelector(s); };
+var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+var app = $('#app');
+var PASS = SP.ss.get('sp_admin_pass') || SP.ls.get('sp_admin_pass_keep', null) || '';
+function isTok(x) { return /^[0-9a-f]{48}$/.test(x || ''); }
+var D = null, IS_DEMO = false, TAB = SP.ss.get('sp_admin_tab') || 'layout', UP = 0, saveChain = Promise.resolve(), dirty = false;
+var PROD_FILTER = { q: '', sec: '' };
+var CFG = window.SP_CONFIG || {};
+function storeBase() { return String(CFG.STORE_URL || (D && D.settings && D.settings.siteUrl) || '').replace(/\/+$/, ''); }
+function storeLink() { return storeBase() || '../'; }
+
+function toast(m, err) { var el = $('#toast'); el.textContent = m; el.className = 'toast on' + (err ? ' err' : ''); clearTimeout(toast._t); toast._t = setTimeout(function () { el.className = 'toast'; }, err ? 4200 : 2400); }
+function isObj(o) { return o && typeof o === 'object' && !Array.isArray(o); }
+function getPath(o, p) { return p.split('.').reduce(function (a, k) { return a == null ? undefined : a[k]; }, o); }
+function setPath(o, p, v) { var ks = p.split('.'), a = o; for (var i = 0; i < ks.length - 1; i++) { if (!isObj(a[ks[i]])) a[ks[i]] = {}; a = a[ks[i]]; } a[ks[ks.length - 1]] = v; }
+function sec(id) { return D.sections.filter(function (s) { return s.id === id; })[0]; }
+function prod(id) { return D.products.filter(function (p) { return p.id === id; })[0]; }
+function ssById(id) { return D.slideshows.filter(function (s) { return s.id === id; })[0]; }
+function thumb(src, emoji, bg) { return '<div class="th" style="background:' + esc(bg || '#e8f5e9') + '">' + esc(emoji || '🖼️') + (SP.isImg(src) ? '<img src="' + esc(src) + '" alt="" loading="lazy" onerror="this.remove()">' : '') + '</div>'; }
+function download(blob, name) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
+function today() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function fmtDate(s) { try { return new Date(s).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }); } catch (e) { return s; } }
+
+/* ======================= modal / confirm ======================= */
+function modal(title, body, actions, onOpen) {
+  var bg = document.createElement('div'); bg.className = 'mb';
+  bg.innerHTML = '<div class="md" role="dialog" aria-modal="true"><div class="md-h"><b>' + esc(title) + '</b><button class="ib" data-x aria-label="Close">✕</button></div><div class="md-b"></div><div class="md-f"></div></div>';
+  var b = $('.md-b', bg); if (typeof body === 'string') b.innerHTML = body; else b.appendChild(body);
+  var f = $('.md-f', bg), m = { el: bg, body: b, close: function () { bg.remove(); if (!$('.mb')) document.body.style.overflow = ''; } };
+  (actions || [{ l: 'बंद करें', cls: 'gray' }]).forEach(function (a) {
+    var btn = document.createElement('button'); btn.className = 'btn ' + (a.cls || ''); btn.innerHTML = a.l; if (a.id) btn.id = a.id;
+    btn.addEventListener('click', async function () {
+      if (!a.fn) return m.close();
+      if (btn.disabled) return;
+      btn.disabled = true; var old = btn.innerHTML; btn.innerHTML = '<span class="spin"></span>';
+      try { var r = await a.fn(m); if (r !== false) m.close(); } catch (e) { console.error(e); toast(e.message || String(e), true); }
+      btn.disabled = false; btn.innerHTML = old;
+    });
+    f.appendChild(btn);
+  });
+  $('[data-x]', bg).addEventListener('click', m.close);
+  document.body.appendChild(bg); document.body.style.overflow = 'hidden';
+  if (onOpen) onOpen(m);
+  return m;
+}
+function ask(msg, okLabel, danger) {
+  return new Promise(function (res) {
+    var done = false;
+    var m = modal('पुष्टि करें', '<p style="font-size:16px">' + msg + '</p>', [
+      { l: 'रद्द करें', cls: 'gray', fn: function () { done = true; res(false); } },
+      { l: okLabel || 'हाँ', cls: danger ? 'red' : '', fn: function () { done = true; res(true); } }]);
+    $('[data-x]', m.el).addEventListener('click', function () { if (!done) res(false); });
+  });
+}
+
+/* ======================= form builder ======================= */
+var LINK_TYPES = [['none', '— कोई लिंक नहीं —'], ['section', 'Section / Category खोलें'], ['product', 'Product खोलें'], ['form', 'Requirement Form खोलें'], ['whatsapp', 'WhatsApp पर मैसेज'], ['call', 'कॉल करें'], ['url', 'कोई भी वेबसाइट URL']];
+var fid = 0;
+function F(fields, obj) { return '<div class="fg">' + fields.map(function (f) { return fieldHtml(f, obj || {}); }).join('') + '</div>'; }
+function fieldHtml(f, obj) {
+  var id = 'f' + (++fid), v = f.t === 'link' ? null : getPath(obj, f.k), lab = '<label class="l" for="' + id + '">' + esc(f.l) + (f.req ? ' <span style="color:var(--red)">*</span>' : '') + '</label>';
+  var help = f.h ? '<small class="help">' + f.h + '</small>' : '', inner = '';
+  if (v === undefined || v === null) v = f.d !== undefined ? f.d : '';
+  switch (f.t) {
+    case 'textarea': inner = lab + '<textarea id="' + id + '" rows="' + (f.rows || 3) + '" placeholder="' + esc(f.ph || '') + '">' + esc(v) + '</textarea>'; break;
+    case 'lines': inner = lab + '<textarea id="' + id + '" rows="' + (f.rows || 5) + '" placeholder="' + esc(f.ph || '') + '">' + esc((Array.isArray(v) ? v : []).join('\n')) + '</textarea>'; break;
+    case 'number': inner = lab + '<input type="number" step="any" inputmode="decimal" id="' + id + '" value="' + esc(v) + '" placeholder="' + esc(f.ph || '') + '">'; break;
+    case 'color': inner = lab + '<input type="color" id="' + id + '" value="' + (/^#[0-9a-f]{6}$/i.test(v) ? v : (f.d || '#e8f5e9')) + '">'; break;
+    case 'select': inner = lab + '<select id="' + id + '">' + f.o.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (String(v) === String(o[0]) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>'; break;
+    case 'check': inner = '<label class="chk"><input type="checkbox" id="' + id + '"' + (v === true || v === 'yes' ? ' checked' : '') + '> ' + esc(f.l) + '</label>'; break;
+    case 'image': inner = lab + '<div class="imgf"><div class="imgprev">' + (SP.isImg(v) ? '<img src="' + esc(v) + '" alt="">' : 'कोई फ़ोटो नहीं') + '</div>' +
+      '<div class="imgbtns"><span class="btn sm upl">📷 फ़ोटो अपलोड<input type="file" accept="image/*"></span><button type="button" class="btn sm gray" data-clr>हटाएँ</button></div>' +
+      '<input type="text" id="' + id + '" class="imgurl" placeholder="या image का URL paste करें" value="' + esc(/^data:/.test(v) ? '' : v) + '" data-full="' + esc(v) + '"></div>'; break;
+    case 'images': inner = lab + '<div class="imgf"><div class="mimgs"></div><div class="imgbtns"><span class="btn sm upl">📷 फ़ोटो जोड़ें<input type="file" accept="image/*" multiple></span></div>' +
+      '<div style="display:flex;gap:6px"><input type="text" class="inp" placeholder="या image URL paste करें"><button type="button" class="btn sm out" data-addurl>जोड़ें</button></div></div>'; break;
+    case 'multisec': inner = lab + '<div class="secs">' + D.sections.map(function (s) {
+        return '<label><input type="checkbox" value="' + esc(s.id) + '"' + ((v || []).indexOf(s.id) >= 0 ? ' checked' : '') + '> ' + esc(s.icon || '') + ' ' + esc(s.title) + ' <span class="tag' + (s.kind === 'update' ? ' o' : '') + '">' + (s.kind === 'update' ? 'Update' : 'Category') + '</span></label>';
+      }).join('') + (D.sections.length ? '' : '<span style="color:var(--mut)">पहले Section बनाएँ</span>') + '</div>'; break;
+    case 'link': inner = lab + '<div class="lnk"><select id="' + id + '" data-lt>' + LINK_TYPES.map(function (o) { return '<option value="' + o[0] + '"' + ((obj.linkType || 'none') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select><div data-ltgt></div></div>'; break;
+    default: inner = lab + '<input type="' + (f.t === 'password' ? 'password' : 'text') + '" id="' + id + '" value="' + esc(v) + '" placeholder="' + esc(f.ph || '') + '"' + (f.max ? ' maxlength="' + f.max + '"' : '') + '>';
+  }
+  return '<div class="fld' + (f.full || ['textarea', 'lines', 'images', 'multisec', 'link'].indexOf(f.t) >= 0 ? ' full' : '') + '" data-k="' + esc(f.k) + '" data-t="' + f.t + '"' +
+    (f.t === 'images' ? ' data-v="' + esc(JSON.stringify(Array.isArray(v) ? v : [])) + '"' : '') + (f.t === 'link' ? ' data-l="' + esc(obj.link || '') + '"' : '') + '>' + inner + help + '<span class="err hide"></span></div>';
+}
+function linkTarget(fld, type, val) {
+  var box = $('[data-ltgt]', fld), h = '';
+  if (type === 'section') h = '<select class="inp">' + D.sections.map(function (s) { return '<option value="' + esc(s.id) + '"' + (s.id === val ? ' selected' : '') + '>' + esc(s.title) + '</option>'; }).join('') + '</select>';
+  else if (type === 'product') h = '<select class="inp">' + SP.sortProducts(D.products).map(function (p) { return '<option value="' + esc(p.id) + '"' + (p.id === val ? ' selected' : '') + '>' + esc(p.title) + '</option>'; }).join('') + '</select>';
+  else if (type === 'url') h = '<input class="inp" type="text" placeholder="https://..." value="' + esc(val) + '">';
+  else if (type === 'whatsapp') h = '<input class="inp" type="text" placeholder="पहले से लिखा मैसेज (वैकल्पिक)" value="' + esc(val) + '">';
+  else if (type === 'call') h = '<input class="inp" type="text" placeholder="फ़ोन नंबर (ख़ाली = स्टोर नंबर)" value="' + esc(val) + '">';
+  else if (type === 'form') h = '<div style="color:var(--mut);font-size:13px;padding-top:8px">ग्राहक का क्लिक → होम पेज का Requirement Form खुलेगा (टाइटल अपने आप भर जाएगा)</div>';
+  box.innerHTML = h;
+}
+function renderMimgs(fld) {
+  var list = fld._list || [];
+  $('.mimgs', fld).innerHTML = list.map(function (u, i) { return '<div class="mimg"><img src="' + esc(u) + '" alt="" onerror="this.style.opacity=.2"><button type="button" data-rmi="' + i + '">✕</button></div>'; }).join('') || '<span style="color:var(--mut);font-size:13px">कोई अतिरिक्त फ़ोटो नहीं</span>';
+}
+async function handleUpload(file) {
+  UP++;
+  try {
+    var r = await SP.storeImage(file);
+    if (r.fallback) toast('⚠️ Cloud storage में अपलोड नहीं हुआ, फ़ोटो छोटी करके सेव की गई' + (r.error ? ' (' + r.error.slice(0, 60) + ')' : ''), true);
+    return r.url;
+  } finally { UP--; }
+}
+function bindForm(root) {
+  $$('.fld[data-t=image]', root).forEach(function (fld) {
+    var inp = $('.imgurl', fld), prev = $('.imgprev', fld), file = $('input[type=file]', fld);
+    function show(u) { prev.innerHTML = SP.isImg(u) ? '<img src="' + esc(u) + '" alt="">' : 'कोई फ़ोटो नहीं'; }
+    inp.addEventListener('input', function () { inp.setAttribute('data-full', inp.value.trim()); show(inp.value.trim()); });
+    $('[data-clr]', fld).addEventListener('click', function () { inp.value = ''; inp.setAttribute('data-full', ''); show(''); });
+    file.addEventListener('change', async function () {
+      var f = file.files[0]; file.value = ''; if (!f) return;
+      prev.innerHTML = '<span><span class="spin"></span> अपलोड हो रहा है…</span>';
+      try { var u = await handleUpload(f); inp.value = /^data:/.test(u) ? '' : u; inp.setAttribute('data-full', u); show(u); }
+      catch (e) { toast(e.message, true); show(inp.getAttribute('data-full')); }
+    });
+  });
+  $$('.fld[data-t=images]', root).forEach(function (fld) {
+    try { fld._list = JSON.parse(fld.getAttribute('data-v') || '[]'); } catch (e) { fld._list = []; }
+    renderMimgs(fld);
+    fld.addEventListener('click', function (e) { var b = e.target.closest('[data-rmi]'); if (b) { fld._list.splice(+b.getAttribute('data-rmi'), 1); renderMimgs(fld); } });
+    $('[data-addurl]', fld).addEventListener('click', function () { var i = $('.inp', fld), u = i.value.trim(); if (!SP.isImg(u)) return toast('सही image URL डालें (https://...)', true); fld._list.push(u); i.value = ''; renderMimgs(fld); });
+    var file = $('input[type=file]', fld);
+    file.addEventListener('change', async function () {
+      var files = Array.prototype.slice.call(file.files); file.value = '';
+      for (var i = 0; i < files.length; i++) {
+        $('.mimgs', fld).insertAdjacentHTML('beforeend', '<div class="mimg" data-tmp style="display:grid;place-items:center"><span class="spin"></span></div>');
+        try { fld._list.push(await handleUpload(files[i])); } catch (e) { toast(e.message, true); }
+        renderMimgs(fld);
+      }
+    });
+  });
+  $$('.fld[data-t=link]', root).forEach(function (fld) {
+    var sel = $('[data-lt]', fld);
+    linkTarget(fld, sel.value, fld.getAttribute('data-l'));
+    sel.addEventListener('change', function () { linkTarget(fld, sel.value, ''); });
+  });
+}
+function readForm(root, fields) {
+  var out = {}, ok = true;
+  if (UP > 0) { toast('⏳ फ़ोटो अपलोड हो रही है, थोड़ा रुकें…', true); return null; }
+  fields.forEach(function (f) {
+    var fld = $$('.fld', root).filter(function (x) { return x.getAttribute('data-k') === f.k; })[0]; if (!fld) return;
+    var el = $('input,select,textarea', fld), v, err = '';
+    switch (f.t) {
+      case 'number': v = el.value.trim() === '' ? (f.d !== undefined ? f.d : 0) : SP.num(el.value); if (f.min !== undefined && v < f.min) err = 'कम से कम ' + f.min; if (f.max !== undefined && v > f.max) err = 'ज़्यादा से ज़्यादा ' + f.max; break;
+      case 'check': v = el.checked; break;
+      case 'lines': v = el.value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean); break;
+      case 'image': v = ($('.imgurl', fld).getAttribute('data-full') || '').trim(); if (v && !SP.isImg(v)) err = 'URL https:// से शुरू होना चाहिए'; break;
+      case 'images': v = (fld._list || []).slice(); break;
+      case 'multisec': v = $$('input:checked', fld).map(function (c) { return c.value; }); if (f.req && !v.length) err = 'कम से कम एक Section चुनें'; break;
+      case 'link': var lt = $('[data-lt]', fld).value, tg = $('[data-ltgt] .inp', fld); out.linkType = lt; out.link = tg ? tg.value.trim() : '';
+        if (lt === 'url' && !out.link) err = 'URL लिखें'; fld.classList.toggle('bad', !!err); $('.err', fld).textContent = err; $('.err', fld).classList.toggle('hide', !err); if (err) ok = false; return;
+      default: v = el.value.trim();
+    }
+    if (f.req && f.t !== 'multisec' && f.t !== 'check' && (v === '' || v === null)) err = 'ज़रूरी है';
+    if (!err && f.v) err = f.v(v) || '';
+    fld.classList.toggle('bad', !!err); var e = $('.err', fld); e.textContent = err; e.classList.toggle('hide', !err);
+    if (err) ok = false;
+    out[f.k] = v;
+  });
+  if (!ok) { var first = $('.fld.bad', root); if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' }); toast('लाल वाले फ़ील्ड ठीक करें', true); return null; }
+  return out;
+}
+function applyTo(obj, vals) { for (var k in vals) setPath(obj, k, vals[k]); return obj; }
+
+/* ======================= save ======================= */
+function save(msg) {
+  saveChain = saveChain.then(async function () {
+    var data = SP.normalize(D), size = JSON.stringify(data).length;
+    try {
+      await SP.rpc('sp_save_store', { p_pass: PASS, p_data: data }, 60000);
+      IS_DEMO = false; dirty = false; SP.ls.set(SP.CACHE_KEY, data);
+      toast(msg || '✅ सेव हो गया — वेबसाइट पर लाइव');
+      if (size > 4e6) toast('⚠️ डेटा बड़ा हो रहा है (' + Math.round(size / 1e6) + 'MB) — फ़ोटो Storage में अपलोड करें', true);
+    } catch (e) {
+      dirty = true; toast('❌ सेव नहीं हुआ: ' + e.message, true);
+      if (/wrong password/i.test(e.message)) return logout('पासवर्ड बदल गया है — दोबारा लॉगिन करें');
+    }
+    renderSaveBar();
+  });
+  return saveChain;
+}
+function renderSaveBar() {
+  var b = $('#savebar');
+  if (!dirty) { if (b) b.remove(); return; }
+  if (!b) { b = document.createElement('div'); b.id = 'savebar'; b.className = 'savebar'; document.body.appendChild(b); }
+  b.innerHTML = '⚠️ बदलाव सेव नहीं हुए <button class="btn sm" id="retry">दोबारा सेव करें</button>';
+  $('#retry').onclick = function () { save(); };
+}
+window.addEventListener('beforeunload', function (e) { if (dirty || UP > 0) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ======================= login ======================= */
+function loginView(msg) {
+  app.innerHTML = '<div class="login"><div class="card" id="lgCard"><div class="empty"><span class="spin"></span></div></div></div>';
+  SP.rpc('crm_auth_mode', { p: {} }).then(function (m) { if (m && m.legacy) passLogin(msg); else otpLogin(); }, function (e) { if (/Could not find|PGRST202|schema cache/i.test(e.message)) passLogin(msg); else otpLogin(); });
+  function otpLogin() {
+    var c = $('#lgCard');
+    c.innerHTML = (msg ? '<div class="note r">' + esc(msg) + '</div>' : '') + '<div id="authBox"></div><p style="margin-top:12px;text-align:center"><a href="' + esc(storeLink()) + '">← स्टोर पर जाएँ</a></p>';
+    SPAuth.mount($('#authBox'), { app: 'admin', lang: 'hi', fixedId: 'admin', logo: 'icon-192.png', title: 'Admin Login', sub: 'Sunpowers Store',
+      rpc: function (fn, p) { return SP.rpc(fn, { p: p }); },
+      onDone: async function (r) { PASS = r.token; SP.ss.set('sp_admin_pass', r.token); SP.ls.del('sp_admin_pass_keep'); $('#toast').className = 'toast'; await boot(); } });
+  }
+  function passLogin(m) {   /* only until the CRM database (crm-setup.sql) is installed */
+    $('#lgCard').innerHTML = '<div style="text-align:center"><img src="icon-192.png" alt="" style="width:64px;height:64px;border-radius:16px;display:inline-block"></div><h2 style="text-align:center;margin-bottom:4px">Admin Login</h2>' +
+      '<p style="text-align:center;color:var(--mut);margin-bottom:14px">Sunpowers Store</p>' + (m ? '<div class="note r">' + esc(m) + '</div>' : '') +
+      '<form id="lf"><div class="fld"><label class="l" for="pw">पासवर्ड</label><input type="password" id="pw" autocomplete="current-password" required></div>' +
+      '<label class="chk"><input type="checkbox" id="keep"> इस डिवाइस पर लॉगिन याद रखें</label>' +
+      '<button class="btn full" id="lb" style="margin-top:6px">लॉगिन</button></form>' +
+      '<p style="margin-top:12px;text-align:center"><a href="' + esc(storeLink()) + '">← स्टोर पर जाएँ</a></p>';
+    $('#pw').focus();
+    $('#lf').addEventListener('submit', async function (e) {
+      e.preventDefault(); var b = $('#lb'), pw = $('#pw').value; if (!pw) return;
+      b.disabled = true; b.innerHTML = '<span class="spin"></span> जाँच हो रही है…';
+      try {
+        await SP.rpc('sp_admin_login', { p_pass: pw });
+        PASS = pw; SP.ss.set('sp_admin_pass', pw); $('#toast').className = 'toast'; if ($('#keep').checked) SP.ls.set('sp_admin_pass_keep', pw); else SP.ls.del('sp_admin_pass_keep');
+        await boot();
+      } catch (err) { b.disabled = false; b.textContent = 'लॉगिन'; toast(/wrong password/i.test(err.message) ? '❌ गलत पासवर्ड' : err.message, true); }
+    });
+  }
+}
+function logout(msg) { clearInterval(POLL); if (isTok(PASS)) SP.rpc('crm_logout', { p: { token: PASS } }).catch(function () {}); PASS = ''; SP.ss.del('sp_admin_pass'); SP.ls.del('sp_admin_pass_keep'); D = null; dirty = false; renderSaveBar(); loginView(msg); }
+
+async function boot() {
+  app.innerHTML = '<div class="empty"><span class="spin"></span> लोड हो रहा है…</div>';
+  try {
+    await SP.rpc('sp_admin_login', { p_pass: PASS });
+    var d = await SP.rpc('sp_get_store', {});
+    if (d && isObj(d) && Array.isArray(d.layout)) { D = SP.normalize(d); IS_DEMO = false; } else { D = SP.normalize(SP.demo()); IS_DEMO = true; }
+    shell();
+  } catch (e) {
+    if (/wrong password/i.test(e.message)) return logout(isTok(PASS) ? 'लॉगिन का समय पूरा — PIN दोबारा डालें' : 'पासवर्ड गलत है या बदल गया है');
+    app.innerHTML = '<div class="login"><div class="card"><h2>⚠️ डेटाबेस से कनेक्ट नहीं हो पाया</h2><p style="margin:8px 0">' + esc(e.message) + '</p>' +
+      '<p style="color:var(--mut);font-size:14px">चेक करें: (1) इंटरनेट, (2) config.js में Supabase URL/Key, (3) Supabase SQL Editor में setup.sql चलाया है।</p>' +
+      '<button class="btn full" id="rt" style="margin-top:10px">दोबारा कोशिश करें</button><button class="btn gray full" id="lo" style="margin-top:8px">लॉगआउट</button></div></div>';
+    $('#rt').onclick = boot; $('#lo').onclick = function () { logout(); };
+  }
+}
+
+/* ======================= shell & tabs ======================= */
+var TABS = [['layout', '🏠 होम लेआउट'], ['products', '📦 प्रोडक्ट्स'], ['sections', '🗂️ सेक्शन'], ['slides', '🖼️ स्लाइडशो'], ['services', '🛠️ सर्विसेज़'],
+  ['feedback', '⭐ फ़ीडबैक'], ['videos', '▶️ वीडियो'], ['formguide', '📝 फ़ॉर्म व गाइड'], ['pages', '📄 पेज/पॉलिसी'], ['orders', '🧾 ऑर्डर'], ['enquiries', '📨 पूछताछ'], ['crm', '🔗 CRM से आए प्रोडक्ट'], ['excel', '📊 Excel / Feed'], ['settings', '⚙️ सेटिंग्स']];
+function shell() {
+  app.innerHTML = '<div class="top"><div class="top-in"><h1><img src="logo-mark.png" alt="" style="height:30px;vertical-align:-7px;margin-right:6px">' + esc(D.settings.storeName) + ' Admin</h1><a class="btn sm out" href="' + esc(storeLink()) + '" target="_blank" rel="noopener">🌐 स्टोर देखें</a>' + (CFG.CRM_URL ? '<a class="btn sm out" href="' + esc(CFG.CRM_URL) + '" target="_blank" rel="noopener">📊 CRM</a>' : '') + '<button class="btn sm gray" id="lo">लॉगआउट</button></div>' +
+    '<div class="tabs">' + TABS.map(function (t) { return '<button class="tab" data-tab="' + t[0] + '">' + t[1] + '<span class="tcnt hide" data-cnt="' + t[0] + '"></span></button>'; }).join('') + '</div></div><main id="main"></main>';
+  startPolling();
+  $('#lo').onclick = async function () { if (dirty && !(await ask('कुछ बदलाव सेव नहीं हुए हैं। फिर भी लॉगआउट करें?', 'लॉगआउट', true))) return; logout(); };
+  $$('.tab').forEach(function (b) { b.onclick = function () { showTab(b.getAttribute('data-tab')); }; });
+  showTab(TABS.some(function (t) { return t[0] === TAB; }) ? TAB : 'layout');
+}
+function showTab(t) {
+  TAB = t; SP.ss.set('sp_admin_tab', t);
+  if (t === 'orders' || t === 'enquiries') LISTDATA[t] = null;
+  if (t === 'crm') CRMITEMS = null;
+  $$('.tab').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === t); });
+  var on = $('.tab.on'); if (on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest', inline: 'center' });
+  render();
+}
+function render() {
+  var old = $('#main'); if (!old) return;
+  var m = old.cloneNode(false); old.parentNode.replaceChild(m, old);
+  var demo = IS_DEMO ? '<div class="note">🧪 <b>अभी डेमो डेटा दिख रहा है</b> (डेटाबेस में अभी कुछ सेव नहीं है)। कोई भी बदलाव सेव करते ही ये सब आपकी वेबसाइट पर लाइव हो जाएगा। <button class="btn sm" id="pubDemo" style="margin-top:6px">✅ डेमो डेटा अभी पब्लिश करें</button></div>' : '';
+  try { m.innerHTML = demo + (V[TAB] ? V[TAB]() : ''); if (V[TAB + '_bind']) V[TAB + '_bind'](m); }
+  catch (e) { console.error(e); m.innerHTML = '<div class="note r">Error: ' + esc(e.message) + '</div>'; }
+  var pd = $('#pubDemo'); if (pd) pd.onclick = function () { save('✅ डेमो डेटा पब्लिश हो गया').then(render); };
+}
+var V = {};
+
+/* ======================= layout & positions ======================= */
+var SINGLE_LABEL = { services: '🛠️ सर्विसेज़ कार्ड्स', chips: '🔘 कैटेगरी बटन (चिप्स)', form: '📝 Requirement फ़ॉर्म', howto: '🛍️ ऑर्डर कैसे करें (गाइड)', feedback: '⭐ ग्राहकों की राय', videos: '▶️ YouTube वीडियो' };
+function blockLabel(b) {
+  if (b.type === 'section') { var s = sec(b.ref); return s ? (s.kind === 'update' ? '🔥 ' : '📦 ') + s.title : '?'; }
+  if (b.type === 'slideshow') { var ss = ssById(b.ref); return ss ? '🖼️ ' + ss.name : '?'; }
+  return SINGLE_LABEL[b.type] || b.type;
+}
+function blockSub(b) {
+  if (b.type === 'section') { var s = sec(b.ref); return s ? (s.kind === 'update' ? 'Update सेक्शन' : 'Category सेक्शन') + ' • ' + SP.productsOf(D, s.id, true).length + ' प्रोडक्ट • होम पर ' + s.limit + ' दिखेंगे' : ''; }
+  if (b.type === 'slideshow') { var ss = ssById(b.ref); return ss ? 'Slideshow • ' + ss.slides.length + ' स्लाइड • ' + ss.interval + ' सेकंड • ' + (ss.effect === 'fade' ? 'Fade' : 'Slide') : ''; }
+  return 'Block';
+}
+function posSelect(def) {
+  var opts = '<option value="0">⬆️ सबसे ऊपर (Store name / Search bar के ठीक नीचे)</option>' + D.layout.map(function (b, i) {
+    return '<option value="' + (i + 1) + '">' + (i + 1) + '. ' + esc(blockLabel(b)) + ' — के नीचे</option>';
+  }).join('');
+  var d = def === undefined ? D.layout.length : def;
+  return '<div class="pos"><label for="posSel">📍 होम पेज पर कहाँ दिखाना है?</label><select class="inp" id="posSel">' + opts.replace('value="' + d + '"', 'value="' + d + '" selected') + '</select></div>';
+}
+function insertBlock(block, pos) { pos = Math.max(0, Math.min(D.layout.length, parseInt(pos, 10))); if (!isFinite(pos)) pos = D.layout.length; block.id = SP.uid('b'); block.hidden = false; D.layout.splice(pos, 0, block); }
+V.layout = function () {
+  var missing = SP.SINGLE_BLOCKS.filter(function (t) { return !D.layout.some(function (b) { return b.type === t; }); });
+  return '<div class="note g">👇 ये आपके होम पेज का क्रम है (ऊपर से नीचे)। ⬆️⬇️ से जगह बदलें, 👁 से छुपाएँ/दिखाएँ। सबसे ऊपर हमेशा <b>Store name + Search bar</b> रहेगा।</div>' +
+    '<div class="bar"><button class="btn" id="addSec">➕ नया सेक्शन</button><button class="btn" id="addSS">➕ नया स्लाइडशो</button>' + (missing.length ? '<button class="btn out" id="addBlk">➕ दूसरा ब्लॉक</button>' : '') + '</div>' +
+    '<div class="row" style="background:#eef2ed"><div class="th">🔝</div><div class="rm"><b>Store name + Search bar</b><small>हमेशा सबसे ऊपर (सेटिंग्स से बदलें)</small></div></div>' +
+    D.layout.map(function (b, i) {
+      return '<div class="row' + (b.hidden ? ' dim' : '') + '"><div class="th" style="font-size:15px;font-weight:800">' + (i + 1) + '</div><div class="rm"><b>' + esc(blockLabel(b)) + (b.hidden ? ' <span class="tag r">छुपा है</span>' : '') + '</b><small>' + esc(blockSub(b)) + '</small></div>' +
+        '<div class="acts"><button class="ib" data-mv="' + i + '" data-d="-1"' + (i === 0 ? ' disabled' : '') + ' title="ऊपर">⬆️</button><button class="ib" data-mv="' + i + '" data-d="1"' + (i === D.layout.length - 1 ? ' disabled' : '') + ' title="नीचे">⬇️</button>' +
+        '<button class="ib" data-hd="' + i + '" title="छुपाएँ/दिखाएँ">' + (b.hidden ? '🚫' : '👁') + '</button><button class="ib" data-ed="' + i + '" title="एडिट">✏️</button><button class="ib red" data-dl="' + i + '" title="हटाएँ">🗑</button></div></div>';
+    }).join('');
+};
+V.layout_bind = function (m) {
+  $('#addSec').onclick = function () { sectionModal(null); };
+  $('#addSS').onclick = function () { slideshowModal(null); };
+  var ab = $('#addBlk'); if (ab) ab.onclick = addBlockModal;
+  m.addEventListener('click', async function (e) {
+    var b;
+    if ((b = e.target.closest('[data-mv]'))) { var i = +b.getAttribute('data-mv'), j = i + (+b.getAttribute('data-d')); if (j < 0 || j >= D.layout.length) return; var x = D.layout.splice(i, 1)[0]; D.layout.splice(j, 0, x); render(); save('✅ क्रम बदल गया'); }
+    else if ((b = e.target.closest('[data-hd]'))) { var bl = D.layout[+b.getAttribute('data-hd')]; bl.hidden = !bl.hidden; render(); save(bl.hidden ? '🚫 होम पेज से छुपा दिया' : '👁 होम पेज पर दिख रहा है'); }
+    else if ((b = e.target.closest('[data-ed]'))) { var be = D.layout[+b.getAttribute('data-ed')]; editBlock(be); }
+    else if ((b = e.target.closest('[data-dl]'))) { deleteBlock(D.layout[+b.getAttribute('data-dl')]); }
+  });
+};
+function editBlock(b) {
+  if (b.type === 'section') return sectionModal(sec(b.ref));
+  if (b.type === 'slideshow') return slideshowEditor(b.ref);
+  var map = { services: 'services', feedback: 'feedback', videos: 'videos', form: 'formguide', howto: 'formguide', chips: 'sections' };
+  showTab(map[b.type] || 'layout');
+}
+async function deleteBlock(b) {
+  if (b.type === 'section') return deleteSection(b.ref);
+  if (b.type === 'slideshow') return deleteSlideshow(b.ref);
+  if (!(await ask('"' + esc(blockLabel(b)) + '" को होम पेज से हटाएँ? (बाद में "➕ दूसरा ब्लॉक" से वापस जोड़ सकते हैं)', 'हटाएँ', true))) return;
+  D.layout = D.layout.filter(function (x) { return x !== b; }); render(); save('🗑 हटा दिया');
+}
+function addBlockModal() {
+  var missing = SP.SINGLE_BLOCKS.filter(function (t) { return !D.layout.some(function (b) { return b.type === t; }); });
+  modal('➕ ब्लॉक जोड़ें', '<div class="fld"><label class="l" for="blkType">कौन सा ब्लॉक?</label><select class="inp" id="blkType">' + missing.map(function (t) { return '<option value="' + t + '">' + SINGLE_LABEL[t] + '</option>'; }).join('') + '</select></div><div style="height:12px"></div>' + posSelect(),
+    [{ l: 'रद्द करें', cls: 'gray' }, { l: '✅ जोड़ें', fn: function (md) { insertBlock({ type: $('#blkType', md.el).value }, $('#posSel', md.el).value); render(); return save('✅ ब्लॉक जुड़ गया'); } }]);
+}
+
+/* ======================= sections ======================= */
+var SEC_FIELDS = [
+  { k: 'title', l: 'सेक्शन का नाम (होम पेज पर दिखेगा)', t: 'text', req: true, ph: 'जैसे: सोलर पैनल' },
+  { k: 'titleEn', l: 'English नाम (वैकल्पिक)', t: 'text', ph: 'Solar Panels' },
+  { k: 'subtitle', l: 'छोटी लाइन (वैकल्पिक)', t: 'text' },
+  { k: 'icon', l: 'आइकन (Emoji)', t: 'text', max: 8, ph: '☀️' },
+  { k: 'kind', l: 'सेक्शन का प्रकार', t: 'select', o: [['category', 'Category सेक्शन (ग्रिड में 6-8 प्रोडक्ट)'], ['update', 'Update सेक्शन (स्लाइड होने वाली पट्टी, 4-6 प्रोडक्ट)']] },
+  { k: 'limit', l: 'होम पेज पर कितने प्रोडक्ट दिखें? (बाकी "सभी देखें" में)', t: 'number', min: 1, max: 40, d: 8 },
+  { k: 'visible', l: 'वेबसाइट पर दिखाएँ', t: 'check', d: true }];
+function sectionModal(s, after) {
+  var isNew = !s, obj = s ? s : SP.clone(SP.SECTION_DEF);
+  if (isNew) obj.title = '';
+  modal(isNew ? '➕ नया सेक्शन' : '✏️ सेक्शन एडिट', (isNew ? posSelect() : '') + F(SEC_FIELDS, obj), [{ l: 'रद्द करें', cls: 'gray' }, { l: isNew ? '✅ बनाएँ' : '💾 सेव करें', fn: function (md) {
+    var v = readForm(md.body, SEC_FIELDS); if (!v) return false;
+    if (isNew) { var ns = applyTo(SP.clone(SP.SECTION_DEF), v); ns.id = SP.uid('sec'); D.sections.push(ns); insertBlock({ type: 'section', ref: ns.id }, $('#posSel', md.el).value); if (after) after(ns); }
+    else applyTo(s, v);
+    render(); return save(isNew ? '✅ सेक्शन बन गया' : '✅ सेक्शन सेव हो गया');
+  } }], function (md) { bindForm(md.body); });
+}
+async function deleteSection(id) {
+  var s = sec(id); if (!s) return;
+  var n = SP.productsOf(D, id, true).length;
+  if (!(await ask('सेक्शन "<b>' + esc(s.title) + '</b>" डिलीट करें?<br><small>इसके ' + n + ' प्रोडक्ट डिलीट नहीं होंगे, बस इस सेक्शन से हट जाएँगे।</small>', 'डिलीट', true))) return;
+  D.sections = D.sections.filter(function (x) { return x.id !== id; });
+  D.products.forEach(function (p) { p.sections = p.sections.filter(function (x) { return x !== id; }); });
+  D.layout = D.layout.filter(function (b) { return !(b.type === 'section' && b.ref === id); });
+  render(); save('🗑 सेक्शन डिलीट हो गया');
+}
+V.sections = function () {
+  return '<div class="bar"><button class="btn" id="addSec2">➕ नया सेक्शन</button></div>' +
+    (D.sections.length ? D.sections.map(function (s) {
+      var n = SP.productsOf(D, s.id, true).length, inLayout = D.layout.some(function (b) { return b.ref === s.id; });
+      return '<div class="row' + (s.visible === false ? ' dim' : '') + '"><div class="th">' + esc(s.icon || (s.kind === 'update' ? '🔥' : '📦')) + '</div><div class="rm"><b>' + esc(s.title) + '</b><small><span class="tag' + (s.kind === 'update' ? ' o' : '') + '">' + (s.kind === 'update' ? 'Update' : 'Category') + '</span>' + n + ' प्रोडक्ट • होम पर ' + s.limit + (inLayout ? '' : ' • <b style="color:var(--red)">होम पेज पर नहीं</b>') + (s.visible === false ? ' • छुपा है' : '') + '</small></div>' +
+        '<div class="acts"><button class="btn sm out" data-sp="' + esc(s.id) + '">प्रोडक्ट</button><button class="ib" data-se="' + esc(s.id) + '">✏️</button><button class="ib red" data-sd="' + esc(s.id) + '">🗑</button></div></div>';
+    }).join('') : '<div class="empty">कोई सेक्शन नहीं</div>');
+};
+V.sections_bind = function (m) {
+  $('#addSec2').onclick = function () { sectionModal(null); };
+  m.addEventListener('click', function (e) {
+    var b;
+    if ((b = e.target.closest('[data-se]'))) sectionModal(sec(b.getAttribute('data-se')));
+    else if ((b = e.target.closest('[data-sd]'))) deleteSection(b.getAttribute('data-sd'));
+    else if ((b = e.target.closest('[data-sp]'))) { PROD_FILTER = { q: '', sec: b.getAttribute('data-sp') }; showTab('products'); }
+  });
+};
+
+/* ======================= products ======================= */
+function productFields() {
+  return [
+    { k: 'sections', l: 'ये प्रोडक्ट किस सेक्शन में दिखेगा? (एक से ज़्यादा चुन सकते हैं)', t: 'multisec', req: true },
+    { k: 'title', l: 'प्रोडक्ट का नाम (मुख्य)', t: 'text', req: true, ph: 'जैसे: मोनो PERC सोलर पैनल 540W' },
+    { k: 'titleEn', l: 'English नाम (Google/Facebook के लिए अच्छा)', t: 'text', ph: 'Mono PERC Solar Panel 540W' },
+    { k: 'mrp', l: 'Sale Price / MRP (₹)', t: 'number', min: 0, ph: '16500' },
+    { k: 'offer', l: 'Offer Price (₹) — छूट वाली कीमत', t: 'number', min: 0, ph: '13999', h: 'ख़ाली या 0 = कोई छूट नहीं (Sale Price ही दिखेगा)' },
+    { k: 'tagline', l: 'टैगलाइन (कार्ड पर छोटी लाइन)', t: 'text', ph: '25 साल वारंटी' },
+    { k: 'badge', l: 'बैज (वैकल्पिक)', t: 'text', ph: 'Bestseller / New / Sale' },
+    { k: 'image', l: 'मुख्य फ़ोटो (Main image)', t: 'image', h: 'सबसे अच्छा: चौकोर (1:1) फ़ोटो, सफ़ेद बैकग्राउंड' },
+    { k: 'images', l: 'और फ़ोटो (Additional images)', t: 'images' },
+    { k: 'desc', l: 'विवरण (Description)', t: 'textarea', rows: 5 },
+    { k: 'descEn', l: 'English Description (वैकल्पिक)', t: 'textarea', rows: 3 },
+    { k: 'stock', l: 'स्टॉक', t: 'select', o: [['in', '✅ स्टॉक में है'], ['out', '❌ स्टॉक ख़त्म']] },
+    { k: 'unit', l: 'यूनिट (वैकल्पिक)', t: 'text', ph: 'पीस / सेट / kW' },
+    { k: 'emoji', l: 'फ़ोटो न हो तो Emoji', t: 'text', max: 8 },
+    { k: 'bg', l: 'कार्ड का बैकग्राउंड रंग', t: 'color', d: '#e8f5e9' },
+    { k: 'link', l: 'बाहरी लिंक (वैकल्पिक — "और जानकारी" बटन)', t: 'text', ph: 'https://...' },
+    { k: 'sku', l: 'SKU / मॉडल नंबर', t: 'text' },
+    { k: 'brand', l: 'ब्रांड', t: 'text', ph: 'Sunpowers' },
+    { k: 'sort', l: 'क्रम संख्या (छोटी संख्या पहले दिखेगी)', t: 'number', d: 0, h: 'नया प्रोडक्ट अपने आप सबसे पहले दिखता है' },
+    { k: 'visible', l: 'वेबसाइट पर दिखाएँ (Publish)', t: 'check', d: true }];
+}
+function validPrice(v) {
+  if (SP.num(v.mrp) <= 0 && SP.num(v.offer) <= 0) { toast('Sale Price या Offer Price में से कम से कम एक भरें', true); return false; }
+  if (SP.num(v.mrp) > 0 && SP.num(v.offer) > SP.num(v.mrp)) { toast('Offer Price, Sale Price/MRP से ज़्यादा नहीं हो सकता', true); return false; }
+  return true;
+}
+function productModal(p, preSecs, opt) {
+  opt = opt || {};
+  var isNew = !p, obj = p ? (opt.prefill ? Object.assign(SP.clone(p), opt.prefill) : p) : Object.assign(SP.clone(SP.PRODUCT_DEF), opt.prefill || {}), fields = productFields();
+  if (isNew) { obj.sections = preSecs || obj.sections || []; obj.brand = obj.brand || D.settings.brand || ''; obj.sort = Math.min(0, Math.min.apply(null, D.products.map(function (x) { return SP.num(x.sort); }).concat([0]))) - 1; }
+  modal(opt.title || (isNew ? '➕ नया प्रोडक्ट — विवरण भरें' : '✏️ प्रोडक्ट एडिट'), (opt.top || '') + F(fields, obj), [{ l: 'रद्द करें', cls: 'gray' }, { l: opt.okLabel || (isNew ? '🚀 Publish करें' : '💾 सेव करें'), fn: async function (md) {
+    if (opt.check && !opt.check(md)) return false;
+    var v = readForm(md.body, fields); if (!v || !validPrice(v)) return false;
+    if (v.link && !/^https?:\/\//i.test(v.link)) v.link = 'https://' + v.link;
+    var np = p;
+    if (isNew) { np = applyTo(SP.clone(SP.PRODUCT_DEF), v); np.id = SP.uid('p'); D.products.push(np); } else applyTo(p, v);
+    render(); await save(isNew ? '🚀 प्रोडक्ट पब्लिश हो गया' : '✅ प्रोडक्ट सेव हो गया');
+    if (dirty) return false;
+    if (opt.after) await opt.after(np);
+  } }], function (md) { bindForm(md.body); });
+}
+function newProductWizard() {
+  if (!D.sections.length) { toast('पहले एक सेक्शन बनाएँ', true); return sectionModal(null); }
+  var f = [{ k: 'sections', l: 'ये प्रोडक्ट होम पेज पर किस सेक्शन में दिखेगा?', t: 'multisec', req: true }];
+  modal('➕ नया प्रोडक्ट — स्टेप 1/2', '<div class="note g">स्टेप 1: पहले सेक्शन चुनें (जहाँ प्रोडक्ट दिखेगा)। एक से ज़्यादा भी चुन सकते हैं — जैसे "सोलर पैनल" + "आज के ऑफर"।</div>' + F(f, { sections: PROD_FILTER.sec ? [PROD_FILTER.sec] : [] }) +
+    '<button type="button" class="btn sm out" id="wNewSec" style="margin-top:10px">➕ नया सेक्शन बनाएँ</button>',
+    [{ l: 'रद्द करें', cls: 'gray' }, { l: 'आगे ➜', fn: function (md) { var v = readForm(md.body, f); if (!v) return false; setTimeout(function () { productModal(null, v.sections); }, 0); } }],
+    function (md) { $('#wNewSec', md.el).onclick = function () { md.close(); sectionModal(null, function () { setTimeout(newProductWizard, 50); }); }; });
+}
+function productListHtml() {
+  var ordered = [];
+  D.sections.forEach(function (s) { SP.productsOf(D, s.id, true).forEach(function (p) { if (ordered.indexOf(p) < 0) ordered.push(p); }); });
+  D.products.forEach(function (p) { if (ordered.indexOf(p) < 0) ordered.push(p); });
+  var q = PROD_FILTER.q.toLowerCase(), list = ordered.filter(function (p) {
+    if (PROD_FILTER.sec === '__none') { if (p.sections.length) return false; } else if (PROD_FILTER.sec && p.sections.indexOf(PROD_FILTER.sec) < 0) return false;
+    return !q || (p.title + ' ' + p.titleEn + ' ' + p.sku + ' ' + p.tagline).toLowerCase().indexOf(q) >= 0;
+  });
+  if (!list.length) return '<div class="empty">कोई प्रोडक्ट नहीं मिला</div>';
+  return list.map(function (p) {
+    var secs = p.sections.map(function (id) { var s = sec(id); return s ? s.title : ''; }).filter(Boolean).join(', ');
+    return '<div class="row' + (p.visible === false ? ' dim' : '') + '">' + thumb(p.image || p.images[0], p.emoji, p.bg) + '<div class="rm"><b>' + esc(p.title) + '</b><small><b style="color:var(--txt)">' + SP.money(SP.price(p)) + '</b>' + (SP.discount(p) ? ' <s>' + SP.money(p.mrp) + '</s> (' + SP.discount(p) + '% छूट)' : '') + '</small>' +
+      '<small>' + (p.visible === false ? '<span class="tag r">छुपा है</span>' : '') + (p.stock === 'out' ? '<span class="tag r">स्टॉक ख़त्म</span>' : '') + esc(secs || '⚠️ कोई सेक्शन नहीं') + '</small></div>' +
+      '<div class="acts"><button class="ib" data-pv="' + esc(p.id) + '" title="दिखाएँ/छुपाएँ">' + (p.visible === false ? '🚫' : '👁') + '</button><button class="ib" data-pe="' + esc(p.id) + '" title="एडिट">✏️</button><button class="ib" data-pc="' + esc(p.id) + '" title="कॉपी">📄</button><button class="ib red" data-pd="' + esc(p.id) + '" title="डिलीट">🗑</button></div></div>';
+  }).join('');
+}
+V.products = function () {
+  return '<div class="bar"><button class="btn" id="addP">➕ नया प्रोडक्ट</button><input class="inp grow" id="pq" placeholder="🔍 प्रोडक्ट खोजें" value="' + esc(PROD_FILTER.q) + '">' +
+    '<select class="inp" id="psec" style="width:auto;max-width:100%"><option value="">सभी सेक्शन (' + D.products.length + ')</option>' + D.sections.map(function (s) { return '<option value="' + esc(s.id) + '"' + (PROD_FILTER.sec === s.id ? ' selected' : '') + '>' + esc(s.title) + ' (' + SP.productsOf(D, s.id, true).length + ')</option>'; }).join('') +
+    '<option value="__none"' + (PROD_FILTER.sec === '__none' ? ' selected' : '') + '>⚠️ बिना सेक्शन वाले</option></select></div>' +
+    '<div id="plist">' + productListHtml() + '</div>';
+};
+V.products_bind = function (m) {
+  $('#addP').onclick = newProductWizard;
+  $('#pq').addEventListener('input', SP.debounce(function () { PROD_FILTER.q = $('#pq').value; $('#plist').innerHTML = productListHtml(); }, 250));
+  $('#psec').onchange = function () { PROD_FILTER.sec = this.value; render(); };
+  m.addEventListener('click', async function (e) {
+    var b;
+    if ((b = e.target.closest('[data-pe]'))) productModal(prod(b.getAttribute('data-pe')));
+    else if ((b = e.target.closest('[data-pv]'))) { var p = prod(b.getAttribute('data-pv')); p.visible = p.visible === false; render(); save(p.visible ? '👁 प्रोडक्ट दिख रहा है' : '🚫 प्रोडक्ट छुपा दिया'); }
+    else if ((b = e.target.closest('[data-pc]'))) { var o = prod(b.getAttribute('data-pc')), c = SP.clone(o); c.id = SP.uid('p'); c.title = o.title + ' (कॉपी)'; c.visible = false; c.sku = ''; D.products.splice(D.products.indexOf(o) + 1, 0, c); render(); save('📄 कॉपी बन गई (छुपी हुई) — एडिट करके Publish करें'); }
+    else if ((b = e.target.closest('[data-pd]'))) { var d = prod(b.getAttribute('data-pd')); if (await ask('प्रोडक्ट "<b>' + esc(d.title) + '</b>" हमेशा के लिए डिलीट करें?', 'डिलीट', true)) { D.products = D.products.filter(function (x) { return x !== d; }); render(); save('🗑 प्रोडक्ट डिलीट हो गया'); } }
+  });
+};
+
+/* ======================= slideshows ======================= */
+var SS_FIELDS = [
+  { k: 'name', l: 'स्लाइडशो का नाम (सिर्फ़ Admin में दिखेगा)', t: 'text', req: true },
+  { k: 'interval', l: 'हर स्लाइड कितने सेकंड रुके?', t: 'number', min: 1, max: 60, d: 4 },
+  { k: 'effect', l: 'बदलने का तरीका', t: 'select', o: [['slide', '➡️ Slide (खिसककर)'], ['fade', '✨ Fade (धीरे से)']] },
+  { k: 'height', l: 'ऊँचाई (pixel)', t: 'number', min: 100, max: 600, d: 190, h: 'मोबाइल के लिए 160–220 अच्छा है' },
+  { k: 'autoplay', l: 'अपने आप चले (Auto play)', t: 'check', d: true },
+  { k: 'dots', l: 'नीचे डॉट्स दिखाएँ', t: 'check', d: true },
+  { k: 'arrows', l: '‹ › तीर दिखाएँ (कंप्यूटर पर)', t: 'check', d: true },
+  { k: 'visible', l: 'वेबसाइट पर दिखाएँ', t: 'check', d: true }];
+var SLIDE_FIELDS = [
+  { k: 'image', l: 'स्लाइड फ़ोटो / बैनर', t: 'image', h: 'सबसे अच्छा साइज़: 1200 × 400 px (चौड़ी फ़ोटो)। फ़ोटो नहीं है तो नीचे रंग + Emoji वाला बैनर बनेगा।' },
+  { k: 'title', l: 'बड़ा टाइटल', t: 'text', ph: 'घर पर सोलर लगवाएं' },
+  { k: 'subtitle', l: 'छोटी लाइन', t: 'text' },
+  { k: 'button', l: 'बटन का टेक्स्ट (वैकल्पिक)', t: 'text', ph: 'देखें' },
+  { k: 'ribbon', l: 'चलती रिबन टैगलाइन (नीचे स्क्रॉल होगी)', t: 'text', ph: '☀️ फ्री साइट सर्वे • आसान EMI' },
+  { k: 'link', l: 'क्लिक करने पर क्या खुले?', t: 'link' },
+  { k: 'bg', l: 'बैकग्राउंड रंग (फ़ोटो न हो तो)', t: 'color', d: '#1b5e20' },
+  { k: 'emoji', l: 'बड़ा Emoji (फ़ोटो न हो तो)', t: 'text', max: 8 },
+  { k: 'visible', l: 'ये स्लाइड दिखाएँ', t: 'check', d: true }];
+function slideshowModal(ss) {
+  var isNew = !ss, obj = ss || SP.clone(SP.SLIDESHOW_DEF);
+  if (isNew) obj.name = 'Slideshow ' + (D.slideshows.length + 1);
+  modal(isNew ? '➕ नया स्लाइडशो' : '⚙️ स्लाइडशो सेटिंग', (isNew ? posSelect() : '') + F(SS_FIELDS, obj), [{ l: 'रद्द करें', cls: 'gray' }, { l: isNew ? '✅ बनाएँ' : '💾 सेव करें', fn: function (md) {
+    var v = readForm(md.body, SS_FIELDS); if (!v) return false;
+    if (isNew) {
+      var n = applyTo(SP.clone(SP.SLIDESHOW_DEF), v); n.id = SP.uid('ss');
+      n.slides = [{ id: SP.uid('sl'), image: '', bg: '#1b5e20', emoji: '☀️', title: 'नई स्लाइड', subtitle: 'इसे एडिट करें', button: 'देखें', ribbon: '', linkType: 'none', link: '', visible: true }];
+      D.slideshows.push(n); insertBlock({ type: 'slideshow', ref: n.id }, $('#posSel', md.el).value);
+      setTimeout(function () { showTab('slides'); }, 0);
+    } else applyTo(ss, v);
+    render(); return save(isNew ? '✅ स्लाइडशो बन गया (1 डेमो स्लाइड के साथ)' : '✅ सेव हो गया');
+  } }], function (md) { bindForm(md.body); });
+}
+async function deleteSlideshow(id) {
+  var ss = ssById(id); if (!ss) return;
+  if (!(await ask('स्लाइडशो "<b>' + esc(ss.name) + '</b>" और इसकी ' + ss.slides.length + ' स्लाइड डिलीट करें?', 'डिलीट', true))) return;
+  D.slideshows = D.slideshows.filter(function (x) { return x !== ss; });
+  D.layout = D.layout.filter(function (b) { return !(b.type === 'slideshow' && b.ref === id); });
+  render(); save('🗑 स्लाइडशो डिलीट हो गया');
+}
+function slideModal(ss, sl) {
+  var isNew = !sl, obj = sl || SP.clone(SP.SLIDE_DEF);
+  modal(isNew ? '➕ नई स्लाइड' : '✏️ स्लाइड एडिट', F(SLIDE_FIELDS, obj), [{ l: 'रद्द करें', cls: 'gray' }, { l: '💾 सेव करें', fn: function (md) {
+    var v = readForm(md.body, SLIDE_FIELDS); if (!v) return false;
+    if (!v.image && !v.title && !v.emoji) { toast('फ़ोटो या टाइटल में से कुछ तो भरें', true); return false; }
+    if (isNew) { var n = applyTo(SP.clone(SP.SLIDE_DEF), v); n.id = SP.uid('sl'); ss.slides.push(n); } else applyTo(sl, v);
+    render(); return save('✅ स्लाइड सेव हो गई');
+  } }], function (md) { bindForm(md.body); });
+}
+function slideshowEditor(id) { SP.ss.set('sp_ss_open', id); showTab('slides'); setTimeout(function () { var el = document.getElementById('ssc-' + id); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 50); }
+V.slides = function () {
+  return '<div class="note g">हर स्लाइड में: फ़ोटो अपलोड, टाइटल, रिबन टैगलाइन, बटन और क्लिक लिंक (Product / Section / Form / WhatsApp / URL) सेट कर सकते हैं। स्लाइडशो की सेटिंग (⚙️) में: समय, Fade/Slide, ऊँचाई।</div>' +
+    '<div class="bar"><button class="btn" id="addSS2">➕ नया स्लाइडशो</button></div>' +
+    (D.slideshows.length ? D.slideshows.map(function (ss) {
+      var inLayout = D.layout.some(function (b) { return b.ref === ss.id; });
+      return '<div class="card" id="ssc-' + esc(ss.id) + '"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h2 style="flex:1;margin:0">🖼️ ' + esc(ss.name) + (ss.visible === false ? ' <span class="tag r">छुपा है</span>' : '') + '</h2>' +
+        '<button class="btn sm out" data-sss="' + esc(ss.id) + '">⚙️ सेटिंग</button><button class="btn sm red" data-ssd="' + esc(ss.id) + '">🗑</button></div>' +
+        '<small style="color:var(--mut)">' + ss.slides.length + ' स्लाइड • ' + ss.interval + ' सेकंड • ' + (ss.effect === 'fade' ? 'Fade' : 'Slide') + ' • ' + ss.height + 'px' + (inLayout ? '' : ' • <b style="color:var(--red)">होम पेज पर नहीं है (होम लेआउट से जोड़ें)</b>') + '</small>' +
+        '<div class="sl-list" style="margin-top:10px">' + ss.slides.map(function (sl, i) {
+          return '<div class="row' + (sl.visible === false ? ' dim' : '') + '" style="background:#fafcf9">' + thumb(sl.image, sl.emoji, sl.bg) + '<div class="rm"><b>' + esc(sl.title || '(बिना टाइटल)') + '</b><small>🔗 ' + esc((LINK_TYPES.filter(function (x) { return x[0] === sl.linkType; })[0] || ['', '—'])[1]) + (sl.ribbon ? ' • 🎗 ' + esc(sl.ribbon) : '') + '</small></div>' +
+            '<div class="acts"><button class="ib" data-slm="' + esc(ss.id) + '|' + i + '|-1"' + (i === 0 ? ' disabled' : '') + '>⬆️</button><button class="ib" data-slm="' + esc(ss.id) + '|' + i + '|1"' + (i === ss.slides.length - 1 ? ' disabled' : '') + '>⬇️</button>' +
+            '<button class="ib" data-sle="' + esc(ss.id) + '|' + i + '">✏️</button><button class="ib red" data-sld="' + esc(ss.id) + '|' + i + '">🗑</button></div></div>';
+        }).join('') + '</div><button class="btn sm" data-sla="' + esc(ss.id) + '">➕ स्लाइड जोड़ें</button></div>';
+    }).join('') : '<div class="empty">कोई स्लाइडशो नहीं</div>');
+};
+V.slides_bind = function (m) {
+  $('#addSS2').onclick = function () { slideshowModal(null); };
+  m.addEventListener('click', async function (e) {
+    var b, p;
+    if ((b = e.target.closest('[data-sss]'))) slideshowModal(ssById(b.getAttribute('data-sss')));
+    else if ((b = e.target.closest('[data-ssd]'))) deleteSlideshow(b.getAttribute('data-ssd'));
+    else if ((b = e.target.closest('[data-sla]'))) slideModal(ssById(b.getAttribute('data-sla')), null);
+    else if ((b = e.target.closest('[data-sle]'))) { p = b.getAttribute('data-sle').split('|'); var s1 = ssById(p[0]); slideModal(s1, s1.slides[+p[1]]); }
+    else if ((b = e.target.closest('[data-slm]'))) { p = b.getAttribute('data-slm').split('|'); var s2 = ssById(p[0]), i = +p[1], j = i + (+p[2]); if (j < 0 || j >= s2.slides.length) return; var x = s2.slides.splice(i, 1)[0]; s2.slides.splice(j, 0, x); render(); save('✅ क्रम बदल गया'); }
+    else if ((b = e.target.closest('[data-sld]'))) { p = b.getAttribute('data-sld').split('|'); var s3 = ssById(p[0]); if (await ask('ये स्लाइड डिलीट करें?', 'डिलीट', true)) { s3.slides.splice(+p[1], 1); render(); save('🗑 स्लाइड डिलीट हो गई'); } }
+  });
+  var open = SP.ss.get('sp_ss_open'); if (open) { SP.ss.del('sp_ss_open'); var el = document.getElementById('ssc-' + open); if (el) setTimeout(function () { el.scrollIntoView({ behavior: 'smooth' }); }, 30); }
+};
+
+/* ======================= generic list editors (services, feedback, videos) ======================= */
+var LISTS = {
+  services: { key: 'services', title: 'सर्विस कार्ड', fields: [
+    { k: 'icon', l: 'आइकन (Emoji)', t: 'text', max: 8 }, { k: 'title', l: 'टाइटल', t: 'text', req: true }, { k: 'sub', l: 'छोटी लाइन', t: 'text' },
+    { k: 'price', l: 'कीमत / टैग (नारंगी रंग में)', t: 'text', ph: 'From ₹999' }, { k: 'bg', l: 'कार्ड का रंग', t: 'color', d: '#e8f5e9' }, { k: 'link', l: 'क्लिक करने पर क्या खुले?', t: 'link' }],
+    row: function (it) { return [it.icon, it.title, (it.sub || '') + (it.price ? ' • ' + it.price : '')]; }, blank: { icon: '⭐', title: '', sub: '', price: '', bg: '#e8f5e9', linkType: 'form', link: '' } },
+  feedback: { key: 'feedback', title: 'फ़ीडबैक', fields: [
+    { k: 'name', l: 'ग्राहक का नाम', t: 'text', req: true }, { k: 'city', l: 'शहर', t: 'text' },
+    { k: 'rating', l: 'रेटिंग (1 से 5)', t: 'number', min: 1, max: 5, d: 5 }, { k: 'text', l: 'फ़ीडबैक (ग्राहक के अपने शब्द, बिना बदले)', t: 'textarea', req: true },
+    { k: 'source', l: 'ये रिव्यू कहाँ से है?', t: 'select', o: [['google', 'Google review (Google बैज दिखेगा)'], ['whatsapp', 'WhatsApp / मैसेज'], ['direct', 'सीधे ग्राहक से']] }],
+    row: function (it) { return ['⭐', it.name + (it.city ? ', ' + it.city : '') + ' — ' + '★'.repeat(Math.max(1, Math.min(5, Math.round(SP.num(it.rating) || 5)))), it.text]; }, blank: { name: '', city: '', rating: 5, text: '', source: 'google' } },
+  videos: { key: 'videos', title: 'वीडियो', fields: [
+    { k: 'title', l: 'वीडियो का टाइटल', t: 'text', req: true },
+    { k: 'url', l: 'YouTube लिंक', t: 'text', ph: 'https://www.youtube.com/watch?v=... या https://youtu.be/...', v: function (u) { return u && !SP.ytId(u) ? 'ये सही YouTube लिंक नहीं लग रहा' : ''; }, h: 'YouTube वीडियो खोलें → Share → Copy link → यहाँ paste करें। (Shorts लिंक भी चलेगा)' }],
+    row: function (it) { var id = SP.ytId(it.url); return [id ? '▶️' : '⚠️', it.title, id ? it.url : 'लिंक नहीं डाला — वेबसाइट पर "जल्द आ रहा है" दिखेगा']; },
+    thumb: function (it) { var id = SP.ytId(it.url); return id ? 'https://i.ytimg.com/vi/' + id + '/default.jpg' : ''; }, blank: { title: '', url: '' } }
+};
+function listView(name) {
+  var L = LISTS[name], obj = D[L.key], items = obj.items;
+  return '<div class="card"><div class="fld"><label class="l" for="lt-' + name + '">सेक्शन का टाइटल (होम पेज पर)</label><div style="display:flex;gap:6px"><input class="inp" id="lt-' + name + '" value="' + esc(obj.title) + '"><button class="btn sm" data-lts="' + name + '">सेव</button></div></div></div>' +
+    '<div class="bar"><button class="btn" data-lia="' + name + '">➕ ' + L.title + ' जोड़ें</button><span style="color:var(--mut)">' + items.length + ' आइटम</span></div>' +
+    (items.length ? items.map(function (it, i) {
+      var r = L.row(it), th = L.thumb ? L.thumb(it) : '';
+      return '<div class="row">' + thumb(th, r[0], it.bg) + '<div class="rm"><b>' + esc(r[1]) + '</b><small>' + esc(r[2]) + '</small></div><div class="acts">' +
+        '<button class="ib" data-lim="' + name + '|' + i + '|-1"' + (i === 0 ? ' disabled' : '') + '>⬆️</button><button class="ib" data-lim="' + name + '|' + i + '|1"' + (i === items.length - 1 ? ' disabled' : '') + '>⬇️</button>' +
+        '<button class="ib" data-lie="' + name + '|' + i + '">✏️</button><button class="ib red" data-lid="' + name + '|' + i + '">🗑</button></div></div>';
+    }).join('') : '<div class="empty">कोई आइटम नहीं</div>');
+}
+function listItemModal(name, it) {
+  var L = LISTS[name], isNew = !it, obj = it || SP.clone(L.blank);
+  modal((isNew ? '➕ ' : '✏️ ') + L.title, F(L.fields, obj), [{ l: 'रद्द करें', cls: 'gray' }, { l: '💾 सेव करें', fn: function (md) {
+    var v = readForm(md.body, L.fields); if (!v) return false;
+    if (isNew) { var n = applyTo(SP.clone(L.blank), v); n.id = SP.uid('it'); D[L.key].items.push(n); } else applyTo(it, v);
+    render(); return save('✅ सेव हो गया');
+  } }], function (md) { bindForm(md.body); });
+}
+function listBind(m) {
+  m.addEventListener('click', async function (e) {
+    var b, p;
+    if ((b = e.target.closest('[data-lts]'))) { var nm = b.getAttribute('data-lts'); D[LISTS[nm].key].title = $('#lt-' + nm).value.trim(); save('✅ टाइटल सेव हो गया'); }
+    else if ((b = e.target.closest('[data-lia]'))) listItemModal(b.getAttribute('data-lia'), null);
+    else if ((b = e.target.closest('[data-lie]'))) { p = b.getAttribute('data-lie').split('|'); listItemModal(p[0], D[LISTS[p[0]].key].items[+p[1]]); }
+    else if ((b = e.target.closest('[data-lim]'))) { p = b.getAttribute('data-lim').split('|'); var arr = D[LISTS[p[0]].key].items, i = +p[1], j = i + (+p[2]); if (j < 0 || j >= arr.length) return; arr.splice(j, 0, arr.splice(i, 1)[0]); render(); save('✅ क्रम बदल गया'); }
+    else if ((b = e.target.closest('[data-lid]'))) { p = b.getAttribute('data-lid').split('|'); if (await ask('ये आइटम डिलीट करें?', 'डिलीट', true)) { D[LISTS[p[0]].key].items.splice(+p[1], 1); render(); save('🗑 डिलीट हो गया'); } }
+  });
+}
+V.services = function () { return '<div class="note g">होम पेज के रंगीन सर्विस कार्ड्स (2×2)। हर कार्ड पर क्लिक लिंक सेट कर सकते हैं।</div>' + listView('services'); };
+V.services_bind = listBind;
+V.feedback = function () { return '<div class="note r">⚠️ सिर्फ़ <b>असली</b> ग्राहकों के रिव्यू डालें, उनके अपने शब्दों में। नकली रिव्यू पर Google/Meta अकाउंट बंद कर सकते हैं।</div><div class="note g">Google रिव्यू का टेक्स्ट Google Maps से कॉपी करके यहाँ डालें और "Google review" चुनें। रिव्यू न हों तब भी होम पेज पर ⭐ रेटिंग और "Google पर सभी रिव्यू देखें" बटन दिखेगा (⚙️ सेटिंग्स → रिव्यू)।</div>' + listView('feedback'); };
+V.feedback_bind = listBind;
+V.videos = function () { return listView('videos'); };
+V.videos_bind = listBind;
+
+/* ======================= form & guide ======================= */
+var FG_FIELDS = [
+  { k: 'form.title', l: 'फ़ॉर्म का टाइटल', t: 'text', req: true }, { k: 'form.subtitle', l: 'फ़ॉर्म की छोटी लाइन', t: 'text' },
+  { k: 'form.button', l: 'बटन का टेक्स्ट', t: 'text', d: 'भेजें' },
+  { k: 'form.types', l: 'ज़रूरत के प्रकार (हर लाइन में एक)', t: 'lines', rows: 7 },
+  { k: 'howto.title', l: '"ऑर्डर कैसे करें" का टाइटल', t: 'text', req: true },
+  { k: 'howto.steps', l: 'स्टेप्स (हर लाइन में एक स्टेप)', t: 'lines', rows: 8, h: 'पेमेंट के तरीके (COD/UPI) अपने आप सेटिंग्स से नीचे जुड़ जाते हैं।' }];
+V.formguide = function () { return '<div class="card"><h2>📝 Requirement फ़ॉर्म और 🛍️ ऑर्डर गाइड</h2>' + F(FG_FIELDS, D) + '<button class="btn" id="fgSave" style="margin-top:14px">💾 सेव करें</button></div>'; };
+V.formguide_bind = function (m) { bindForm(m); $('#fgSave').onclick = function () { var v = readForm(m, FG_FIELDS); if (!v) return; applyTo(D, v); save(); }; };
+
+/* ======================= pages / policies ======================= */
+var PAGE_FIELDS = [
+  { k: 'title', l: 'पेज का नाम (हिंदी)', t: 'text', req: true }, { k: 'titleEn', l: 'Page name (English)', t: 'text' },
+  { k: 'body', l: 'पेज का टेक्स्ट (हिंदी)', t: 'textarea', rows: 16 }, { k: 'bodyEn', l: 'Page text (English)', t: 'textarea', rows: 16 },
+  { k: 'footer', l: 'फ़ुटर में इसका लिंक दिखाएँ', t: 'check', d: true }];
+var PAGE_HELP = 'लिखने का तरीका: <b>## </b> से शुरू लाइन = हेडिंग, <b>- </b> से शुरू = बुलेट, ख़ाली लाइन = नया पैरा। ये शब्द सेटिंग्स से अपने आप भर जाते हैं: ' +
+  ['legalName', 'ownerName', 'gstin', 'address', 'phone', 'email', 'hours', 'hoursEn', 'mapsLink', 'siteUrl', 'policyDate', 'reportDays', 'advancePct', 'localName', 'otherCharge', 'freeAbove'].map(function (k) { return '<code>{' + k + '}</code>'; }).join(' ');
+function pageText(pg, en) { return SP.fillVars(en ? (pg.bodyEn || pg.body) : (pg.body || pg.bodyEn), D.settings); }
+function copyText(txt) {
+  function fb() { var ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('📋 कॉपी हो गया'); } catch (e) { toast('कॉपी नहीं हुआ', true); } ta.remove(); }
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).then(function () { toast('📋 कॉपी हो गया — मुख्य वेबसाइट में paste करें'); }, fb); else fb();
+}
+function pageModal(pg) {
+  var isNew = !pg, obj = pg || { id: '', title: '', titleEn: '', body: '', bodyEn: '', footer: true };
+  var f = (isNew ? [{ k: 'id', l: 'पेज का लिंक-नाम (अंग्रेज़ी, बिना स्पेस)', t: 'text', req: true, ph: 'faq', v: function (x) { return !/^[a-z0-9-]{2,30}$/.test(x) ? 'सिर्फ़ a-z, 0-9 और -' : D.pages.some(function (p) { return p.id === x; }) ? 'ये नाम पहले से है' : ''; } }] : []).concat(PAGE_FIELDS);
+  modal(isNew ? '➕ नया पेज' : '✏️ ' + obj.title, '<div class="note g" style="font-size:13px">' + PAGE_HELP + '</div>' + F(f, obj), [{ l: 'रद्द करें', cls: 'gray' }, { l: '💾 सेव करें', fn: function (md) {
+    var v = readForm(md.body, f); if (!v) return false;
+    if (isNew) { var n = applyTo({ footer: true }, v); D.pages.push(n); } else applyTo(pg, v);
+    render(); return save('✅ पेज सेव हो गया');
+  } }], function (md) { bindForm(md.body); });
+}
+V.pages = function () {
+  var base = String(D.settings.siteUrl || CFG.STORE_URL || location.origin).replace(/\/+$/, '');
+  return '<div class="note g">ये पेज वेबसाइट के फ़ुटर में दिखते हैं (Google/Meta अप्रूवल के लिए ज़रूरी)। 📋 बटन से टेक्स्ट कॉपी करके मुख्य वेबसाइट (www.sunpowers.in) पर <b>बिल्कुल वैसा ही</b> paste करें।</div>' +
+    '<div class="bar"><button class="btn" id="addPg">➕ नया पेज</button><button class="btn out" id="dlPg">⬇️ सारे पेज (.txt) — मुख्य वेबसाइट के लिए</button></div>' +
+    (D.pages.length ? D.pages.map(function (pg, i) {
+      return '<div class="row' + (pg.footer === false ? ' dim' : '') + '"><div class="th">📄</div><div class="rm"><b>' + esc(pg.title) + '</b><small>' + esc(pg.titleEn || '') + ' • ' + esc(base + '/?page=' + pg.id) + (pg.footer === false ? ' • फ़ुटर में नहीं' : '') + '</small></div>' +
+        '<div class="acts"><button class="ib" data-pgm="' + i + '|-1"' + (i === 0 ? ' disabled' : '') + '>⬆️</button><button class="ib" data-pgm="' + i + '|1"' + (i === D.pages.length - 1 ? ' disabled' : '') + '>⬇️</button>' +
+        '<button class="btn sm out" data-pgc="' + i + '|hi">📋 हिंदी</button><button class="btn sm out" data-pgc="' + i + '|en">📋 English</button>' +
+        '<a class="ib" href="./?page=' + encodeURIComponent(pg.id) + '" target="_blank" rel="noopener" title="देखें">👁</a><button class="ib" data-pge="' + i + '">✏️</button><button class="ib red" data-pgd="' + i + '">🗑</button></div></div>';
+    }).join('') : '<div class="empty">कोई पेज नहीं</div>');
+};
+V.pages_bind = function (m) {
+  $('#addPg').onclick = function () { pageModal(null); };
+  $('#dlPg').onclick = function () {
+    var txt = D.pages.map(function (pg) { return '==================== ' + pg.title + ' / ' + (pg.titleEn || '') + ' ====================\n\n' + pageText(pg, false) + '\n\n----- English -----\n\n' + pageText(pg, true) + '\n'; }).join('\n\n');
+    download(new Blob(['\ufeff' + txt], { type: 'text/plain;charset=utf-8' }), 'sunpowers-policy-pages-' + today() + '.txt');
+  };
+  m.addEventListener('click', async function (e) {
+    var b, p;
+    if ((b = e.target.closest('[data-pge]'))) pageModal(D.pages[+b.getAttribute('data-pge')]);
+    else if ((b = e.target.closest('[data-pgc]'))) { p = b.getAttribute('data-pgc').split('|'); var pg = D.pages[+p[0]]; copyText((p[1] === 'en' ? (pg.titleEn || pg.title) : pg.title) + '\n\n' + pageText(pg, p[1] === 'en')); }
+    else if ((b = e.target.closest('[data-pgm]'))) { p = b.getAttribute('data-pgm').split('|'); var i = +p[0], j = i + (+p[1]); if (j < 0 || j >= D.pages.length) return; D.pages.splice(j, 0, D.pages.splice(i, 1)[0]); render(); save('✅ क्रम बदल गया'); }
+    else if ((b = e.target.closest('[data-pgd]'))) {
+      var d = D.pages[+b.getAttribute('data-pgd')];
+      var legal = ['returns', 'shipping', 'privacy', 'terms', 'about', 'contact'].indexOf(d.id) >= 0;
+      if (await ask((legal ? '⚠️ ये पेज Google/Meta अप्रूवल के लिए ज़रूरी है। ' : '') + 'पेज "<b>' + esc(d.title) + '</b>" डिलीट करें?', 'डिलीट', true)) { D.pages = D.pages.filter(function (x) { return x !== d; }); render(); save('🗑 पेज डिलीट हो गया'); }
+    }
+  });
+};
+
+/* ======================= settings ======================= */
+var SET_GROUPS = [
+  ['🏪 स्टोर की जानकारी', [
+    { k: 'settings.storeName', l: 'स्टोर का नाम', t: 'text', req: true }, { k: 'settings.tagline', l: 'टैगलाइन', t: 'text' },
+    { k: 'settings.logo', l: 'लोगो Emoji', t: 'text', max: 8 }, { k: 'settings.logoImg', l: 'लोगो फ़ोटो (Emoji की जगह)', t: 'image' },
+    { k: 'settings.location', l: 'लोकेशन (हेडर में)', t: 'text', ph: 'Lucknow' }, { k: 'settings.searchPlaceholder', l: 'सर्च बॉक्स में लिखा टेक्स्ट', t: 'text' },
+    { k: 'settings.whatsapp', l: 'WhatsApp नंबर', t: 'text', req: true, v: function (x) { return SP.digits(x).length < 10 ? 'सही नंबर लिखें' : ''; } },
+    { k: 'settings.phone', l: 'कॉल नंबर', t: 'text' }, { k: 'settings.email', l: 'ईमेल', t: 'text' }, { k: 'settings.address', l: 'पता', t: 'textarea', rows: 2 },
+    { k: 'settings.footerText', l: 'फ़ुटर / स्टोर विवरण (Google में भी दिखेगा)', t: 'textarea', rows: 2 },
+    { k: 'settings.themeColor', l: 'मुख्य रंग (Theme)', t: 'color', d: '#1e8e3e' },
+    { k: 'settings.defaultLang', l: 'शुरुआती भाषा', t: 'select', o: [['hi', 'हिंदी'], ['en', 'English']] },
+    { k: 'settings.stickyTicker', l: 'नीचे चिपकी फ़ीडबैक पट्टी (sticky ticker) दिखाएँ', t: 'check' },
+    { k: 'settings.whatsappButton', l: 'हरा WhatsApp बटन दिखाएँ', t: 'check' }]],
+  ['🏢 कानूनी व बिज़नेस जानकारी (पॉलिसी पेजों में अपने आप भरती है)', [
+    { k: 'settings.legalName', l: 'बिज़नेस का कानूनी नाम', t: 'text', req: true }, { k: 'settings.ownerName', l: 'प्रोप्राइटर / मालिक का नाम', t: 'text' },
+    { k: 'settings.gstin', l: 'GSTIN', t: 'text', v: function (x) { return x && !/^[0-9]{2}[A-Z0-9]{13}$/i.test(x) ? 'GSTIN 15 अक्षर का होता है' : ''; } },
+    { k: 'settings.hours', l: 'कार्य समय (हिंदी)', t: 'text' }, { k: 'settings.hoursEn', l: 'Working hours (English)', t: 'text' },
+    { k: 'settings.since', l: 'अनुभव (हिंदी)', t: 'text', ph: '2016 से • 500+ प्रोजेक्ट' }, { k: 'settings.sinceEn', l: 'Experience (English)', t: 'text' },
+    { k: 'settings.mapsLink', l: 'Google Maps लिंक', t: 'text' }, { k: 'settings.mainSite', l: 'मुख्य वेबसाइट लिंक', t: 'text', ph: 'https://www.sunpowers.in' },
+    { k: 'settings.gstNote', l: 'GST लाइन (कीमत के पास दिखेगी)', t: 'text' },
+    { k: 'settings.policyDate', l: 'पॉलिसी की तारीख़ ("अंतिम अपडेट")', t: 'text' },
+    { k: 'settings.reportDays', l: 'टूटा/खराब प्रोडक्ट बताने के दिन', t: 'number', min: 1, max: 60, d: 7 },
+    { k: 'settings.policyConsent', l: 'ऑर्डर से पहले "पॉलिसी पढ़ ली" वाला टिक ज़रूरी हो', t: 'check' }]],
+  ['⭐ Google रिव्यू', [
+    { k: 'settings.googleRating', l: 'Google रेटिंग', t: 'text', ph: '5.0' }, { k: 'settings.googleReviews', l: 'कुल Google रिव्यू', t: 'text', ph: '17' },
+    { k: 'settings.reviewLink', l: '"रिव्यू लिखें" लिंक (GMB → Ask for reviews)', t: 'text' }, { k: 'settings.social.gmb', l: 'GMB प्रोफ़ाइल लिंक ("सभी रिव्यू देखें")', t: 'text' }]],
+  ['🚚 डिलीवरी चार्ज (कार्ट में अपने आप जुड़ेगा)', [
+    { k: 'settings.shipping.enabled', l: 'डिलीवरी चार्ज लागू करें', t: 'check' },
+    { k: 'settings.shipping.localPins', l: 'लोकल पिनकोड की शुरुआत (कॉमा से अलग)', t: 'text', h: 'जैसे 226 = लखनऊ के सारे पिनकोड (226001…226031)' },
+    { k: 'settings.shipping.localName', l: 'लोकल इलाक़े का नाम (हिंदी)', t: 'text' }, { k: 'settings.shipping.localNameEn', l: 'Local area name (English)', t: 'text' },
+    { k: 'settings.shipping.localCharge', l: 'लोकल डिलीवरी चार्ज (₹) — 0 = फ़्री', t: 'number', min: 0 },
+    { k: 'settings.shipping.otherCharge', l: 'बाकी जगह डिलीवरी चार्ज (₹)', t: 'number', min: 0 },
+    { k: 'settings.shipping.freeAbove', l: 'इतने ₹ से ऊपर के ऑर्डर पर फ़्री (0 = कभी नहीं)', t: 'number', min: 0 },
+    { k: 'settings.delivery', l: 'डिलीवरी की एक लाइन (कार्ट/प्रोडक्ट पेज पर)', t: 'text', h: 'ऊपर वाले चार्ज से मेल खानी चाहिए' }]],
+  ['💳 पेमेंट सेटिंग्स', [
+    { k: 'settings.payments.cod.enabled', l: '✅ Cash on Delivery (एडवांस के साथ) चालू', t: 'check' },
+    { k: 'settings.payments.cod.advancePct', l: 'COD में एडवांस % (अभी लेना है)', t: 'number', min: 0, max: 100, d: 15 },
+    { k: 'settings.payments.cod.label', l: 'COD का नाम (ग्राहक को दिखेगा)', t: 'text' },
+    { k: 'settings.payments.upi.enabled', l: '✅ UPI पेमेंट (पूरा भुगतान) चालू', t: 'check' },
+    { k: 'settings.payments.upi.upiId', l: 'UPI ID', t: 'text', ph: 'Sunpowers@ybl', v: function (x) { return x && !/^[\w.\-]{2,}@[\w.\-]{2,}$/.test(x) ? 'सही UPI ID लिखें (जैसे name@ybl)' : ''; } },
+    { k: 'settings.payments.upi.payeeName', l: 'UPI पर दिखने वाला नाम', t: 'text' },
+    { k: 'settings.payments.upi.label', l: 'UPI का नाम (ग्राहक को दिखेगा)', t: 'text' }]],
+  ['🌐 सोशल व मार्केटिंग (Google / Meta)', [
+    { k: 'settings.siteUrl', l: 'वेबसाइट URL (प्रोडक्ट फ़ीड के लिए)', t: 'text', ph: 'https://www.sunpowers.in' },
+    { k: 'settings.brand', l: 'ब्रांड नाम', t: 'text' },
+    { k: 'settings.social.facebook', l: 'Facebook पेज लिंक', t: 'text' }, { k: 'settings.social.instagram', l: 'Instagram लिंक', t: 'text' },
+    { k: 'settings.social.youtube', l: 'YouTube चैनल लिंक', t: 'text' },
+    { k: 'settings.integrations.ga4', l: 'Google Analytics 4 ID (G-XXXXXXX)', t: 'text', v: function (x) { return x && !/^G-[A-Z0-9]+$/i.test(x) ? 'G- से शुरू होना चाहिए' : ''; } },
+    { k: 'settings.integrations.metaPixel', l: 'Meta (Facebook) Pixel ID', t: 'text', v: function (x) { return x && !/^\d{6,20}$/.test(x) ? 'सिर्फ़ अंक' : ''; } }]]];
+var PAYG = SET_GROUPS.findIndex(function (g) { return g[0].indexOf('पेमेंट') >= 0; });
+V.settings = function () {
+  return SET_GROUPS.map(function (g, i) { return '<div class="card" data-sg="' + i + '"><h2>' + g[0] + '</h2>' + F(g[1], D) + '<button class="btn" data-sgs="' + i + '" style="margin-top:14px">💾 सेव करें</button></div>'; }).join('') +
+    '<div class="card"><h2>🔑 Admin पासवर्ड बदलें</h2><div class="fg"><div class="fld"><label class="l" for="pw1">नया पासवर्ड (कम से कम 6 अक्षर)</label><input type="password" id="pw1" autocomplete="new-password"></div>' +
+    '<div class="fld"><label class="l" for="pw2">नया पासवर्ड दोबारा</label><input type="password" id="pw2" autocomplete="new-password"></div></div><button class="btn" id="pwSave" style="margin-top:12px">🔑 पासवर्ड बदलें</button></div>' +
+    '<div class="card"><h2>💾 बैकअप</h2><p style="color:var(--mut);margin-bottom:10px">पूरी वेबसाइट का डेटा एक फ़ाइल में सेव करें / वापस लाएँ।</p><div class="bar"><button class="btn out" id="bkDown">⬇️ बैकअप डाउनलोड (.json)</button>' +
+    '<span class="btn out upl">⬆️ बैकअप से वापस लाएँ<input type="file" accept=".json,application/json" id="bkUp"></span><button class="btn red" id="rsDemo">♻️ डेमो डेटा पर रीसेट</button></div></div>';
+};
+V.settings_bind = function (m) {
+  bindForm(m);
+  $$('[data-sgs]', m).forEach(function (b) {
+    b.onclick = function () {
+      var i = +b.getAttribute('data-sgs'), card = $('[data-sg="' + i + '"]', m), v = readForm(card, SET_GROUPS[i][1]); if (!v) return;
+      if (i === PAYG && !v['settings.payments.cod.enabled'] && !v['settings.payments.upi.enabled']) toast('⚠️ दोनों पेमेंट बंद हैं — ग्राहक सिर्फ़ WhatsApp से ऑर्डर कर पाएँगे', true);
+      if (i === PAYG && v['settings.payments.upi.enabled'] && !v['settings.payments.upi.upiId']) return toast('UPI चालू है तो UPI ID ज़रूरी है', true);
+      applyTo(D, v); save().then(function () { var h = $('.top h1'); if (h) h.textContent = '⚙️ ' + D.settings.storeName + ' Admin'; });
+    };
+  });
+  $('#pwSave').onclick = async function () {
+    var a = $('#pw1').value, b = $('#pw2').value;
+    if (a.length < 6) return toast('कम से कम 6 अक्षर', true); if (a !== b) return toast('दोनों पासवर्ड मेल नहीं खाते', true);
+    try { await SP.rpc('sp_change_password', { p_old: PASS, p_new: a }); if (!isTok(PASS)) { PASS = a; SP.ss.set('sp_admin_pass', a); if (SP.ls.get('sp_admin_pass_keep', null)) SP.ls.set('sp_admin_pass_keep', a); } $('#pw1').value = $('#pw2').value = ''; toast('✅ पासवर्ड बदल गया'); }
+    catch (e) { toast('❌ ' + e.message, true); }
+  };
+  $('#bkDown').onclick = function () { download(new Blob([JSON.stringify(SP.normalize(D), null, 1)], { type: 'application/json' }), 'sunpowers-backup-' + today() + '.json'); };
+  $('#bkUp').onchange = async function () {
+    var f = this.files[0]; this.value = ''; if (!f) return;
+    try {
+      var d = JSON.parse(await f.text()); if (!isObj(d) || !Array.isArray(d.layout) || !Array.isArray(d.products)) throw new Error('ये सही बैकअप फ़ाइल नहीं है');
+      if (!(await ask('बैकअप (' + d.products.length + ' प्रोडक्ट) से पूरी वेबसाइट बदल दें? अभी का डेटा हट जाएगा।', 'हाँ, वापस लाएँ', true))) return;
+      D = SP.normalize(d); render(); save('✅ बैकअप से डेटा वापस आ गया');
+    } catch (e) { toast('❌ ' + e.message, true); }
+  };
+  $('#rsDemo').onclick = async function () {
+    if (!(await ask('सारे प्रोडक्ट, सेक्शन, स्लाइडशो हटाकर <b>डेमो डेटा</b> वापस लाएँ? (पहले बैकअप ले लें)', 'हाँ, रीसेट करें', true))) return;
+    var keep = SP.clone(D.settings); D = SP.normalize(SP.demo()); D.settings = keep; render(); save('♻️ डेमो डेटा रीसेट हो गया');
+  };
+};
+
+/* ======================= orders & enquiries ======================= */
+/* ======================= CRM → Store review (Google / Meta check) → Publish ======================= */
+var CRMITEMS = null, CRMF = 'pending', CRMSTAT = { pending: ['⏳ रिव्यू बाकी', 'o'], published: ['✅ स्टोर पर लाइव', ''], rejected: ['↩️ लौटाया', 'r'] };
+async function loadCrm() {
+  try { CRMITEMS = await SP.rpc('sp_admin_crm_items', { p_pass: PASS }); }
+  catch (e) { CRMITEMS = { error: /Could not find|PGRST202|crm_records/i.test(e.message) ? 'CRM का डेटाबेस अभी सेटअप नहीं है — CRM वाली crm-setup.sql चलाएँ।' : e.message }; }
+  if (TAB === 'crm') render();
+}
+function crmPrice(d) { return Math.round(SP.num(d.price) * (1 + SP.num(d.gst) / 100)); }
+function crmDesc(d) { var l = String(d.desc || '').split('\n').map(function (x) { return x.trim(); }).filter(Boolean); return l.map(function (x) { return '• ' + x; }).join('\n') + (d.more ? (l.length ? '\n\n' : '') + d.more : ''); }
+V.crm = function () {
+  if (!CRMITEMS) { loadCrm(); return '<div class="empty"><span class="spin"></span> लोड हो रहा है…</div>'; }
+  if (CRMITEMS.error) return '<div class="note r">⚠️ ' + esc(CRMITEMS.error) + '</div>';
+  var cnt = { pending: 0, published: 0, rejected: 0 }; CRMITEMS.forEach(function (x) { var st = (x.data.store || {}).status; if (cnt[st] != null) cnt[st]++; });
+  var list = CRMITEMS.filter(function (x) { return !CRMF || (x.data.store || {}).status === CRMF; });
+  return '<div class="note g">🔗 CRM में जोड़े गए प्रोडक्ट यहाँ आते हैं। <b>पहले जाँचें</b> (Google / Meta नियम: असली फ़ोटो, साफ़ कीमत, कोई झूठा दावा नहीं) → फिर <b>Publish</b> करें। बिना Publish किए कुछ भी स्टोर पर नहीं दिखता।</div>' +
+    '<div class="bar">' + [['pending', 'रिव्यू बाकी'], ['published', 'लाइव'], ['rejected', 'लौटाए'], ['', 'सभी']].map(function (f) { return '<button class="btn sm ' + (CRMF === f[0] ? '' : 'out') + '" data-cf="' + f[0] + '">' + f[1] + (f[0] ? ' (' + cnt[f[0]] + ')' : '') + '</button>'; }).join('') + '<button class="btn sm gray" data-cf-reload>🔄</button></div>' +
+    (list.length ? list.map(function (x) {
+      var d = x.data, st = (d.store || {}).status || 'pending', sl = CRMSTAT[st] || [st, ''], img = (d.images || [])[0], live = d.store && d.store.store_id && prod(d.store.store_id);
+      return '<div class="row" data-crow="' + x.id + '">' + thumb(img, '📦', '#e8f5e9') + '<div class="rm"><b>' + esc(d.name || x.title) + '</b><small><span class="tag ' + sl[1] + '">' + sl[0] + '</span> CRM रेट: ' + SP.money(SP.num(d.price)) + ' + GST ' + esc(d.gst || 0) + '% = <strong>' + SP.money(crmPrice(d)) + '</strong>' + (SP.num(d.mrp) ? ' • MRP ' + SP.money(d.mrp) : '') + '</small>' +
+        '<small>' + (d.store && d.store.sent_by ? 'भेजा: ' + esc(d.store.sent_by) : '') + (d.store && d.store.note ? ' • नोट: ' + esc(d.store.note) : '') + ((d.images || []).length ? ' • 🖼️ ' + d.images.length + ' फ़ोटो' : ' • ⚠️ फ़ोटो नहीं') + '</small></div>' +
+        '<div class="acts"><button class="btn sm" data-cpub="' + x.id + '">' + (live ? '🔄 अपडेट' : '🚀 जाँचें व Publish') + '</button>' + (st !== 'rejected' ? '<button class="btn sm red" data-crej="' + x.id + '">↩️ लौटाएँ</button>' : '') + '</div></div>';
+    }).join('') : '<div class="empty">इस लिस्ट में कुछ नहीं</div>');
+};
+async function crmImages(d) {
+  var out = [];
+  for (var i = 0; i < (d.images || []).length; i++) {
+    var u = d.images[i];
+    if (!/^data:/.test(u)) { out.push(u); continue; }
+    try { var b = await (await fetch(u)).blob(), r = await SP.storeImage(new File([b], 'crm-' + Date.now() + '-' + i + '.jpg', { type: b.type || 'image/jpeg' })); out.push(r.url); } catch (e) { out.push(u); }
+  }
+  return out;
+}
+async function crmPublish(x) {
+  var d = x.data, st = d.store || {}, ex = st.store_id ? prod(st.store_id) : null;
+  toast('⏳ फ़ोटो तैयार हो रही हैं…');
+  var imgs = await crmImages(d), price = SP.num(st.offer) || crmPrice(d), mrp = SP.num(d.mrp);
+  var pre = { title: d.name || x.title, titleEn: d.name || x.title, tagline: st.tagline || '', desc: crmDesc(d), mrp: mrp > price ? mrp : price, offer: mrp > price ? price : 0,
+    image: imgs[0] || '', images: imgs.slice(1), sku: d.sku || '', brand: d.brand || '', unit: d.unit || '', stock: d.stock != null && SP.num(d.stock) <= 0 ? 'out' : 'in', visible: true };
+  if (ex) pre = { title: pre.title, desc: pre.desc, mrp: pre.mrp, offer: pre.offer, tagline: pre.tagline || ex.tagline, image: pre.image || ex.image, images: pre.images.length ? pre.images : ex.images, sku: pre.sku || ex.sku, brand: pre.brand || ex.brand, stock: pre.stock };
+  var checks = ['फ़ोटो असली प्रोडक्ट की है (किसी दूसरे का लोगो / वॉटरमार्क नहीं)', 'कीमत साफ़ है और GST सहित सही है', 'कोई झूठा दावा नहीं ("100% फ़्री बिजली", "सरकारी योजना" आदि)', 'नाम व विवरण प्रोडक्ट से मेल खाते हैं'];
+  productModal(ex, ex ? null : [], {
+    prefill: pre,
+    title: (ex ? '🔄 CRM से अपडेट — ' : '🔗 जाँचें व Publish — ') + (d.name || x.title),
+    okLabel: ex ? '💾 अपडेट करें' : '🚀 Publish करें',
+    top: '<div class="note">✅ <b>Google / Meta नियम जाँच</b> — चारों पर टिक करें:' + checks.map(function (c, i) { return '<label class="chk2"><input type="checkbox" data-gm="' + i + '"> ' + c + '</label>'; }).join('') + '</div>',
+    check: function (md) { var all = $$('[data-gm]', md.body).every(function (c) { return c.checked; }); if (!all) toast('पहले चारों जाँच पर टिक करें', true); return all; },
+    after: async function (np) {
+      try { await SP.rpc('sp_admin_crm_item_set', { p_pass: PASS, p_id: x.id, p_status: 'published', p_store_id: np.id, p_note: '' }); toast('🚀 स्टोर पर लाइव — CRM में भी "लाइव" दिखेगा'); }
+      catch (e) { toast('प्रोडक्ट सेव हुआ, पर CRM अपडेट नहीं हुआ: ' + e.message, true); }
+      CRMITEMS = null; if (TAB === 'crm') render(); pollCounts();
+    }
+  });
+}
+V.crm_bind = function (m) {
+  m.addEventListener('click', async function (e) {
+    var b;
+    if ((b = e.target.closest('[data-cf]'))) { CRMF = b.getAttribute('data-cf'); render(); }
+    else if (e.target.closest('[data-cf-reload]')) { CRMITEMS = null; render(); }
+    else if ((b = e.target.closest('[data-cpub]'))) { var x = CRMITEMS.filter(function (i) { return i.id === +b.getAttribute('data-cpub'); })[0]; if (x) { b.disabled = true; try { await crmPublish(x); } finally { b.disabled = false; } } }
+    else if ((b = e.target.closest('[data-crej]'))) {
+      var id = +b.getAttribute('data-crej');
+      modal('↩️ CRM को लौटाएँ', '<div class="fld"><label class="l" for="crn">क्या ठीक करना है? (CRM में दिखेगा)</label><textarea id="crn" rows="3" placeholder="जैसे: असली फ़ोटो डालें, MRP गलत है"></textarea></div>',
+        [{ l: 'रद्द करें', cls: 'gray' }, { l: '↩️ लौटाएँ', cls: 'red', fn: async function (md) { var n = $('#crn', md.el).value.trim(); if (n.length < 3) { toast('कारण लिखें', true); return false; } await SP.rpc('sp_admin_crm_item_set', { p_pass: PASS, p_id: id, p_status: 'rejected', p_store_id: '', p_note: n }); toast('↩️ CRM को लौटा दिया'); CRMITEMS = null; render(); pollCounts(); } }]);
+    }
+  });
+};
+
+/* ======================= notifications (new orders / enquiries / CRM items) ======================= */
+var POLL = null, LASTC = SP.ls.get('sp_admin_last', null);
+function beep() { try { var A = window.AudioContext || window.webkitAudioContext; if (!A) return; var a = new A(), o = a.createOscillator(), g = a.createGain(); o.frequency.value = 880; o.connect(g); g.connect(a.destination); g.gain.setValueAtTime(0.08, a.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + 0.35); o.start(); o.stop(a.currentTime + 0.36); } catch (e) {} }
+async function pollCounts() {
+  if (!PASS || document.hidden) return;
+  try {
+    var c = await SP.rpc('sp_admin_counts', { p_pass: PASS });
+    [['orders', c.orders_new], ['enquiries', c.enquiries_new], ['crm', c.crm_pending]].forEach(function (x) { var el = $('[data-cnt="' + x[0] + '"]'); if (el) { el.textContent = x[1]; el.classList.toggle('hide', !x[1]); } });
+    if (LASTC) {
+      var no = c.last_order > LASTC.last_order, ne = c.last_enquiry > LASTC.last_enquiry, nc = c.crm_pending > LASTC.crm_pending;
+      if (no || ne || nc) {
+        beep(); toast('🔔 ' + [no ? 'नया ऑर्डर आया' : '', ne ? 'नई पूछताछ आई' : '', nc ? 'CRM से नया प्रोडक्ट रिव्यू के लिए' : ''].filter(Boolean).join(' • '));
+        if ((no && TAB === 'orders') || (ne && TAB === 'enquiries')) { LISTDATA[TAB] = null; render(); }
+        if (nc && TAB === 'crm') { CRMITEMS = null; render(); }
+      }
+    }
+    LASTC = c; SP.ls.set('sp_admin_last', c);
+    var n = (c.orders_new || 0) + (c.enquiries_new || 0); document.title = (n ? '(' + n + ') ' : '') + 'Admin — ' + (D ? D.settings.storeName : '');
+  } catch (e) {}
+}
+function startPolling() { clearInterval(POLL); pollCounts(); POLL = setInterval(pollCounts, 45000); }
+window.spAdminPoll = pollCounts;
+document.addEventListener('visibilitychange', function () { if (!document.hidden && PASS && D) pollCounts(); });
+
+var LISTDATA = { orders: null, enquiries: null }, LFILTER = { orders: '', enquiries: '' };
+var STATUSES = { orders: [['new', '🆕 नया'], ['confirmed', '✔️ कन्फ़र्म'], ['paid', '💰 पेमेंट मिला'], ['shipped', '🚚 भेजा गया'], ['delivered', '✅ डिलीवर'], ['cancelled', '❌ कैंसिल']],
+  enquiries: [['new', '🆕 नया'], ['contacted', '📞 संपर्क हुआ'], ['closed', '✅ पूरा'], ['cancelled', '❌ बेकार']] };
+async function loadList(kind) {
+  try { LISTDATA[kind] = await SP.rpc('sp_admin_list', { p_pass: PASS, p_kind: kind }); }
+  catch (e) { LISTDATA[kind] = { error: e.message }; if (/wrong password/i.test(e.message)) return logout('दोबारा लॉगिन करें'); }
+  if (TAB === kind) render();
+}
+function orderCard(o) {
+  var d = o.data || {}, st = STATUSES.orders, items = Array.isArray(d.items) ? d.items : [];
+  var wa = 'नमस्ते ' + (d.name || '') + ' जी, ' + D.settings.storeName + ' से — आपका ऑर्डर #' + o.id + ' (' + SP.money(d.total) + ') मिल गया है।';
+  return '<div class="card"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b style="font-size:17px;flex:1">#' + o.id + ' — ' + esc(d.name) + '</b><span class="status ' + esc(o.status) + '">' + esc((st.filter(function (x) { return x[0] === o.status; })[0] || [0, o.status])[1]) + '</span></div>' +
+    '<small style="color:var(--mut)">' + fmtDate(o.created_at) + '</small>' +
+    '<div class="kv"><div><span>📞</span> <a href="tel:' + esc(d.phone) + '">' + esc(d.phone) + '</a></div><div><span>📍</span> ' + esc([d.address, d.city, d.pincode].filter(Boolean).join(', ')) + '</div>' + (d.note ? '<div><span>📝</span> ' + esc(d.note) + '</div>' : '') + '</div>' +
+    '<div style="background:#fafcf9;border-radius:10px;padding:8px;font-size:14px">' + items.map(function (l) { return esc(l.title) + ' × ' + esc(l.qty) + ' = <b>' + SP.money(l.amount) + '</b>'; }).join('<br>') +
+    '<div style="border-top:1px dashed var(--line);margin-top:6px;padding-top:6px">' + (d.shipping !== undefined ? 'डिलीवरी: ' + (SP.num(d.shipping) ? SP.money(d.shipping) : 'फ़्री') + ' • ' : '') + '<b>कुल: ' + SP.money(d.total) + '</b> • ' + (d.payment === 'cod' ? 'COD — एडवांस ' + SP.money(d.advance) + ', डिलीवरी पर ' + SP.money(d.due) : d.payment === 'upi' ? 'UPI — पूरा ' + SP.money(d.total) : esc(d.payment)) + '</div></div>' +
+    '<div class="bar" style="margin:10px 0 0"><select class="inp" style="width:auto" data-st="orders|' + o.id + '">' + st.map(function (s) { return '<option value="' + s[0] + '"' + (o.status === s[0] ? ' selected' : '') + '>' + s[1] + '</option>'; }).join('') + '</select>' +
+    '<a class="btn sm" style="background:#25d366" target="_blank" rel="noopener" href="' + esc(SP.waLink(d.phone, wa)) + '">💬 WhatsApp</a><button class="btn sm red" data-ld="orders|' + o.id + '">🗑</button></div></div>';
+}
+function enqCard(o) {
+  var d = o.data || {}, st = STATUSES.enquiries;
+  return '<div class="card"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b style="font-size:17px;flex:1">#' + o.id + ' — ' + esc(d.name) + '</b><span class="status ' + esc(o.status) + '">' + esc((st.filter(function (x) { return x[0] === o.status; })[0] || [0, o.status])[1]) + '</span></div>' +
+    '<small style="color:var(--mut)">' + fmtDate(o.created_at) + '</small><div class="kv"><div><span>📞</span> <a href="tel:' + esc(d.phone) + '">' + esc(d.phone) + '</a>' + (d.city ? ' • 📍 ' + esc(d.city) : '') + '</div>' +
+    '<div><span>ज़रूरत:</span> <b>' + esc(d.type) + '</b>' + (d.subject ? ' • 📌 ' + esc(d.subject) : '') + '</div>' +
+    (d.bill || d.kw || (d.location && d.location !== d.city) ? '<div>' + (d.bill ? '💡 बिल: <b>' + esc(d.bill) + '</b> ' : '') + (d.kw ? ' ☀️ kW: <b>' + esc(d.kw) + '</b> ' : '') + (d.location && d.location !== d.city ? ' 📍 ' + esc(d.location) : '') + '</div>' : '') +
+    (d.message ? '<div style="white-space:pre-wrap">' + esc(d.message) + '</div>' : '') + '<div><span class="tag' + (d.source === 'website' ? ' b' : '') + '">' + (d.source === 'website' ? '🌐 वेबसाइट' : '🛒 स्टोर') + '</span></div></div>' +
+    '<div class="bar" style="margin:10px 0 0"><select class="inp" style="width:auto" data-st="enquiries|' + o.id + '">' + st.map(function (s) { return '<option value="' + s[0] + '"' + (o.status === s[0] ? ' selected' : '') + '>' + s[1] + '</option>'; }).join('') + '</select>' +
+    '<a class="btn sm" style="background:#25d366" target="_blank" rel="noopener" href="' + esc(SP.waLink(d.phone, 'नमस्ते ' + (d.name || '') + ' जी, ' + D.settings.storeName + ' से — आपकी पूछताछ के बारे में।')) + '">💬 WhatsApp</a><button class="btn sm red" data-ld="enquiries|' + o.id + '">🗑</button></div></div>';
+}
+function listTab(kind) {
+  var data = LISTDATA[kind];
+  if (data === null) { loadList(kind); return '<div class="empty"><span class="spin"></span> लोड हो रहा है…</div>'; }
+  if (data.error) return '<div class="note r">❌ ' + esc(data.error) + '</div><button class="btn" data-lr="' + kind + '">🔄 दोबारा लोड करें</button>';
+  var f = LFILTER[kind], list = data.filter(function (o) { return !f || o.status === f; }), counts = {};
+  data.forEach(function (o) { counts[o.status] = (counts[o.status] || 0) + 1; });
+  var stats = kind === 'orders' ? '<div class="stats"><div class="stat"><b>' + data.length + '</b><small>कुल ऑर्डर</small></div><div class="stat"><b>' + (counts['new'] || 0) + '</b><small>नए ऑर्डर</small></div><div class="stat"><b>' +
+    SP.money(data.filter(function (o) { return o.status !== 'cancelled'; }).reduce(function (s, o) { return s + SP.num(o.data && o.data.total); }, 0)) + '</b><small>कुल बिक्री (कैंसिल छोड़कर)</small></div></div>' : '';
+  return stats + '<div class="bar"><button class="btn out" data-lr="' + kind + '">🔄 रिफ्रेश</button><select class="inp" style="width:auto" data-lf="' + kind + '"><option value="">सभी (' + data.length + ')</option>' +
+    STATUSES[kind].map(function (s) { return '<option value="' + s[0] + '"' + (f === s[0] ? ' selected' : '') + '>' + s[1] + ' (' + (counts[s[0]] || 0) + ')</option>'; }).join('') + '</select>' +
+    (data.length ? '<button class="btn out" data-lx="' + kind + '">⬇️ Excel</button>' : '') + '</div>' +
+    (list.length ? list.map(kind === 'orders' ? orderCard : enqCard).join('') : '<div class="empty">' + (kind === 'orders' ? '🧾 अभी कोई ऑर्डर नहीं' : '📨 अभी कोई पूछताछ नहीं') + '</div>');
+}
+function listTabBind(m) {
+  m.addEventListener('click', async function (e) {
+    var b;
+    if ((b = e.target.closest('[data-lr]'))) { LISTDATA[b.getAttribute('data-lr')] = null; render(); }
+    else if ((b = e.target.closest('[data-lx]'))) exportList(b.getAttribute('data-lx'));
+    else if ((b = e.target.closest('[data-ld]'))) {
+      var p = b.getAttribute('data-ld').split('|');
+      if (!(await ask('#' + p[1] + ' हमेशा के लिए डिलीट करें?', 'डिलीट', true))) return;
+      try { await SP.rpc('sp_admin_delete', { p_pass: PASS, p_kind: p[0], p_id: +p[1] }); LISTDATA[p[0]] = LISTDATA[p[0]].filter(function (o) { return o.id !== +p[1]; }); render(); toast('🗑 डिलीट हो गया'); }
+      catch (err) { toast('❌ ' + err.message, true); }
+    }
+  });
+  m.addEventListener('change', async function (e) {
+    var s = e.target.closest('[data-st]'), lf = e.target.closest('[data-lf]');
+    if (lf) { LFILTER[lf.getAttribute('data-lf')] = lf.value; render(); return; }
+    if (!s) return;
+    var p = s.getAttribute('data-st').split('|'), val = s.value;
+    try { await SP.rpc('sp_admin_set_status', { p_pass: PASS, p_kind: p[0], p_id: +p[1], p_status: val }); LISTDATA[p[0]].forEach(function (o) { if (o.id === +p[1]) o.status = val; }); render(); toast('✅ स्टेटस बदल गया'); }
+    catch (err) { toast('❌ ' + err.message, true); render(); }
+  });
+}
+function exportList(kind) {
+  var data = LISTDATA[kind] || [], rows;
+  if (kind === 'orders') {
+    rows = [['order_id', 'date', 'status', 'name', 'phone', 'address', 'city', 'pincode', 'items', 'subtotal', 'delivery', 'total', 'payment', 'advance', 'due', 'note']].concat(data.map(function (o) {
+      var d = o.data || {}; return [o.id, fmtDate(o.created_at), o.status, d.name, d.phone, d.address, d.city, d.pincode, (d.items || []).map(function (l) { return l.title + ' x ' + l.qty; }).join(' | '), SP.num(d.subtotal !== undefined ? d.subtotal : d.total), SP.num(d.shipping), SP.num(d.total), d.payment, SP.num(d.advance), SP.num(d.due), d.note];
+    }));
+  } else {
+    rows = [['id', 'date', 'status', 'source', 'name', 'phone', 'city / location', 'type', 'monthly bill', 'kW', 'subject', 'message']].concat(data.map(function (o) { var d = o.data || {}; return [o.id, fmtDate(o.created_at), o.status, d.source === 'website' ? 'website' : 'store', d.name, d.phone, d.location || d.city, d.type, d.bill, d.kw, d.subject, d.message]; }));
+  }
+  download(XLSXLite.write([{ name: kind === 'orders' ? 'Orders' : 'Enquiries', rows: rows, widths: [8, 20, 12, 18, 14, 30, 14, 10, 40, 10, 10, 10, 10, 30] }]), 'sunpowers-' + kind + '-' + today() + '.xlsx');
+}
+V.orders = function () { return listTab('orders'); }; V.orders_bind = listTabBind;
+V.enquiries = function () { return listTab('enquiries'); }; V.enquiries_bind = listTabBind;
+
+/* ======================= Excel export / import ======================= */
+var KEEP = '[UPLOADED IMAGE - KEEP]';
+function yn(b) { return b === false ? 'no' : 'yes'; }
+function isNo(v) { return /^(no|n|false|0|नहीं|hide|hidden)$/i.test(String(v).trim()); }
+function imgOut(u) { return /^data:/.test(u || '') ? KEEP : (u || ''); }
+var XCOLS = {
+  Sections: [['id', 'id'], ['title', 'title'], ['title_en', 'titleEn'], ['subtitle', 'subtitle'], ['kind (category/update)', 'kind'], ['home_limit', 'limit'], ['icon', 'icon'], ['visible (yes/no)', 'visible']],
+  Products: [['id', 'id'], ['title', 'title'], ['title_en', 'titleEn'], ['sections (| से अलग)', 'sections'], ['sale_price_mrp', 'mrp'], ['offer_price', 'offer'], ['tagline', 'tagline'], ['badge', 'badge'],
+    ['stock (in/out)', 'stock'], ['visible (yes/no)', 'visible'], ['sort', 'sort'], ['image', 'image'], ['more_images (| से अलग)', 'images'], ['description', 'desc'], ['description_en', 'descEn'],
+    ['unit', 'unit'], ['emoji', 'emoji'], ['bg_color', 'bg'], ['link', 'link'], ['sku', 'sku'], ['brand', 'brand']],
+  Slideshows: [['id', 'id'], ['name', 'name'], ['interval_sec', 'interval'], ['effect (slide/fade)', 'effect'], ['height_px', 'height'], ['autoplay (yes/no)', 'autoplay'], ['dots (yes/no)', 'dots'], ['arrows (yes/no)', 'arrows'], ['visible (yes/no)', 'visible']],
+  Slides: [['slideshow_id', 'ssid'], ['id', 'id'], ['title', 'title'], ['subtitle', 'subtitle'], ['button', 'button'], ['ribbon', 'ribbon'], ['image', 'image'], ['link_type', 'linkType'], ['link', 'link'], ['bg_color', 'bg'], ['emoji', 'emoji'], ['visible (yes/no)', 'visible']],
+  Services: [['id', 'id'], ['icon', 'icon'], ['title', 'title'], ['sub', 'sub'], ['price', 'price'], ['bg_color', 'bg'], ['link_type', 'linkType'], ['link', 'link']],
+  Feedback: [['id', 'id'], ['name', 'name'], ['city', 'city'], ['rating', 'rating'], ['text', 'text'], ['source (google/whatsapp/direct)', 'source']],
+  Videos: [['id', 'id'], ['title', 'title'], ['youtube_url', 'url']]
+};
+var BOOL_KEYS = { visible: 1, autoplay: 1, dots: 1, arrows: 1 }, NUM_KEYS = { mrp: 1, offer: 1, sort: 1, limit: 1, interval: 1, height: 1, rating: 1 };
+function flatSettings(o, pre, out) { out = out || []; for (var k in o) { var p = pre ? pre + '.' + k : k; if (isObj(o[k])) flatSettings(o[k], p, out); else if (!Array.isArray(o[k])) out.push([p, o[k]]); } return out; }
+function cellOut(key, v) {
+  if (BOOL_KEYS[key]) return yn(v);
+  if (key === 'image') return imgOut(v);
+  if (key === 'images') return (v || []).map(imgOut).join(' | ');
+  if (key === 'sections') return (v || []).map(function (id) { var s = sec(id); return s ? s.title : id; }).join(' | ');
+  if (NUM_KEYS[key]) return SP.num(v);
+  return v == null ? '' : v;
+}
+function exportAll() {
+  var sheets = [{ name: 'ReadMe', widths: [110], rows: [['📊 Sunpowers Store — Excel से एडिट करने का तरीका'],
+    ['1. किसी भी शीट में बदलाव करें (नाम, कीमत, फ़ोटो लिंक, सेक्शन, स्लाइड...)। पहली लाइन (हेडिंग) न बदलें।'],
+    ['2. नया आइटम जोड़ने के लिए नई लाइन जोड़ें और "id" ख़ाली छोड़ दें — अपने आप बन जाएगा।'],
+    ['3. किसी आइटम को डिलीट करने के लिए उसकी पूरी लाइन हटा दें।'],
+    ['4. Products शीट में "sections" कॉलम में सेक्शन का नाम लिखें (एक से ज़्यादा हों तो | से अलग करें)। सेक्शन का नाम Sections शीट से मेल खाना चाहिए।'],
+    ['5. "' + KEEP + '" लिखा हो तो उसे न बदलें — वो अपलोड की गई फ़ोटो है।'],
+    ['6. Slides शीट में slideshow_id = Slideshows शीट की id। link_type: none / section / product / form / whatsapp / call / url'],
+    ['7. फ़ाइल सेव करके Admin → 📊 Excel → "Excel अपलोड करें" से अपलोड करें। अपलोड से पहले बदलावों की लिस्ट दिखेगी।'],
+    ['8. जो शीट आप फ़ाइल से हटा देंगे, उसका डेटा नहीं बदलेगा।']] }];
+  sheets.push({ name: 'Products', rows: [XCOLS.Products.map(function (c) { return c[0]; })].concat(
+    D.sections.reduce(function (acc, s) { SP.productsOf(D, s.id, true).forEach(function (p) { if (acc.indexOf(p) < 0) acc.push(p); }); return acc; }, []).concat(D.products.filter(function (p) { return !p.sections.length; }))
+      .map(function (p) { return XCOLS.Products.map(function (c) { return cellOut(c[1], p[c[1]]); }); })),
+    widths: [14, 34, 30, 30, 12, 12, 24, 12, 10, 10, 6, 30, 30, 50, 40, 8, 6, 10, 20, 10, 12] });
+  sheets.push({ name: 'Sections', rows: [XCOLS.Sections.map(function (c) { return c[0]; })].concat(D.sections.map(function (s) { return XCOLS.Sections.map(function (c) { return cellOut(c[1], s[c[1]]); }); })), widths: [14, 30, 26, 30, 20, 10, 6, 14] });
+  sheets.push({ name: 'Slideshows', rows: [XCOLS.Slideshows.map(function (c) { return c[0]; })].concat(D.slideshows.map(function (s) { return XCOLS.Slideshows.map(function (c) { return cellOut(c[1], s[c[1]]); }); })), widths: [14, 24, 12, 16, 10, 14, 12, 14, 14] });
+  var srows = []; D.slideshows.forEach(function (ss) { ss.slides.forEach(function (sl) { var o = SP.clone(sl); o.ssid = ss.id; srows.push(XCOLS.Slides.map(function (c) { return cellOut(c[1], o[c[1]]); })); }); });
+  sheets.push({ name: 'Slides', rows: [XCOLS.Slides.map(function (c) { return c[0]; })].concat(srows), widths: [14, 16, 26, 26, 14, 34, 30, 12, 20, 10, 6, 14] });
+  ['Services', 'Feedback', 'Videos'].forEach(function (n) { var key = n.toLowerCase(); sheets.push({ name: n, rows: [XCOLS[n].map(function (c) { return c[0]; })].concat(D[key].items.map(function (it) { return XCOLS[n].map(function (c) { return cellOut(c[1], it[c[1]]); }); })), widths: [12, 24, 30, 40, 16, 12, 14, 20] }); });
+  sheets.push({ name: 'Settings', rows: [['key', 'value']].concat(flatSettings(D.settings).map(function (kv) { return [kv[0], typeof kv[1] === 'boolean' ? yn(kv[1]) : (kv[0] === 'logoImg' ? imgOut(kv[1]) : kv[1])]; })), widths: [34, 60] });
+  download(XLSXLite.write(sheets), 'sunpowers-store-' + today() + '.xlsx');
+  toast('⬇️ Excel डाउनलोड हो गई');
+}
+function sheetObjects(rows, cols, sheetName, errors) {
+  if (!rows || !rows.length) return [];
+  var head = (rows[0] || []).map(function (h) { return String(h == null ? '' : h).trim().toLowerCase(); }), idx = {};
+  cols.forEach(function (c) {
+    var full = c[0].toLowerCase(), short = full.split(' (')[0], i = head.indexOf(full); if (i < 0) i = head.indexOf(short);
+    if (i < 0) i = head.findIndex(function (h) { return h.split(' (')[0] === short; });
+    idx[c[1]] = i;
+  });
+  if (idx[cols[0][1]] < 0 && idx[cols[1][1]] < 0) { errors.push(sheetName + ': हेडिंग लाइन (पहली लाइन) बदली हुई है'); return []; }
+  var out = [];
+  for (var r = 1; r < rows.length; r++) {
+    var row = rows[r] || [], o = { _row: r + 1 }, any = false;
+    cols.forEach(function (c) { var i = idx[c[1]]; var v = i >= 0 ? row[i] : undefined; if (v !== undefined && v !== '' && v !== null) any = true; o[c[1]] = v === undefined || v === null ? '' : (typeof v === 'string' ? v.trim() : v); });
+    o._has = {}; cols.forEach(function (c) { o._has[c[1]] = idx[c[1]] >= 0; });
+    if (any) out.push(o);
+  }
+  return out;
+}
+function conv(key, v, old) {
+  if (BOOL_KEYS[key]) return v === '' ? (old === undefined ? true : old) : !isNo(v);
+  if (NUM_KEYS[key]) return v === '' ? (old === undefined ? 0 : old) : SP.num(v);
+  if (key === 'stock') return /^(out|no|0|ख़त्म|खत्म)/i.test(String(v)) ? 'out' : 'in';
+  if (key === 'kind') return /update/i.test(String(v)) ? 'update' : 'category';
+  if (key === 'effect') return /fade/i.test(String(v)) ? 'fade' : 'slide';
+  if (key === 'linkType') { var lt = String(v || 'none').toLowerCase().trim(); return LINK_TYPES.some(function (x) { return x[0] === lt; }) ? lt : 'none'; }
+  return v === '' ? '' : String(v);
+}
+function buildFromRows(N, list, cols, oldList, make, errors, sheet) {
+  var byId = {}, seen = {}, res = [];
+  oldList.forEach(function (o) { byId[o.id] = o; });
+  list.forEach(function (o) {
+    var id = String(o.id || '').trim();
+    if (id && seen[id]) { errors.push(sheet + ' लाइन ' + o._row + ': id "' + id + '" दो बार है'); return; }
+    var old = id && byId[id], item = old ? SP.clone(old) : make();
+    if (!id) id = SP.uid(sheet.slice(0, 2).toLowerCase()); seen[id] = 1; item.id = id;
+    cols.forEach(function (c) {
+      var k = c[1]; if (k === 'id' || k === 'ssid' || k === 'sections' || k === 'images' || !o._has[k]) return;
+      if (k === 'image') { item.image = o.image === KEEP ? (old ? old.image : '') : String(o.image || ''); return; }
+      item[k] = conv(k, o[k], old ? old[k] : undefined);
+    });
+    if (o._has.images) {
+      var oldData = old ? (old.images || []).filter(function (u) { return /^data:/.test(u); }) : [], di = 0;
+      item.images = String(o.images || '').split(/[|\n]+/).map(function (s) { return s.trim(); }).filter(Boolean).map(function (u) { return u === KEEP ? (oldData[di++] || '') : u; }).filter(Boolean);
+    }
+    item._row = o._row; item._ssid = o.ssid; item._secs = o.sections; item._hasSecs = o._has.sections;
+    res.push(item);
+  });
+  return res;
+}
+async function importExcel(file) {
+  var wb;
+  try { wb = await XLSXLite.read(await file.arrayBuffer()); } catch (e) { return toast('❌ ' + e.message, true); }
+  var N = SP.clone(D), errors = [], warn = [], summary = [];
+  function diff(name, oldL, newL) {
+    var oi = {}, ni = {}; oldL.forEach(function (x) { oi[x.id] = x; }); newL.forEach(function (x) { ni[x.id] = x; });
+    var add = newL.filter(function (x) { return !oi[x.id]; }).length, del = oldL.filter(function (x) { return !ni[x.id]; }).length;
+    var chg = newL.filter(function (x) { if (!oi[x.id]) return false; var a = SP.clone(x); delete a._row; delete a._ssid; delete a._secs; delete a._hasSecs; return JSON.stringify(a) !== JSON.stringify(oi[x.id]); }).length;
+    summary.push([name, oldL.length, newL.length, add, chg, del]);
+  }
+  var found = Object.keys(wb);
+  if (wb.Sections) {
+    var secs = buildFromRows(N, sheetObjects(wb.Sections, XCOLS.Sections, 'Sections', errors), XCOLS.Sections, D.sections, function () { return SP.clone(SP.SECTION_DEF); }, errors, 'Sections');
+    secs.forEach(function (s) { if (!s.title) errors.push('Sections लाइन ' + s._row + ': title ख़ाली है'); delete s._row; delete s._ssid; delete s._secs; delete s._hasSecs; });
+    diff('सेक्शन', D.sections, secs); N.sections = secs;
+  }
+  function resolveSec(tok) {
+    tok = tok.trim(); if (!tok) return null;
+    var s = N.sections.filter(function (x) { return x.id === tok; })[0] || N.sections.filter(function (x) { return x.title.trim() === tok; })[0] ||
+      N.sections.filter(function (x) { return (x.titleEn || '').trim().toLowerCase() === tok.toLowerCase() || x.title.trim().toLowerCase() === tok.toLowerCase(); })[0];
+    return s ? s.id : null;
+  }
+  if (wb.Products) {
+    var ps = buildFromRows(N, sheetObjects(wb.Products, XCOLS.Products, 'Products', errors), XCOLS.Products, D.products, function () { var p = SP.clone(SP.PRODUCT_DEF); p.brand = D.settings.brand || ''; return p; }, errors, 'Products');
+    ps.forEach(function (p) {
+      if (!p.title) errors.push('Products लाइन ' + p._row + ': title ख़ाली है');
+      if (p._hasSecs) {
+        p.sections = [];
+        String(p._secs || '').split('|').forEach(function (tok) { if (!tok.trim()) return; var id = resolveSec(tok); if (id) { if (p.sections.indexOf(id) < 0) p.sections.push(id); } else errors.push('Products लाइन ' + p._row + ': सेक्शन "' + tok.trim() + '" नहीं मिला'); });
+      } else p.sections = (p.sections || []).filter(function (id) { return N.sections.some(function (s) { return s.id === id; }); });
+      if (!p.sections.length && p.title) warn.push('"' + p.title + '" किसी सेक्शन में नहीं है (होम पेज पर नहीं दिखेगा)');
+      if (SP.num(p.mrp) <= 0 && SP.num(p.offer) <= 0 && p.title) warn.push('"' + p.title + '" की कीमत 0 है');
+      if (SP.num(p.mrp) > 0 && SP.num(p.offer) > SP.num(p.mrp)) warn.push('"' + p.title + '" का Offer Price, MRP से ज़्यादा है — Offer Price ही दिखेगा');
+      delete p._row; delete p._ssid; delete p._secs; delete p._hasSecs;
+    });
+    diff('प्रोडक्ट', D.products, ps); N.products = ps;
+  } else if (wb.Sections) {
+    N.products.forEach(function (p) { p.sections = p.sections.filter(function (id) { return N.sections.some(function (s) { return s.id === id; }); }); });
+  }
+  if (wb.Slideshows) {
+    var sss = buildFromRows(N, sheetObjects(wb.Slideshows, XCOLS.Slideshows, 'Slideshows', errors), XCOLS.Slideshows, D.slideshows, function () { var s = SP.clone(SP.SLIDESHOW_DEF); s.slides = []; return s; }, errors, 'Slideshows');
+    sss.forEach(function (s) { if (!s.name) s.name = 'Slideshow'; delete s._row; delete s._ssid; delete s._secs; delete s._hasSecs; });
+    diff('स्लाइडशो', D.slideshows, sss); N.slideshows = sss;
+  }
+  if (wb.Slides) {
+    var allOld = []; D.slideshows.forEach(function (ss) { allOld = allOld.concat(ss.slides); });
+    var sl = buildFromRows(N, sheetObjects(wb.Slides, XCOLS.Slides, 'Slides', errors), XCOLS.Slides, allOld, function () { return SP.clone(SP.SLIDE_DEF); }, errors, 'Slides');
+    var before = 0, after = sl.length; N.slideshows.forEach(function (ss) { before += ss.slides.length; ss.slides = []; });
+    sl.forEach(function (s) {
+      var ss = N.slideshows.filter(function (x) { return x.id === String(s._ssid || '').trim(); })[0];
+      if (!ss) { errors.push('Slides लाइन ' + s._row + ': slideshow_id "' + (s._ssid || '') + '" नहीं मिला'); return; }
+      delete s._row; delete s._ssid; delete s._secs; delete s._hasSecs; ss.slides.push(s);
+    });
+    diff('स्लाइड', allOld, sl);
+  } else if (wb.Slideshows) {
+    N.slideshows.forEach(function (ss) { var o = D.slideshows.filter(function (x) { return x.id === ss.id; })[0]; ss.slides = o ? SP.clone(o.slides) : ss.slides || []; });
+  }
+  ['Services', 'Feedback', 'Videos'].forEach(function (n) {
+    if (!wb[n]) return; var key = n.toLowerCase();
+    var items = buildFromRows(N, sheetObjects(wb[n], XCOLS[n], n, errors), XCOLS[n], D[key].items, function () { return SP.clone(LISTS[key].blank); }, errors, n);
+    items.forEach(function (it) { delete it._row; delete it._ssid; delete it._secs; delete it._hasSecs; });
+    diff({ Services: 'सर्विस कार्ड', Feedback: 'फ़ीडबैक', Videos: 'वीडियो' }[n], D[key].items, items); N[key].items = items;
+  });
+  if (wb.Settings) {
+    var known = {}; flatSettings(D.settings).forEach(function (kv) { known[kv[0]] = kv[1]; }); var nset = 0;
+    wb.Settings.slice(1).forEach(function (r, i) {
+      var k = String((r || [])[0] || '').trim(), v = (r || [])[1]; if (!k) return;
+      if (!(k in known)) { warn.push('Settings: "' + k + '" अनजान key — छोड़ दी'); return; }
+      var old = known[k], nv = typeof old === 'boolean' ? (v === '' || v === undefined ? old : !isNo(v)) : typeof old === 'number' ? SP.num(v) : (v === undefined ? '' : String(v));
+      if (k === 'logoImg' && nv === KEEP) nv = old;
+      if (JSON.stringify(nv) !== JSON.stringify(old)) nset++;
+      setPath(N.settings, k, nv);
+    });
+    summary.push(['सेटिंग्स', '', '', '', nset, '']);
+  }
+  if (!summary.length) return toast('❌ इस फ़ाइल में कोई पहचानी गई शीट नहीं मिली (मिलीं: ' + found.join(', ') + ')', true);
+  // layout sync
+  var sIds = {}, ssIds = {}; N.sections.forEach(function (s) { sIds[s.id] = 1; }); N.slideshows.forEach(function (s) { ssIds[s.id] = 1; });
+  N.layout = N.layout.filter(function (b) { return b.type === 'section' ? sIds[b.ref] : b.type === 'slideshow' ? ssIds[b.ref] : true; });
+  var inL = {}; N.layout.forEach(function (b) { if (b.ref) inL[b.ref] = 1; });
+  var formIdx = N.layout.findIndex(function (b) { return b.type === 'form'; }); if (formIdx < 0) formIdx = N.layout.length;
+  N.slideshows.forEach(function (s) { if (!inL[s.id]) { N.layout.splice(formIdx++, 0, { id: SP.uid('b'), type: 'slideshow', ref: s.id, hidden: false }); warn.push('नया स्लाइडशो "' + s.name + '" होम पेज पर फ़ॉर्म से पहले जोड़ा गया'); } });
+  N.sections.forEach(function (s) { if (!inL[s.id]) { N.layout.splice(formIdx++, 0, { id: SP.uid('b'), type: 'section', ref: s.id, hidden: false }); warn.push('नया सेक्शन "' + s.title + '" होम पेज पर फ़ॉर्म से पहले जोड़ा गया'); } });
+
+  var body = (errors.length ? '<div class="note r"><b>❌ ये गलतियाँ ठीक करके दोबारा अपलोड करें:</b><br>' + errors.slice(0, 40).map(esc).join('<br>') + (errors.length > 40 ? '<br>…और ' + (errors.length - 40) : '') + '</div>' : '') +
+    '<table class="imp"><tr><th>चीज़</th><th>पहले</th><th>अब</th><th>नए</th><th>बदले</th><th>हटेंगे</th></tr>' + summary.map(function (s) { return '<tr><td>' + s[0] + '</td><td>' + s[1] + '</td><td>' + s[2] + '</td><td style="color:var(--g-d)">' + s[3] + '</td><td style="color:#0d47a1">' + s[4] + '</td><td style="color:var(--red)">' + s[5] + '</td></tr>'; }).join('') + '</table>' +
+    (warn.length ? '<div class="note" style="margin-top:12px"><b>⚠️ ध्यान दें:</b><br>' + warn.slice(0, 30).map(esc).join('<br>') + (warn.length > 30 ? '<br>…और ' + (warn.length - 30) : '') + '</div>' : '');
+  modal('📊 Excel अपलोड — जाँच', body, errors.length ? [{ l: 'बंद करें', cls: 'gray' }] : [{ l: 'रद्द करें', cls: 'gray' }, { l: '✅ लागू करें और सेव करें', id: 'impOk', fn: function () { D = SP.normalize(N); render(); return save('✅ Excel से अपडेट हो गया — वेबसाइट पर लाइव'); } }]);
+}
+function csvCell(v) { v = String(v == null ? '' : v).replace(/\r?\n/g, ' '); return /[",]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+function exportFeed() {
+  var base = String(D.settings.siteUrl || CFG.STORE_URL || location.origin).replace(/\/+$/, ''), noImg = 0;
+  var rows = [['id', 'title', 'description', 'availability', 'condition', 'price', 'sale_price', 'link', 'image_link', 'additional_image_link', 'brand', 'product_type', 'identifier_exists', 'mpn']];
+  D.products.filter(function (p) { return p.visible !== false; }).forEach(function (p) {
+    var imgs = [p.image].concat(p.images).filter(function (u) { return SP.isImg(u) && !/^data:/.test(u); }).map(function (u) { try { return new URL(u, base + '/').href; } catch (e) { return u; } });
+    if (!imgs.length) noImg++;
+    var s0 = p.sections.map(sec).filter(function (s) { return s && s.kind !== 'update'; })[0] || sec(p.sections[0]);
+    var mrp = SP.num(p.mrp), off = SP.num(p.offer), disc = off > 0 && off < mrp, price = disc ? mrp : SP.price(p);
+    rows.push([p.id, (p.titleEn || p.title).slice(0, 150), (p.descEn || p.desc || p.titleEn || p.title).slice(0, 5000), p.stock === 'out' ? 'out_of_stock' : 'in_stock', 'new',
+      price.toFixed(2) + ' INR', disc ? off.toFixed(2) + ' INR' : '', base + '/?p=' + encodeURIComponent(p.id), imgs[0] || '', imgs.slice(1, 10).join(','),
+      p.brand || D.settings.brand || D.settings.storeName, s0 ? (s0.titleEn || s0.title) : '', 'no', p.sku || '']);
+  });
+  download(new Blob(['﻿' + rows.map(function (r) { return r.map(csvCell).join(','); }).join('\r\n')], { type: 'text/csv;charset=utf-8' }), 'sunpowers-product-feed-' + today() + '.csv');
+  if (noImg) toast('⚠️ ' + noImg + ' प्रोडक्ट बिना फ़ोटो के हैं — Google/Meta पर लिस्टिंग के लिए फ़ोटो ज़रूरी है', true); else toast('⬇️ प्रोडक्ट फ़ीड डाउनलोड हो गई');
+}
+V.excel = function () {
+  return '<div class="card"><h2>📊 पूरी वेबसाइट Excel में</h2><p style="color:var(--mut);margin-bottom:10px">सारे प्रोडक्ट (सेक्शन के हिसाब से), सेक्शन, स्लाइडशो, स्लाइड, सर्विस, फ़ीडबैक, वीडियो और सेटिंग्स — एक Excel फ़ाइल में। Excel में बदलाव करें और वापस अपलोड करें — सब जगह एक साथ अपडेट हो जाएगा।</p>' +
+    '<div class="bar"><button class="btn" id="xDown">⬇️ Excel डाउनलोड करें</button><span class="btn out upl">⬆️ Excel अपलोड करें<input type="file" id="xUp" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></span></div>' +
+    '<p style="font-size:13px;color:var(--mut)">💡 अपलोड करने से पहले बदलावों की लिस्ट दिखेगी — "लागू करें" दबाने पर ही बदलाव होगा। सुरक्षा के लिए पहले ⚙️ सेटिंग्स से बैकअप ले लें।</p></div>' +
+    '<div class="card"><h2>🛍️ Google Merchant / Facebook-Instagram / WhatsApp कैटलॉग</h2><p style="color:var(--mut);margin-bottom:10px">प्रोडक्ट फ़ीड (CSV) डाउनलोड करें और Google Merchant Center या Meta Commerce Manager में अपलोड करें। हर प्रोडक्ट का अपना लिंक होता है: <code>' + esc(String(D.settings.siteUrl || CFG.STORE_URL || location.origin).replace(/\/+$/, '')) + '/?p=ID</code></p>' +
+    '<button class="btn out" id="xFeed">⬇️ प्रोडक्ट फ़ीड (CSV) डाउनलोड</button><p style="font-size:13px;color:var(--mut);margin-top:8px">⚙️ सेटिंग्स में "वेबसाइट URL" सही होना चाहिए। Google/Meta के लिए हर प्रोडक्ट की असली फ़ोटो ज़रूरी है।</p></div>';
+};
+V.excel_bind = function () {
+  $('#xDown').onclick = exportAll; $('#xFeed').onclick = exportFeed;
+  $('#xUp').onchange = function () { var f = this.files[0]; this.value = ''; if (f) importExcel(f); };
+};
+
+/* ======================= start ======================= */
+if (!SP.backendReady()) app.innerHTML = '<div class="login"><div class="card"><h2>⚠️ config.js में Supabase URL/Key नहीं है</h2></div></div>';
+else if (PASS) boot(); else loginView();
+})();
+</script>
+</body>
+</html>

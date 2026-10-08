@@ -1,0 +1,22 @@
+Apni asli photos isi "img" folder me, inhi naamon se daalein (JPG, 1600px chaudi tak).
+Photo nahi daali to bhi website sundar dikhegi (wahan drawing dikhegi).
+
+slide-res.jpg        Home slide 1 — ghar ki chhat par solar
+slide-com.jpg        Home slide 2 — commercial / office building
+slide-ind.jpg        Home slide 3 — factory shed solar
+slide-vfd.jpg        Home slide 4 — solar aata chakki / pump
+
+solution-res.jpg     Residential card
+solution-com.jpg     Commercial card
+solution-ind.jpg     Industrial card
+solution-vfd.jpg     VFD card
+
+project-res.jpg      10 kW Gomti Nagar
+project-com.jpg      50 kW Hazratganj
+project-ind.jpg      200 kW Kanpur Road
+project-vfd.jpg      15 HP Barabanki
+
+team-akash.jpg       Mr. Akash Sir (chaukor / square photo)
+team-suraj.jpg       Mr. Suraj Anand (chaukor / square photo)
+
+og-image.jpg         WhatsApp / Facebook par link share karne par dikhne wali photo (1200x630) — pehle se bani hai

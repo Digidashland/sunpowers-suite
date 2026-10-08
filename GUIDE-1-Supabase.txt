@@ -1,0 +1,54 @@
+GUIDE 1 — SUPABASE + RESEND (aap khud karenge, ~15 minute)
+==========================================================
+Project: https://fotmykjrqrgjnzqbdsea.supabase.co
+
+STEP 1 — pg_net chalu karein (email bhejne ke liye zaroori)
+  supabase.com → apna project → Database → Extensions
+  → search "pg_net" → switch ON (schema: extensions) → Enable
+
+STEP 2 — Database files RUN karein (isi kram me)
+  SQL Editor → New query
+  a) 2-Main-App zip ke andar  setup.sql      → poora copy → paste → RUN
+  b) New query → 4-CRM zip ke andar crm-setup.sql → poora copy → paste → RUN
+     Neeche "Sunpowers CRM setup complete ✔" aana chahiye.
+  (Dobara chalane se data nahi mitta. Kabhi update aaye to dono phir isi kram me RUN.)
+
+STEP 3 — Resend key Vault me rakhein (sabse surakshit)
+  Resend.com → API Keys → "Create API Key" (Sending access) → copy (re_... se shuru)
+  (Purani key jo chat me di thi use "Revoke" kar dein.)
+  SQL Editor → New query → ye likhein (apni key daal kar) → RUN:
+
+      select vault.create_secret('re_APNI_NAYI_KEY', 'resend_api_key');
+
+  Key badalni ho baad me:
+      select vault.update_secret(id, 're_NAYI_KEY') from vault.secrets where name = 'resend_api_key';
+
+  (Doosra tareeka: CRM me login ke baad Settings → "Login & Email OTP" → key paste → PIN → Save.
+   Vault wali key ko pehle mana jata hai.)
+
+STEP 4 — Resend me domain verify (bina iske email sirf aapke Resend account wale
+         email par hi jayega)
+  Resend → Domains → Add Domain → sunpowers.in → jo records dikhenge wo GUIDE-2-DNS.txt
+  ke hisab se domain provider ko dein → "Verified" aane tak ruken.
+  Tab tak jaldi test karna ho: CRM Settings → Login & Email OTP → "From" me likhein
+      Sunpowers <onboarding@resend.dev>
+  (Ye sirf us email par bhejta hai jisse Resend account bana hai — isliye Resend account
+   helpsunpowers@gmail.com se hi banayein.) Verify ke baad wapas likhein:
+      Sunpowers <no-reply@sunpowers.in>
+
+STEP 5 — Pehla Admin login (CRM: crm.sunpowers.in)
+  1. "Mobile / Email / Username" me likhein: admin → "Aage badhein" → helpsunpowers@gmail.com par 6 ank ka code
+  2. Code daalein → apna 6 ank ka PIN banayein → 2 security sawal + jawab
+  3. Settings → "Login & Email OTP" → "Test email bhejein" → status "delivered" aaye to sab sahi
+  Email na aaye to: wahi page "Aakhri 20 email" me laal note padhein
+     • "key nahi" → Step 3     • "pg_net band" → Step 1     • domain error → Step 4
+  Emergency: OTP ki jagah "Master password" (purana Store Admin password) + PIN
+
+STEP 6 — Team ke liye
+  CRM → Team → har user ka EMAIL zaroor bharein (OTP usi par jayega)
+  User pehli baar: mobile/username → email OTP → 4 ank PIN → sawal
+  Kisi ka PIN atak jaye: Team → user kholein → "Login reset (PIN + phone hatayein)" (agli baar phir OTP se)
+
+Dhyan: Admin ka primary email (OTP) = helpsunpowers@gmail.com
+       Backup = surajanandpbh@gmail.com (sirf "Backup email par bhejein" dabane par)
+       Dono badalne ho to: CRM → Settings → Login & Email OTP
