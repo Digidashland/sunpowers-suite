@@ -1,6 +1,14 @@
 /* ============================================================
    Sunpowers website settings — sirf yahi file badalni hoti hai
    ============================================================ */
+var SP_DB = (function () {
+  // Branch preview URL (…-git-branch…vercel.app) = STAGING database. Live domain = LIVE database.
+  var h = location.hostname;
+  var staging = /-git-/.test(h) && /\.vercel\.app$/.test(h);
+  return staging
+    ? { url: 'https://czthmbezxlkqanbhqplz.supabase.co', key: 'sb_publishable_B0f2LniPY1cR5Jzx-CbYYg_wrUiUfdq' }
+    : { url: 'https://fotmykjrqrgjnzqbdsea.supabase.co', key: 'sb_publishable_sN48EuIxQhDgS4xaalwJZA_aV-9mfLg' };
+})();
 window.SITE = {
   // Online Store (Main App) ka link
   SHOP_URL: 'https://store.sunpowers.in',
@@ -16,8 +24,8 @@ window.SITE = {
   WHATSAPP: '9621050636',
 
   // Contact form isi database me jaata hai -> Online Store Admin -> पूछताछ
-  SUPABASE_URL: 'https://fotmykjrqrgjnzqbdsea.supabase.co',
-  SUPABASE_KEY: 'sb_publishable_sN48EuIxQhDgS4xaalwJZA_aV-9mfLg'
+  SUPABASE_URL: SP_DB.url,
+  SUPABASE_KEY: SP_DB.key
 };
 
 // =====================================================================
