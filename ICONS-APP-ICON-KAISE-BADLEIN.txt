@@ -1,0 +1,18 @@
+HAR APP KA APNA ICON (store / CRM / admin / website)
+=====================================================
+Har app ke folder me uske apne icon files hain. Admin / Store / CRM me ab unke apne icon lage hain (Admin = shield + gear, Store = solar dukaan, CRM = team + chart). Website ka icon alag hai.
+Alag icon lagane ke liye us app ke folder me NEECHE ke naam wali files badal dein (same naam, PNG):
+
+  icon-192.png            192 x 192   (app icon)
+  icon-512.png            512 x 512   (app icon, bada)
+  icon-maskable-512.png   512 x 512   (gol/chaukor kate hone par bhi dikhe — icon beech ke 80% me rakhein)
+  apple-touch-icon.png    180 x 180   (iPhone Home Screen)
+  favicon-32.png          32 x 32     (browser tab)
+  favicon.ico             (browser tab)
+  splash-icon.png         (opening screen me dikhne wala icon — transparent PNG, ~256 x 256)
+  logo-mark.png           (app ke ANDAR login / header me dikhne wala company logo — ye wahi rehta hai)
+
+Folder:  store/ (Online Store)   crm/ (CRM)   admin/ (Store Admin)   website/ (website: assets/ aur favicon.ico)
+Files badalne ke baad GitHub me daalein -> Vercel live kar dega. Phone me purana icon dikhe to app hata kar
+dobara "Add to Home Screen" karein.
+Aasan tareeka: 3 alag image (1024x1024) bhej dein — main sab size bana kar zip me daal dunga.

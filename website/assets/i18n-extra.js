@@ -1,0 +1,21 @@
+/* Hindi for the newer website sections */
+window.SPI18N && SPI18N.add([
+ ["Search", "खोजें"], ["Search pages, tools and store products", "पेज, टूल और स्टोर प्रोडक्ट खोजें"], ["Pages & tools", "पेज और टूल"], ["Store products", "स्टोर प्रोडक्ट"],
+ ["No results. Try another word.", "कुछ नहीं मिला। कोई और शब्द आज़माएँ।"], ["Login required", "लॉगिन ज़रूरी"], ["View all", "सभी देखें"],
+ ["Home", "होम"], ["Solar savings calculator", "सोलर बचत कैलकुलेटर"], ["Live booking services", "लाइव बुकिंग सेवाएँ"], ["Project Blue Print", "प्रोजेक्ट ब्लू प्रिंट"], ["Solar Error Detector", "सोलर एरर डिटेक्टर"],
+ ["Online Store", "ऑनलाइन स्टोर"], ["Products & Services", "प्रोडक्ट और सेवाएँ"], ["Subsidy guide (PM Surya Ghar)", "सब्सिडी गाइड (पीएम सूर्य घर)"], ["Finance, loan & EMI", "फ़ाइनेंस, लोन और EMI"], ["FAQ", "अक्सर पूछे जाने वाले सवाल"],
+ ["Experts Cabin", "एक्सपर्ट्स केबिन"], ["About Us", "हमारे बारे में"], ["Contact & site visit", "संपर्क और साइट विज़िट"], ["Privacy Policy", "प्राइवेसी पॉलिसी"], ["Terms & Conditions", "नियम और शर्तें"], ["Refund & Cancellation", "रिफ़ंड और कैंसिलेशन"], ["Shipping & Delivery", "शिपिंग और डिलीवरी"],
+ ["Sunpowers live booking services", "Sunpowers लाइव बुकिंग सेवाएँ"], ["Live booking", "लाइव बुकिंग"], ["Live", "लाइव"], ["Book now", "अभी बुक करें"], ["Ask on WhatsApp", "WhatsApp पर पूछें"],
+ ["Site survey", "साइट सर्वे"], ["Installation & shifting", "इंस्टॉलेशन और शिफ्टिंग"], ["Solar panel cleaning", "सोलर पैनल सफ़ाई"], ["Free solar help", "मुफ़्त सोलर मदद"],
+ ["Sunpowers Special", "Sunpowers स्पेशल"], ["Free tools — login required to use", "मुफ़्त टूल — इस्तेमाल के लिए लॉगिन ज़रूरी"], ["Login & open", "लॉगिन करके खोलें"],
+ ["For Best offer Visit our store", "बेस्ट ऑफ़र के लिए हमारा स्टोर देखें"], ["Visit our store", "हमारा स्टोर देखें"], ["Not now", "अभी नहीं"],
+ ["Live products and prices straight from our online store — tap any product to open it in the store.", "हमारे ऑनलाइन स्टोर के लाइव प्रोडक्ट और दाम — किसी भी प्रोडक्ट पर टैप करके स्टोर में खोलें।"],
+ ["Book directly — our team calls you back in about 30 minutes during working hours.", "सीधे बुकिंग करें — हमारी टीम काम के समय में लगभग 30 मिनट में कॉल करती है।"],
+ ["Our engineer visits your roof to measure it and check shadows.", "इंजीनियर आपकी छत पर आकर नाप और छाया जाँचता है।"],
+ ["Get new solar installed or shift your existing plant to a new place.", "नया सोलर लगवाएँ या पुराना प्लांट दूसरी जगह शिफ़्ट करें।"],
+ ["Get lost generation back — safe cleaning and a health check.", "धूल से घटी जनरेशन वापस — सुरक्षित सफ़ाई और जाँच।"],
+ ["Subsidy, loan, net metering or an error — talk to an expert directly.", "सब्सिडी, लोन, नेट मीटरिंग या एरर — एक्सपर्ट से सीधी बात।"],
+ ["Allow location, mark your roof on the map — panels, structure and a blueprint PDF. Use your calculator kW here.", "लोकेशन की अनुमति दें, नक्शे पर छत मार्क करें — पैनल, स्ट्रक्चर और ब्लूप्रिंट PDF। कैलकुलेटर वाला kW यहाँ इस्तेमाल करें।"],
+ ["Type the inverter error code or add a photo — meaning and safe fix in 1 minute. Photos stay on your phone.", "इन्वर्टर का एरर कोड लिखें या फ़ोटो जोड़ें — 1 मिनट में मतलब और सुरक्षित उपाय। फ़ोटो आपके फ़ोन में ही रहती हैं।"],
+ ["Calculate my savings", "मेरी बचत निकालें"], ["Blueprint for this size", "इस साइज़ का ब्लूप्रिंट"], ["Residential, commercial and industrial solar across Lucknow and UP. Up to ₹1.08 lakh subsidy under PM Surya Ghar*.", "लखनऊ और पूरे UP में घर, कमर्शियल और इंडस्ट्रियल सोलर। पीएम सूर्य घर में ₹1.08 लाख तक सब्सिडी*।"], ["Shahar / Area", "शहर / एरिया"], ["When should we visit?", "हम कब आएँ?"], ["Visit time", "विज़िट का समय"], ["Select", "चुनें"], ["Today", "आज"], ["Tomorrow", "कल"], ["This week", "इस हफ़्ते"], ["Any time", "कभी भी"], ["What do you need?", "आपको क्या चाहिए?"], ["New installation", "नई इंस्टॉलेशन"], ["Shift existing plant", "मौजूदा प्लांट शिफ्ट करना"], ["Need", "ज़रूरत"], ["Plant size (kW)", "प्लांट साइज़ (kW)"], ["- if known", "- अगर पता हो"], ["Number of panels", "पैनल की संख्या"], ["Panels", "पैनल"], ["Last cleaned", "पिछली सफ़ाई"], ["Never", "कभी नहीं"], ["Within 3 months", "3 महीने के अंदर"], ["3 to 12 months ago", "3 से 12 महीने पहले"], ["More than a year ago", "1 साल से पुरानी"], ["Book site survey", "साइट सर्वे बुक करें"], ["Book installation", "इंस्टॉलेशन बुक करें"], ["Book cleaning", "सफ़ाई बुक करें"], ["Previous", "पिछला"], ["Next", "अगला"]
+]);

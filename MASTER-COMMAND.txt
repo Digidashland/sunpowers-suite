@@ -1,0 +1,285 @@
+SUNPOWERS SUITE — MASTER COMMAND (Phase 1 + 2 + 3 + Blueprint, sab ek zip me)
+=============================================================================
+
+STEP 1 — Database (Supabase → SQL Editor, SIRF ek baar, 2 files ek ke baad ek)
+   (pehle se setup.sql aur crm-setup.sql chala chuke hain to inhe dobara NA chalayein)
+   a) store/setup.sql         (sirf agar pehli baar)
+   b) crm/crm-setup.sql       (sirf agar pehli baar)
+   c) MASTER-UPDATE.sql       ← YE ZARUR chalayein (Phase 1 + Phase 2/3 + Blueprint + Website Admin ek file me)
+   (Badi file paste na ho to SQL-PARTS/ ke chhote parts — SQL-KAISE-CHALAYEIN.txt dekhein. Naya khali project: MASTER-FRESH.sql)
+   Dobara chalane se kuch nahi bigadta.
+
+STEP 2 — Files GitHub par
+   Is poore folder ki files apne local sunpowers-suite folder me copy karein (replace) →
+   PUSH-TO-GITHUB.bat par double-click → Vercel 4 project apne aap update karega.
+
+STEP 3 — CRM me 1 setting
+   CRM → Settings → Company → Email bharein (naye order / UTR ki email notification isi par aati hai).
+
+STEP 4 — Check (2 minute)
+   • Store: product → cart → login maangega (email OTP) → order → UPI/Gpay link + UTR box
+   • Admin → Orders → "Verify" / "Reject" payment
+   • Website/Store/CRM → "Project blue print" → location Allow → area select → PDF + "Want to Edit Blue print by Experts/Engineers" (WhatsApp 09621050636)
+   • CRM → Solar Maintenance, Connections, Project blue print
+
+NAYA KYA HAI
+ Phase 1  Order se pehle login (email OTP, server par enforce) • UTR se manual payment verify •
+          Admin payment links (GPay/PhonePe/Paytm/Other) • "Get Help" WhatsApp button •
+          Payment ke baad customer ko message • Admin me pending-payment badge + alert
+ Phase 2  Store Admin & CRM products: pehle category (naya category bana sakte hain, ek se zyada),
+          Delete all / category-wise delete (pehle backup apne-aap download),
+          "Edit ke liye sheet download" + "edit ki hui sheet upload" (sirf mojooda products update,
+          naya add/delete nahi), kam fields (baaki "More options" me) • CRM → Connections
+          (Fast2SMS, MSG91, WhatsApp API, Firebase, Razorpay, Meta, Google, Telegram, Webhook —
+          keys server par, dobara dikhayi nahi dengi)
+ Phase 3  CRM → Project blue print (leads "Leads from project blueprint", visibility control) •
+          Quotation → "Project list me save" (naya ya mojooda project UPDATE) • customer ko sirf total
+          (andar ke rate tabhi jab tick ho) • "Store me daalein" → Admin verify → live (project ka
+          description andar ke items se banta hai) • CRM → Solar Maintenance (plans, customer contract →
+          har service visit ka reminder, WhatsApp button) • quotation me optional Maintenance package
+ Blueprint (Website + Store + CRM teeno me) browser "Allow location", map par area khud select,
+          bina Google API key • panel/structure/equipment estimate • photos/video • PDF •
+          "Want to Edit Blue print by Experts/Engineers" → seedha WhatsApp 09621050636
+ Links    Store→Website, Website→Store, CRM→Store+Website, Admin→Store+Website+CRM
+          (sirf navigation — login har app me alag se hi lagta hai)
+
+Round 4 (naya)
+ • Sunpowers Special: Website + Store home par alag highlighted section — Project Blueprint + Solar Error Detector.
+   Dono tools sirf LOGIN ke baad chalte hain (email OTP). Login se naam/mobile milta hai.
+ • CRM lead sirf us ID ke PEHLE tool-use par banti hai (poore data ke saath). Wahi ID dobara use kare to nayi lead nahi.
+ • Blueprint photo/video aur error-detector photo Supabase me NAHI jaati — sirf phone browser me rehti hai.
+ • Dono tools par sunpowers.in watermark + "Go to website" (store me) / "Go to store" (website me) link.
+ • Calculator me size nikalkar "Blueprint for this size" dabayein — kW blueprint me bhar jata hai.
+ • Website: video hero (Cloudinary), header search icon, language button "Eng", "Sunpowers live booking services"
+   (calculator ke upar), site-visit form ab popup (bhar sakte hain ya band), "For Best offer Visit our store" live
+   carousels (store ke 2 section; click → store product).
+ • Store: app kholte hi splash screen (solar products + projects).
+ • CRM Connections: 60+ integrations category-wise (Leads, OTP, SMS, WhatsApp, Calls, Payments, Social, Ads, Accounting,
+   Storage, Automation, Others) — har ek ka ON/OFF. Key bharte hi Telegram / Slack / Webhook se naye lead ka alert chalu.
+ • App icon alag-alag: ICONS-APP-ICON-KAISE-BADLEIN.txt dekhein.
+
+SACHAI (jo abhi nahi hai)
+ • Blueprint ek planning ESTIMATE hai — final accuracy engineer WhatsApp par confirm karte hain.
+ • Video phone se hi WhatsApp par bhejna hota hai (server par upload nahi hota). PDF sirf English me.
+ • Map tiles Esri, search Nominatim (free) — bahut zyada traffic par unki shartein lagti hain.
+ • Connections: sirf Telegram / Slack / Webhook asli kaam karte hain; baaki (IndiaMART, JustDial, SMS, WhatsApp, Razorpay, Meta, Google...) abhi sirf key SAVE karte hain — 'Key saved' dikhta hai, function baad me judega.
+ • Website video (Cloudinary) mere sandbox me dekhi nahi ja saki (wahi video file artifact me chal rahi hai) — live par check karein; na chale to poster dikhega.
+ • Login: ek baar login ke baad logout karne tak dobara nahi maangta (~1 saal session). www.sunpowers.in aur store subdomain par ek hi login (shared cookie) — ye asli domain par hi verify ho sakta hai; alag domain par dono jagah ek baar login.
+ • Resend/koi bhi API key is zip me nahi hai — khud Supabase/CRM Settings me daalein.
+
+ROUND-5 BADLAV (feedback)
+ • Website header: top bar hata diya; sab (call, search, store, login, language, Free Site Visit) ek sticky line me.
+ • Blueprint aur Detector alag-alag sections (beech me 2-3 sections), LIVE flash, 'login' likha nahi — click par login maangta hai.
+ • Live store section: data na aaye to dummy cards (asli store links) dikhte hain.
+ • Store: neeche menu me Detector camera icon + NEW flash; home par Blueprint/Detector alag cards.
+
+ROUND-6 BADLAV
+ • Header: logo + Sunpowers.in + tagline, sab ek line me (1440 se 360px tak check kiya). 'Free Site Visit' button sirf bade (1400px+) screen par header me; chhote par menu / booking cards me.
+ • Live booking services: 4 cards side me slide (auto + haath/arrow se), hover/touch par ruk jata hai.
+ • Booking form ek hi — par khulne par sirf sambandhit fields (Site survey / Installation-shifting / Panel cleaning alag).
+ • Store Admin -> '🌐 वेबसाइट मीडिया': website ki photo aur home video bina code ke badlein. Dekhein: WEBSITE-MEDIA-KAISE-BADLEIN.txt
+ • Video quality: 1920x1080, 4-5 Mbps, 10-15 sec, 6-10 MB wali file Cloudinary par daalein, link admin me paste karein.
+
+ROUND-7 BADLAV (website naye roop me — multi-page + Website Admin)
+ • Website ab asli pages me bati hai (koi bhi button neeche scroll nahi karta). Menu: Home, About Us, Products & Services (dropdown), Maintenance & Audit, Error Detector, Blue Print, Contact.
+ • Naye pages: on-grid, off-grid, hybrid, residential, commercial, industrial, VFD, panel cleaning, installation & shifting, maintenance & audit (one-time / quarterly / half-yearly / yearly packages, price page par nahi), error detector, calculator, PM Surya Ghar subsidy guide, finance, FAQ. Har page par Back + breadcrumb. Har product/service par 3 button: Store, Form (popup), WhatsApp.
+ • Home ke top video par 11 slides (auto + haath se). Har slide ka button ek asli page / popup / store / WhatsApp par jata hai.
+ • Subsidy ka shabd safe rakha hai: "PM Surya Ghar Yojana benefit / scheme support up to ₹1.08 lakh*, terms apply" + "Sunpowers sarkari sanstha nahi" disclaimer (Google / Meta ke liye).
+ • Admin kholte hi 2 option: 🌐 Website Admin aur 🛒 Store Admin (login ek hi; upar ke button se dono ke beech switch).
+ • Website Admin (8 tab): home slides, kisi bhi page ka text (English + Hindi), photo/logo, har product ka store link, menu (naam badlein/chhupayein/naya link), home sections (kram, chhupana, naya section), naye pages (heading, paragraph, photo, cards, button), Google rating + social links.
+ • Naya SQL: MASTER-UPDATE.sql me phase4 (sp_get_web / sp_save_web) judi hai — dobara chalana safe hai. Website ka data alag row (sp_store id='web') me; Store ka data nahi chhua jata.
+ • Store links BLANK chhode gaye hain: Website Admin -> 🛒 स्टोर लिंक me asli link daalein (khali = store ka general page).
+
+SACHAI (Round 7)
+ • Ye visual drag-and-drop builder nahi hai: text, photo, slide, section, page aur link badalte hain; design/layout wahi rehta hai.
+ • Admin se bane naye pages (page.html?s=...) seedhe khulte hain par Google me aane ki guarantee nahi (noindex rakha hai); main pages ka SEO pakka hai.
+ • Website ka text badalte hi 1-2 minute me live hota hai (browser cache). Text badalne par har bhasha ka alag likhein.
+ • Google rating apne aap nahi aati — Website Admin me haath se likhni hoti hai (sirf asli rating).
+ • App ka (PWA) icon static file hai — admin se nahi badalta; ICONS-APP-ICON-KAISE-BADLEIN.txt dekhein. Website ke andar ke chhote icons code ke bane hain; logo / photo badal sakte hain.
+ • In facts ko aap check karke confirm karein (maine naram shabdon me likha hai): subsidy ki rakam (up to ₹1.08 lakh*), panel/inverter warranty ke saal, maintenance package me kya-kya shamil hai, "5 saal tak support", generation-loss (dhool se kitna nuksan) wale dave.
+
+ROUND-8 BADLAV (ek serial, ek jagah billing, Maintenance & Audit, graphs, banners)
+ • NAYA SQL: MASTER-UPDATE.sql ek hi baar poora Supabase SQL Editor me chalayein (naya ya purana dono par safe; dobara chalana bhi safe).
+ • EK SERIAL: Quotation QT/26-27/0001, Bill INV/…, Order ORD/… — sab server se ek hi series me. Chahe customer, staff, store ya blueprint se bane, number ek hi line me chalta hai.
+ • BILLING EK JAGAH: Quotation / Bill / Purchase sirf CRM -> Billing me. Har line Inventory se hi aati hai (server khud rokta hai). Store order se bhi quotation Inventory ke item se banti hai. Bill, quotation se serial se juda rehta hai.
+ • STORAGE ME FALTU NAHI: Customer ka bijli bill / blueprint / error-detector ka data / attachment save nahi hota. Upload ke liye sirf Admin ka chhota-samay wala token chalta hai. Settings -> Storage & Safai me purani quotation (jo bill nahi bani) aur band enquiry saaf hoti hai. Bill, payment, customer kabhi delete nahi hote.
+ • KEY SURAKSHIT: Supabase ki sirf "publishable" key website/app me hoti hai (ye banai hi public jaati hai; data RLS + server functions se bachta hai). Resend / API / secret key sirf Supabase ke andar (crm_settings.secrets) rehti hain; kisi file, page ya backup me nahi.
+ • DASHBOARD GRAPH: CRM Home par Growth card — Pura business, Marketing, Online Store, Store ki bikri, Leads, Maintenance & Audit; 6 ya 12 mahine.
+ • MAINTENANCE & AUDIT PACKAGES (CRM): Dashboard (kis customer ne kaunsa plan, last service, next due), Calendar (mahina/saal), Plans aur Checklist items — dono Inventory ka hissa hain (edit / delete / add). Pehle se kuch default checklist aur plans daale gaye hain, ek FREE plan bhi. Plan naye ya purane customer ko diya ja sakta hai. Visit hone par stock se maal kat'ta hai, cost jodta hai aur agli date aage badhti hai; WhatsApp reminder aur service report.
+ • MARKETING -> PLATFORMS: har platform ke liye Manual lead + Auto (Bulk / key) aur login link / ID. PASSWORD save nahi hota — browser ka "Password save" use karein.
+ • ADMIN KEEP-LOGIN: Profile me "Is device par yaad rakhein" (PIN ke saath) — jab tak aap khud logout na karein login rahega.
+ • WEBSITE ADMIN (10 tab): naye 🎬 पेज बैनर (Home ko chhod har page par 16:9 — 1 video ya 5 tak photo + 2 button) aur 🃏 कार्ड लिंक / मीडिया (project card ke 2 link, brand card ke link, On-Grid/Off-Grid/Hybrid card par photo/video aur store button ka link). Kuch na bharein to default dikhta hai: project card par "See full info" + "See similar projects", brand card par Residential + Commercial, On-Grid/Off-Grid/Hybrid card par SIRF upar media slot (photo/video) — card ka text (Panels make DC…), process flow (Sun → Panel → Inverter…) aur ticks jaise the waise + "Select project from store" (link: Website Admin -> Store links), aur har inner page par 16:9 default banner + 2 button. Link ke box me "-" likhne par wo button chhup jata hai; banner ke liye "banner chhupayein" tick hai.
+ • HINTS: CRM, Store Admin aur Website Admin ke har screen par 💡 hint; public form me zaroori (*) fields.
+
+SACHAI (Round 8)
+ • Auto (key) se platform ki leads tabhi aayengi jab us platform ki API / approval aapko mile (Meta, Google, IndiaMART, JustDial ki apni shartein hain). Tab tak Manual aur Auto (Bulk — Excel/CSV) chalega.
+ • Browser ka saved password har device par alag hota hai; CRM password store nahi karta.
+ • Admin se daala video Cloudinary / YouTube link ho — Supabase me video save nahi hota (storage bachane ke liye).
+ • Maine mock Supabase + browser tests se poori suite chalayi hai; asli Supabase / Vercel / Resend par pehli baar chalane par ek baar sab screens khud dekh lein.
+
+ROUND-9 BADLAV (app icon + splash, Accounts, Restore, bhasha)
+ • APP ICON + SPLASH (sirf Admin / Store / CRM — website nahi): aapke diye 3 icon (magenta background hata kar transparent) har app ke home-screen icon, PWA icon (192 / 512 / maskable), apple-touch aur favicon me lage hain. Splash screen ab sirf us app ka icon + neeche chalti hui lines (opening loader) — baaki sab hata diya. App ke andar company ka logo vahi hai jo pehle tha. Admin ka manifest.json bhi ban gaya (ab "Add to Home Screen" par Admin ka icon aayega).
+ • NAYA SQL: MASTER-UPDATE.sql me phase6 (accounts + restore) jud gaya — poora ek baar chalayein, dobara chalana safe hai.
+ • ACCOUNTS & REPORTS (CRM -> Sales -> Accounts & Reports; Admin ko ya jise "Accounts" permission mile): Kharcha (rent, salary, petrol… GST ke saath, hatane par wajah) + Profit & Loss (Sale − Purchase − Kharcha), GST output / input / net, B2B-B2C, GST rate-wise, mahine ke hisab se, aur ITR summary (turnover, books ka profit, 44AD 6% / 8% ka andaaza). FY chunkar dekhein; har table Excel me download ya seedha CA ko share.
+ • BACKUP SE RESTORE (CRM -> Settings -> Backup): purana backup .zip chunein + PIN -> records / kharcha / serial numbers / store orders / enquiries / store-website data / documents wapas. Same number par update hota hai, naya data delete nahi hota; settings, team ke login, password, PIN nahi chhue jaate. Serial number aur ID aage se wahi se chalte hain (duplicate nahi).
+ • BHASHA: Round 8 ke CRM screens aur Website Admin ke naye tab ka English / हिंदी dictionary me add kiya.
+
+SACHAI (Round 9)
+ • Accounts ek REPORT hai — GST return / ITR file CA karega. 6% / 8% sirf andaaza hai (eligibility CA tay karega). Purchase tabhi judta hai jab "Maal aa gaya" (received) ho.
+ • Restore sirf merge karta hai (purana record usi ID par wapas); jo backup ke baad delete kiya use dobara laane se wo wapas aa jayega. Documents ki files tabhi wapas aati hain jab backup "files bhi" tick karke liya ho.
+ • Store Admin ki purani Hindi screens ke kuch labels (jaise "— के नीचे" list ya demo naam) English mode me Hindi dikh sakte hain.
+ • Abhi bhi aapke faisle chahiye: W6 (website ke "watermark" jaise bade halke shabd — kaunsa hataana hai), D4 (Error Detector me kaun-kaun se inverter brand ke code jodne hain — galat code nahi bana sakta), L3 (Hindi/English ke baad aur bhasha).
+
+ROUND-10 BADLAV (Website Shop page, Add-to-cart sections, Pin code availability, bhasha, Error Detector)
+ • WEBSITE KA SHOP PAGE (shop.html, menu me "Shop"): Store jaisa hi maal, usi CRM inventory se (jo "Store par bhejein" se Store me aata hai wahi). Search + category chips + qty + Add to cart. Naya SQL: MASTER-UPDATE.sql (Round 10 section) ek baar chalayein; dobara chalana safe hai.
+ • ADD-TO-CART BOX: On-Grid / Off-Grid / Hybrid / VFD ke har section me aur home par 4-tab "Shop online" section (Why section se pehle; purana order nahi badla). Ek saath kai products. Button "Store cart par jaayein" -> SHOP_URL/?add=id:qty&pin=NNNNNN — login/payment Store ke web page par hota hai (app download nahi).
+ • WEBSITE ADMIN -> "कार्ट सेक्शन" tab: har box ka title (EN/HI), kaunsa store-section/keyword, kitne products, aur button ka asli link edit hota hai.
+ • STORE ADMIN -> product: "मुख्य वेबसाइट के Shop पेज पर भी दिखाएँ" tick (default ON). Band karne par wo product sirf Store me dikhega.
+ • PIN CODE AVAILABILITY: Admin -> Pin Code tab. All / State / District / Custom area / Sirf online; manual + Excel. Store aur website dono par "Not available at this pin code — Change pin code". PIN master (data.gov.in ki CSV) ek baar upload karni hai.
+ • WATERMARK: sirf "Powered by Digidashland.in".
+ • BHASHA: Hindi, English, Hinglish + Bangla, Punjabi, Marathi, Gujarati (BETA — machine translation, sirf core screens; baaki English). Menu se chunein.
+ • ERROR DETECTOR: Solax, Fronius, ABB, SMA, VFD aur Luminous ke code jude.
+
+SACHAI (Round 10)
+ • Regional bhasha native-verified nahi hain; Urdu nahi hai. Detector me kuch codes third-party list se hain (unverified label dikhta hai). Havells/Polycab/Microtek/UTL/Waaree/Tata ki public code list nahi mili.
+ • Website par alag cart/payment nahi — checkout Store page par hota hai.
+ • Tests mock Supabase par chale; asli Supabase/Vercel par pehli baar ek baar sab screens dekh lein.
+
+ROUND-11 BADLAV (CRM bulk send, Admin Page Builder, Approved-for-Publish queue)
+ • NAYA SQL: MASTER-UPDATE.sql ke aakhir me "ROUND 11" section (crm_to_store ab Project ko bhi Store ko bhejne deta hai) — ek baar chalayein, dobara chalana safe hai.
+ • CRM -> Items (Products / Projects dono tab): har row par tick-box. "Sab chunein", "Sirf naye" aur "Chune hue Store ko bhejein" — ek saath kai/sab bhej sakte hain. Confirm me kitne naye/update/bina-photo dikhte hain. Pehle se Store me pending wale dobara nahi jaate.
+ • CRM -> Project form: Items ka total button (qty x rate = kul keemat), Photo + Store tagline + offer bhi ab Project me. Inventory minimal rahegi; online-only cheezein (photo, tagline, jagah) Admin me bharte hain. Offline quotation/bill ka kuch nahi badla.
+ • ADMIN -> "CRM se aaye prodcut" tab ab AUTO-CHECK karta hai: naam, photo, keemat, description (min 30 akshar), jhoothe daave ("100% free bijli" etc.), phone/link naam me. Pass = "Publish ke liye taiyaar"; fail = "Kami wale" (kaaran ke saath, CRM me hi rehte hain; ek button se sab CRM ko wapas). Brand/SKU/tagline sirf salaah (warning).
+ • BULK PUBLISH: taiyaar items tick karo -> kahan-kahan dikhana hai (section / category / Raw Category box — ek ya kai jagah), Website Shop tick, ek baar Google/Meta confirm -> ek save me sab live. Live items ki jagah bulk me jodna/hatana bhi hota hai.
+ • ADMIN -> "Page Builder" tab (Store page + Website Shop page): 13 components (Search, Slideshow Banner + buttons, Raw Category boxes, Deals / Recommended / Best Sellers / New Arrivals, Product Row, Video 16:9, YouTube, Delivery bar, Offer strip, Custom section). Fixed naam (search_bar_1, raw_category_1, box_1 ... kabhi dobara use nahi hote), rename, lock, hide, upar-neeche/drag, Store / Shop / dono, live preview. "Builder ON" tick tak purana layout bilkul waisa hi rehta hai.
+ • "Solar template + demo products" button: 6 section + 13 demo product (customer ko nahi dikhte; "Demo hatayein" se sab saaf).
+ • Store app aur Website Shop page: Builder ON hone par naya layout dikhta hai. Shop page me neeche sabhi products ka search/chips/grid bhi rehta hai.
+
+SACHAI (Round 11)
+ • YouTube channel se videos apne-aap nahi aate (iske liye key/server chahiye) — abhi video ke link khud daalne hain.
+ • Auto-check sirf aapke fields jaanchta hai; Google/Meta ki approval unki hoti hai. "Best Sellers" ka koi auto rule nahi (section se hand-pick).
+ • Store par Builder ON hone par purane "section/slideshow/chips" blocks hat jaate hain (form, services, feedback jaise baaki blocks rehte hain).
+ • Tests mock Supabase par chale; asli Supabase par pehli baar ek baar sab screens dekh lein.
+
+================================================================
+ROUND-12a BADLAV (Store Admin: product ki Photo + Short Video)
+================================================================
+* Koi naya SQL nahi. Admin/Store/Website files replace karo (master zip), Vercel redeploy.
+* Admin > Products > Edit: ek hi "Photo / Video" box — kul 5, max 2 video, "Mukhya" tick (photo ya video).
+  Sab Admin se upload hoga (video MP4/WebM, 50 MB tak; Supabase bucket sp-images 50MB/video allow - MASTER-UPDATE ROUND 8 wala SQL pehle chala ho).
+* CRM ki photo/link store par NAHI jaati (CRM = offline catalog). CRM se bheje product pehle HIDDEN bante hain;
+  Admin me photo/video daalke 👁 dabao tab live.
+* Purane products ki photo automatically naye box me khulti hai; kuch nahi tootega.
+
+
+================================================================
+ROUND-13 BADLAV (Dashboards, Analytics, Reports, SKU, Catalog, Permissions, Sheet-privacy, Website)
+================================================================
+STEP A — Database: Supabase -> SQL Editor -> MASTER-UPDATE.sql poori chalayein (aakhir me "ROUND 13" section). Dobara chalana safe hai.
+STEP B — Files replace karke GitHub push (PUSH-TO-GITHUB.bat) -> Vercel redeploy. CRM/Admin/Store/Website sab badle hain.
+STEP C — 5 minute check:
+   1) CRM -> Dashboard (Admin/Manager/Staff/Dealer ka alag), Analytics, Reports, Accounts (Overview/Ledger/Lena/Dena/Payments/Kharcha/Profit&GST)
+   2) CRM -> Items: 11 category + sub-category, naya SKU (SP-PNL-BDC-00001 jaisa, ek hi serial), "Category/Sub-category jodein"
+   3) CRM -> Team: har user ke liye permission ek-ek tick/untick (role ka default pehle se tick)
+   4) Koi bhi Download -> pehle filter list (category, brand, stock, status, date...). Upload ke liye wahi sheet chahiye jo download hui thi
+   5) Website: Home par "Shop by category" + "Best sellers" + "Video guides"; Services/Residential/Commercial/Industrial/Subsidy par product rail.
+NAYA KYA HAI
+ • Dashboard: role-wise (Admin/Manager/Staff/Dealer/Influencer) — tiles, donut, stair, bars, funnel, top customers, team table. Paise wale tile sirf "dashboard.money" wale ko.
+ • Analytics (naya menu): leads->quotation->bill funnel, mahine-wise sale/collection, lead source, category-wise sale, top items/customers, baaki lena ki aging, team-wise.
+ • Reports (naya menu): Sale, GST sale, Collection, Lena baaki, Purchase, Dena baaki, Kharcha, Quotation, Leads, Plants, Commission, Stock value — date/status/customer/user filter, Excel/CSV download (reports.download permission).
+ • Accounts: Lena baaki / Dena baaki (supplier payment entry) / Payments tab alag. (Purana Billing -> Reports bhi chalta rahega.)
+ • SKU: har product/project ko auto serial SKU. Purane free-text SKU "MPN" me chale jate hain, purane products ko backfill hota hai.
+ • Catalog: 11 category + sub-category + spec columns + brands + starter products (keemat andaazi, Oct 2026 — LIVE se pehle zaroor check karein).
+ • Permissions: Team -> user -> ek-ek point tick/untick. Role ka default alag dikhta hai; sirf badla hua save hota hai.
+ • Sheet privacy: Download sheet me hidden code; Upload sirf usi code wali sheet, usi rows/columns me; 30 din expiry; Admin kabhi bhi revoke; sab log hota hai.
+ • Stock: quotation/direct/online (20%) reserve, expiry, low-stock alert.
+ • Website: category tiles, best sellers, product rails (store ke asli products), Video guides. Store Admin -> Videos me link daalte hi aapke video dikhte hain (YouTube / mp4 / Cloudinary).
+SACHAI (Round 13)
+ • WhatsApp auto-send nahi bana (provider tay nahi) — abhi WhatsApp button se manual.
+ • Starter catalog ki keemat/GST andaazi (panel 5%, inverter 5%, baaki 18%, lights 5%) — CA se verify karein. Image link khaali hain, model number generic.
+ • Excel ko sach me lock nahi kar sakte — privacy server ke sheet-code + log par tikti hai.
+ • Store Admin me edit client-side apply hota hai; wahan bhi server code + client filter se bachav hai.
+ • Stock 5 se kam ho to online 20% hissa 0 aata hai.
+ • Sab tests mock Supabase par chale; asli Supabase par pehli baar sab screens ek baar dekh lein.
+
+
+================================================================
+ROUND-14 BADLAV (Store + Shop LIVE catalog, naya sticky header, in-section videos)
+================================================================
+STEP A — Supabase SQL Editor: pehle MASTER-UPDATE.sql (agar abhi tak nahi chalayi), phir STORE-CATALOG-LOAD.sql poori chalayein.
+   Isse Store + Website Shop page dono par: 11 category, 43 sub-category, 150 products, complete solar systems (projects), Page Builder ON (search, banner, category boxes, offers, best sellers, new arrivals, har category ki row).
+   Aapke settings/orders/aapke khud ke bane products nahi chhune; dobara chalana safe hai.
+STEP B — Files replace -> GitHub push -> Vercel redeploy.
+STEP C — Check: Store home (naya layout), Shop page, Website home (header sticky, Shop by category, product rows, videos).
+NAYA KYA HAI
+ • Website header: upar patli info line (call, mail, time, subsidy), neeche brand + menu + search/store/login/language, mobile par neeche menu-pills. Scroll par upar wali line chhup jaati hai; sab pages par sticky.
+ • Home aur andar ke pages par Shop ke product sections (category tiles, best sellers, panels, inverters, batteries, lights, cameras, home appliances, care).
+ • Video guides ab har section ke andar (neeche nahi), bina kisi likhe shabd ke — sirf video. 7 explainer videos website/assets/video/ me hain (ongrid, buy, care, subsidy, offgrid, hybrid, vfd). Apne video: Store Admin -> Videos me https link daalte hi wahi dikhenge; ya wahi file-naam se mp4+jpg badal dein.
+ • Page Builder: product ko category/sub-category se jodna (product.sections) -> Store aur Shop dono par dikhta hai.
+ • Purane sample text/wording hata diye; sab neutral.
+SACHAI (Round 14)
+ • Keemat/GST andaazi hain — LIVE se pehle check karein; image link khaali hain (emoji/colour tile dikhte hain).
+ • Videos Claude ne banaye (Hinglish explainer, animated). Subsidy ke aankde "latest verify karein".
+ • Sab tests mock Supabase par; asli Supabase par SQL chalane ke baad pehli baar screens dekh lein.
+ • Artifact preview me database nahi judta, isliye wahan catalog file se dikh raha hai; asli site SQL ke baad Supabase se padhegi.
+
+
+================================================================
+ROUND-15 BADLAV (Admin hub + dashboards, har page ka control, Settings: rang + greeting, naya header/footer)
+================================================================
+STEP A — Supabase SQL Editor: MASTER-UPDATE.sql poori chalayein (naya hissa: ROUND 15 — sp_events, sp_track, sp_admin_analytics, sp_get_cfg/sp_save_cfg/crm_cfg_save). Safe to re-run.
+STEP B — Files replace -> GitHub push -> Vercel redeploy (website, store, admin, crm — sabhi).
+STEP C — Check: Admin login -> 2 option (Website & Shop / Store).
+NAYA KYA HAI
+ • Admin kholte hi 2 option: "Website & Shop page" aur "Online Store". Website & Shop ke andar: Manage Website, Manage Shop Page, Dashboard, Tulna.
+ • Manage Website: har page ka har section (edit / chhupana-dikhana / delete / upar-neeche / naya) aur har button (naam, link, chhupana). Tab "सभी पेज".
+ • Manage Shop Page: product sections (Page Builder), page ke sections/buttons, text, cart sections.
+ • Dashboards (Website+Shop, Store, Tulna): visit, visitor, source (Google/WhatsApp/direct/Website se aaye), top pages, sabse dabe button, funnel, sale, order, enquiry, alerts, CSV. Tulna se pata chalega website se zyada sale/visit hai ya store se.
+ • Settings (sirf Admin): har panel ka apna rang combo (CRM, Admin, Store, Website) + Greeting banner (Diwali/Holi etc., icon/emoji, tick: website home/andar ke pages/shop/store/har CRM user/Admin). CRM me: Settings -> Colour & Greeting.
+ • Website/Shop: Add-to-cart ab side-scroll (left/right) rail me; home chhodkar sabhi pages par chhota sticky header (logo, page ka naam, search, 3-line menu); footer chhota (Company left, Policies + Contact right).
+SACHAI (Round 15)
+ • Visit/click ginti tabhi chalegi jab SQL chal chuki ho; purane din ka data nahi hota.
+ • Bot/automation visits count nahi hote. Personal data store nahi hota (sirf random id).
+ • Aapki bheji picture mujhe dikhi nahi — header text ke hisab se banaya; farak ho to bataiye.
+ • Sab tests mock Supabase par chale; asli Supabase par SQL ke baad pehli baar dashboards ek baar dekh lein.
+
+
+================================================================
+ROUND-16 BADLAV (Admin naya look, CRM Projects + 13-step workflow, Customer "My Plant", Website videos + Support section)
+================================================================
+STEP A — Supabase SQL Editor: MASTER-UPDATE.sql poori chalayein (naya hissa: ROUND 16 — workflow, crm_projects, lead transfer, inbound-lead rule, pending bill, Documents share, crm_consumer_* plant functions). Safe to re-run.
+STEP B — (sirf pehli baar) STORE-CATALOG-LOAD.sql chalayein agar abhi tak nahi chalayi.
+STEP C — Files replace -> GitHub push -> Vercel redeploy (website, store, admin, crm — sabhi).
+STEP D — Check: Admin login -> 🌐 "Website & Shop Management" / 🛒 "Store Management". CRM -> Customers me 13-step card, Projects menu. Website par login karke "Meri Plant" me Plant ID daalein.
+NAYA KYA HAI
+ • Admin: dark icon header, 🔔 bell ("New"), filter (aaj / 7 din / mahina / saal), search icon, left slide menu, har page cards se shuru. 🎬 "Website Videos" (Website & Shop ke andar) — yahin se 20 videos preview + download (visitor ko download nahi dikhta).
+ • CRM: "Quotation/Projects" -> "Quotations & Templates". Naya "Projects" menu (Live tracking). "Plants" Projects me mil gaya. Documents & Gallery se customer ko file/photo/video bhejein (naam + quotation number stamp ke saath).
+ • Workflow: 13 step (Customer Connect ... Finish Work, Subsidy sirf Residential). Har step ki date+time sabko; detail sirf Admin ne jinhe diya. Customer ka dashboard khulta hai customer chunne par.
+ • Rules: ek customer = ek quotation (naya plant = naya quotation number). Quotation bhejne se pehle zaroori: naam, mobile, pata, shahar, customer type (+kW). Blueprint/documents/gallery zaroori NAHI. Lead tab tak Leads me jab tak baat na ho, phir "Transfer to Customer list". Inbound lead (form/signup/ads) me naam + mobile zaroori; manual/Excel/phone-contacts me sirf mobile.
+ • Bill: quotation Quotation list se tabhi jaati hai jab final bill ka balance zero ho; tab tak Quotation + Invoice list me "Pending bill" ribbon.
+ • Customer "Meri Plant" (website, shop page, store): header ke theek neeche. Plant ID = confirmed quotation number; sirf apne mobile se juda ID chalta hai. 4 cards (capacity+ID+naam+install date / agli maintenance / payment (hara tick ya next due / "Bill ka intezaar") / downloads) + live timeline + Finish Work + Subsidy.
+ • Website: inner pages se hara hero/Back/breadcrumb hata (home me nahi). Home par naya "Sunpowers hai to ! Bharosa hai !" support section (graph, table, gol cards, Error Detector). 20 text-to-video har sahi jagah.
+SACHAI (Round 16)
+ • Videos Hinglish text + animation hain, awaaz (voice-over) nahi. Naye video chahiye to text badal kar dobara banwa sakte hain (vidgen script).
+ • Video files public hain (website par chalne ke liye) — "download sirf Admin" button-level hai, file link jaanne wala phir bhi khol sakta hai.
+ • Support section ka graph "sample illustration" hai (asli generation nahi). Aapki bheji reference picture mujhe nahi dikhi — description ke hisaab se banaya; farak ho to bataiye.
+ • Sab tests mock Supabase par chale; asli Supabase par SQL ke baad ek baar flow dekh lein.
+
+
+================================================================
+ROUND-19 BADLAV (Card buttons + 4 cards ek row, Website ka apna Checkout, SQL ke chhote parts + MASTER-FRESH)
+================================================================
+STEP A — Database: koi NAYA SQL nahi. (Agar MASTER-UPDATE.sql ek baar chala chuke hain to kuch nahi.)
+   Naya: SQL chhote parts me bhi mil gaya (SQL-PARTS/) aur naye project ke liye MASTER-FRESH.sql — padhein: SQL-KAISE-CHALAYEIN.txt
+STEP B — Files replace -> GitHub push -> Vercel redeploy: website + store + admin (crm me badlav nahi).
+STEP C — Check:
+   1) Admin -> Shop Page Builder / Store Page Builder -> kisi Product row ka ⚙️ -> "ग्रिड में एक लाइन में कितने cards" + "अभी ख़रीदें / देखें / WhatsApp" buttons. Layout "ग्रिड" chunein, cards 4 karein -> Save.
+   2) Website -> shop.html -> product ke "Buy now" / neeche ke "Checkout" -> ab apna checkout.html khulta hai (store domain par nahi). Login -> address -> pay -> order -> UTR.
+NAYA KYA HAI
+ • Product cards: "Buy now" (default), "View", WhatsApp buttons; ek row me 2/3/4 cards (desktop), mobile par 2.
+ • Website checkout: cart (+/- / hatao) -> delivery details -> COD advance ya UPI -> consent -> Place order -> order number, UPI link, UTR box, WhatsApp. Pincode ke hisab se delivery charge aur "is pin par available nahi" rok. Login (email OTP) zaroori.
+ • SQL: MASTER-FRESH.sql (naya khali project) + SQL-PARTS/ (F01.., U01.., C01.. chhote parts, order se chalayein). Dobara chalana safe.
+SACHAI (Round 19)
+ • Order ka price abhi browser se aata hai (Store ka purana design) — Razorpay jaisa auto payment / server-side price check baad ka kaam.
+ • Checkout me payment: COD (advance %) aur UPI + UTR manual verify. Dusri regional languages me checkout ke labels English dikhenge (English + Hindi pura).
+ • Sab tests mock Supabase par chale; asli Supabase par ek test order zaroor dekh lein.

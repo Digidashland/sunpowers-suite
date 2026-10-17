@@ -1,0 +1,126 @@
+// Text-to-video scripts (Hinglish, facts only from the Sunpowers website pages). type: title|points|flow|stat|steps|end
+module.exports = {
+home: { title: 'Sunpowers — solar ka poora saathi', scenes: [
+  { type: 'title', icon: 'sun', head: 'Sunpowers solar', sub: 'Ghar se factory tak — Lucknow, UP' },
+  { type: 'points', icon: 'house', head: 'Aap kya chahte hain?', lines: ['Ghar ka bijli bill kam', 'Dukaan / office / school ka kharcha kam', 'Factory ki power cost kam', 'Kheti ke liye diesel-free pump'] },
+  { type: 'flow', icon: 'panel', head: 'Hum poora kaam karte hain', nodes: [['doc', 'Site visit'], ['panel', 'Design + quote'], ['tool', 'Installation'], ['shield', 'Support']] },
+  { type: 'stat', icon: 'star', big: '500+', cap: 'projects — 2016 se ab tak, 3 kW se 1 MW tak' },
+  { type: 'points', icon: 'cart', head: 'Online bhi, site par bhi', lines: ['Solar store: panel, inverter, battery', 'Blue Print: apni chhat ka plan', 'Error Detector: inverter error ka matlab', 'Maintenance aur cleaning service'] },
+  { type: 'end' }]},
+residential: { title: 'Ghar ke liye solar (3–30 kW)', scenes: [
+  { type: 'title', icon: 'house', head: 'Ghar ke liye solar', sub: '3 kW se 30 kW — residential' },
+  { type: 'points', icon: 'doc', head: 'Pehle aapka bill aur chhat', lines: ['Bijli bill aur load dekhte hain', 'Chhat ki jagah aur chhaon check', 'Phir On-Grid, Off-Grid ya Hybrid batate hain'] },
+  { type: 'points', icon: 'panel', head: 'Achha material', lines: ['TopCon 615W+ panel', '30 saal performance warranty', 'Warranty claim me Sunpowers ki madad'] },
+  { type: 'stat', icon: 'rupee', big: '₹1.08 lakh*', cap: 'tak scheme benefit — eligible ghar, On-Grid / Hybrid, shartein lagu' },
+  { type: 'points', icon: 'shield', head: 'Install ke baad bhi saath', lines: ['5 saal call aur WhatsApp support', 'Bill bahut kam, shor aur dhuan nahi', 'Maintenance aur audit packages'] },
+  { type: 'end' }]},
+commercial: { title: 'Dukaan, office, school aur hospital ke liye solar', scenes: [
+  { type: 'title', icon: 'building', head: 'Commercial solar', sub: 'Lagbhag 10 kW se 200 kW' },
+  { type: 'points', icon: 'bolt', head: 'Din ka load solar par', lines: ['Dukaan, office, school, hospital', 'Din ki bijli solar se — monthly bill kam', 'Predictable saving'] },
+  { type: 'flow', icon: 'meter', head: 'Aapke connection ke hisab se model', nodes: [['meter', 'Net feeding'], ['grid', 'Gross metering'], ['shield', 'Zero export'], ['battery', 'Hybrid']] },
+  { type: 'points', icon: 'rupee', head: 'Business ka fayda', lines: ['Original GST bill', 'Depreciation ka fayda ho sakta hai', '(apne CA se confirm karein)'] },
+  { type: 'points', icon: 'tool', head: 'Service ke saath', lines: ['Maintenance aur audit packages', 'Site survey free', 'Quote lagbhag 30 minute me'] },
+  { type: 'end' }]},
+industrial: { title: 'Factory ke liye solar (100 kW – 2 MW)', scenes: [
+  { type: 'title', icon: 'factory', head: 'Industrial solar', sub: '100 kW se 2 MW — shed ya zameen' },
+  { type: 'points', icon: 'rupee', head: 'Bada saving, kam power cost', lines: ['Factory kai ghante chalti hai', 'Solar bill ka bada hissa kam karta hai', 'Bill dekhkar payback batate hain'] },
+  { type: 'flow', icon: 'panel', head: 'Roof ya ground plant', nodes: [['panel', 'Shed / ground'], ['bolt', 'String inverter'], ['meter', 'Net feeding meter'], ['factory', 'Factory load']] },
+  { type: 'points', icon: 'shield', head: 'Heavy-duty aur monitoring', lines: ['Hawa ke liye heavy structure', 'Remote monitoring aur logger', 'Roz ki generation dikhti hai'] },
+  { type: 'points', icon: 'map', head: 'Jagah nahi? Open access', lines: ['Kisi aur jagah ke plant se solar', 'CAPEX ya OPEX — dono model', 'Approvals me madad'] },
+  { type: 'end' }]},
+ongrid: { title: 'On-Grid solar kaise kaam karta hai', scenes: [
+  { type: 'title', icon: 'grid', head: 'On-Grid solar', sub: 'Grid ke saath mil kar bijli banata hai' },
+  { type: 'flow', icon: 'sun', head: 'Dhoop se bill tak', nodes: [['sun', 'Dhoop'], ['panel', 'Panel DC'], ['bolt', 'Inverter AC'], ['house', 'Ghar ka load'], ['grid', 'Grid']] },
+  { type: 'points', icon: 'meter', head: 'Net meter ka hisab', lines: ['Pehle ghar me use hota hai', 'Extra bijli grid me jaati hai', 'Raat ko grid se wapas', 'Bill bahut kam ya zero'] },
+  { type: 'points', icon: 'check', head: 'Kyun chunte hain log', lines: ['Sabse kam bill', 'Battery ka kharcha nahi', 'Bahut kam upkeep', 'Eligible ghar ko scheme benefit'] },
+  { type: 'points', icon: 'alert', head: 'Dhyan rahe', lines: ['Grid band ho to On-Grid bhi band', 'Backup chahiye to Hybrid dekhein'] },
+  { type: 'end' }]},
+offgrid: { title: 'Off-Grid solar aur battery', scenes: [
+  { type: 'title', icon: 'battery', head: 'Off-Grid solar', sub: 'Bina grid ke bijli' },
+  { type: 'flow', icon: 'sun', head: 'Dhoop, battery, phir load', nodes: [['sun', 'Dhoop'], ['panel', 'Panel'], ['bolt', 'MPPT charger'], ['battery', 'Battery'], ['house', 'Load']] },
+  { type: 'points', icon: 'map', head: 'Kahan sahi baithta hai', lines: ['Kheti aur door ke ghar', 'Jahan grid nahi ya kamzor hai', 'Din aur raat dono bijli'] },
+  { type: 'points', icon: 'alert', head: 'Seedhi baat', lines: ['Battery ka kharcha alag hota hai', 'Load ke hisab se size banta hai', 'Off-Grid par PM Surya Ghar subsidy nahi'] },
+  { type: 'end' }]},
+hybrid: { title: 'Hybrid solar: bachat aur backup', scenes: [
+  { type: 'title', icon: 'bolt', head: 'Hybrid solar', sub: 'On-Grid + Off-Grid ka best' },
+  { type: 'flow', icon: 'sun', head: 'Pehle solar, phir battery, phir grid', nodes: [['panel', 'Solar'], ['house', 'Ghar'], ['battery', 'Battery charge'], ['grid', 'Grid']] },
+  { type: 'points', icon: 'shield', head: 'Light gayi? Battery sambhalti hai', lines: ['Power cut me ghar chalta rehta hai', 'Bill bhi kam hota hai', 'Eligible ghar ko scheme benefit'] },
+  { type: 'points', icon: 'alert', head: 'Soch kar chunein', lines: ['Hybrid On-Grid se mehenga hota hai', 'Isliye zyadatar log On-Grid lete hain', 'Backup zaroori ho to Hybrid'] },
+  { type: 'end' }]},
+vfd: { title: 'Solar VFD: pump aur aata chakki', scenes: [
+  { type: 'title', icon: 'drop', head: 'Solar VFD', sub: 'Pump, chakki, cold storage — 3 se 50 HP' },
+  { type: 'flow', icon: 'sun', head: 'Motor seedha solar se', nodes: [['sun', 'Dhoop'], ['panel', 'Panel 615W+'], ['bolt', 'VFD (MPPT)'], ['motor', 'Motor']] },
+  { type: 'points', icon: 'rupee', head: 'Kisan aur chakki malik ko fayda', lines: ['Diesel ka bill nahi', 'Grid ki zaroorat nahi', 'Kam parts — mazboot system'] },
+  { type: 'stat', icon: 'motor', big: '10 HP', cap: 'chakki ke liye lagbhag 15 kW solar — lagbhag 20 quintal/din' },
+  { type: 'points', icon: 'bank', head: 'Pump scheme', lines: ['Pump par PM-KUSUM dekh sakte hain', 'Eligibility sarkar tay karti hai', 'Hum guide karte hain'] },
+  { type: 'end' }]},
+subsidy: { title: 'PM Surya Ghar subsidy step by step', scenes: [
+  { type: 'title', icon: 'bank', head: 'PM Surya Ghar', sub: 'Muft Bijli Yojana — step by step' },
+  { type: 'points', icon: 'check', head: 'Kaun apply kar sakta hai', lines: ['Apna ghar, residential connection', 'Shadow-free chhat', 'On-Grid ya Hybrid + net meter'] },
+  { type: 'points', icon: 'doc', head: 'Ye taiyaar rakhein', lines: ['Aadhaar card, latest bijli bill', 'Bank passbook / cancelled cheque', 'Chhat ki photo', 'Aadhaar se juda mobile'] },
+  { type: 'steps', icon: 'bank', head: 'Application se support tak', steps: ['Portal par register', 'Feasibility approval', 'Installation', 'Net meter aur inspection', 'Support amount bank me'] },
+  { type: 'stat', icon: 'rupee', big: '₹1.08 lakh*', cap: 'tak — UP me 1 se 30 kW par; rakam size aur sarkari niyam par' },
+  { type: 'end' }]},
+finance: { title: 'Loan, EMI aur paisa wapas', scenes: [
+  { type: 'title', icon: 'rupee', head: 'Loan aur EMI', sub: 'Bachat se kisht — anuman, site par nirbhar' },
+  { type: 'stat', icon: 'clock', big: '~3.5 saal', cap: '10 kW par paisa wapas — lagbhag anuman' },
+  { type: 'points', icon: 'bank', head: 'Bank loan', lines: ['SBI, HDFC, Bank of Baroda jaise bank', 'Lagbhag 7–9% byaj, 3–7 saal EMI', '10–20% down payment', 'EMI ₹2,099/mahina se'] },
+  { type: 'steps', icon: 'doc', head: 'Finance process', steps: ['Site visit, bill check, quote', 'Bank documents + subsidy form', 'Loan approval, installation shuru', 'Subsidy seedha bank khate me'] },
+  { type: 'points', icon: 'alert', head: 'Dhyan rahe', lines: ['Sab figures anuman hain', 'Asli rakam site, tariff aur bank par nirbhar'] },
+  { type: 'end' }]},
+install: { title: 'Survey se chalu plant tak', scenes: [
+  { type: 'title', icon: 'tool', head: 'Installation', sub: 'Survey se running plant tak' },
+  { type: 'steps', icon: 'tool', head: 'Kaam kaise hota hai', steps: ['Free site survey', 'Design aur quote', 'Structure aur panel', 'Wiring, earthing, inverter', 'Net meter aur handover'] },
+  { type: 'points', icon: 'shield', head: 'Safety aur quality', lines: ['Earthing aur wiring ka poora check', 'Testing ke baad handover', 'Likhit me sab kaam'] },
+  { type: 'end' }]},
+shifting: { title: 'Purana plant shift karna', scenes: [
+  { type: 'title', icon: 'truck', head: 'Plant shifting', sub: 'Ghar ya site badli? Plant saath le jayein' },
+  { type: 'steps', icon: 'truck', head: 'Shifting ke chaar kadam', steps: ['Purane plant ki jaanch', 'Dhyan se nikalna', 'Transport', 'Dobara lagana aur test'] },
+  { type: 'points', icon: 'check', head: 'Kyun hamse karwayein', lines: ['Panel aur structure surakshit', 'Dobara earthing aur testing', 'Handover ke baad support'] },
+  { type: 'end' }]},
+cleaning: { title: 'Panel ki safai aur dekhbhal', scenes: [
+  { type: 'title', icon: 'sparkle', head: 'Panel cleaning', sub: 'Ganda panel kam bijli banata hai' },
+  { type: 'points', icon: 'sun', head: 'Dhool = kam generation', lines: ['Dhool aur gandagi roshni rokti hai', 'Saaf panel zyada unit banata hai', 'Aam taur par 1–3 mahine me safai'] },
+  { type: 'steps', icon: 'sparkle', head: 'Cleaning ka din', steps: ['Aap book karte hain', 'Tay samay par visit', 'Safai aur quick health check', 'Report aur salah'] },
+  { type: 'points', icon: 'alert', head: 'Kab saaf karein / kya na karein', lines: ['Dhool, ped ya chidiya ho to jaldi saaf karein', 'Dopahar ki garmi me thande paani se nahi', 'Hard scraper ya strong chemical nahi', 'Safety gear ke bina chhat par na chadhein'] },
+  { type: 'end' }]},
+maintenance: { title: 'Solar maintenance aur audit', scenes: [
+  { type: 'title', icon: 'tool', head: 'Maintenance aur audit', sub: 'Plant fit-and-forget nahi hota' },
+  { type: 'points', icon: 'alert', head: 'Kyun zaroori', lines: ['Plant 25 saal bahar rehta hai', 'Dhool, garmi, loose connection', 'Chhoti problem bade kharche se pehle pakdein'] },
+  { type: 'flow', icon: 'check', head: 'Poori plant jaanch', nodes: [['panel', 'Panel'], ['shield', 'Earthing'], ['bolt', 'ACDB / DCDB'], ['tool', 'Wiring'], ['meter', 'Inverter + performance']] },
+  { type: 'points', icon: 'clock', head: 'Package chunein', lines: ['One-time visit', 'Quarterly (4 visits)', 'Half-yearly (2 visits)', 'Yearly full audit'] },
+  { type: 'points', icon: 'doc', head: 'Aapko milta hai', lines: ['Panel cleaning', 'Full plant diagnosis', 'Likhit audit report aur agle kadam'] },
+  { type: 'end' }]},
+detector: { title: 'Solar error ka matlab samjhein', scenes: [
+  { type: 'title', icon: 'alert', head: 'Error Detector', sub: 'Kisi ko bulane se pehle matlab samjhein' },
+  { type: 'steps', icon: 'alert', head: 'Teen aasaan kadam', steps: ['Tool kholein', 'Error code daalein ya photo lagayein', 'Matlab aur agla kadam padhein'] },
+  { type: 'points', icon: 'bolt', head: 'Kab kaam aata hai', lines: ['Inverter par code ya light dikhe', 'Generation kam lage', 'Photo aapke phone me hi rehti hai'] },
+  { type: 'points', icon: 'shield', head: 'Pehle safety', lines: ['Inverter na kholein, DC wiring na chhuen', 'Unsafe ho to main switch se band karein', 'Trained engineer ko bulayein — ek tap me book'] },
+  { type: 'end' }]},
+blueprint: { title: 'Blue Print: apni chhat ka plan', scenes: [
+  { type: 'title', icon: 'blueprint', head: 'Project Blue Print', sub: 'Khareedne se pehle plant plan karein' },
+  { type: 'steps', icon: 'map', head: 'Paanch aasaan kadam', steps: ['Ek baar login', 'Location allow karein', 'Chhat mark karein', 'Panel aur structure chunein', 'PDF download ya quote'] },
+  { type: 'points', icon: 'doc', head: 'Aapko kya milta hai', lines: ['Chhat scale par', 'Panel layout', 'Blue Print PDF', 'Engineer follow-up'] },
+  { type: 'end' }]},
+calculator: { title: 'Kitne kW solar chahiye?', scenes: [
+  { type: 'title', icon: 'calc', head: 'Solar calculator', sub: 'Apni zaroorat ka andaza lagayein' },
+  { type: 'steps', icon: 'calc', head: 'Teen kadam', steps: ['Size ya bill daalein (1 kW – 2 MW)', 'Monthly units aur bill saving dekhein', 'Chhat ki jagah aur kharch dekhein', 'Scheme benefit ka andaza'] },
+  { type: 'points', icon: 'blueprint', head: 'Agla kadam', lines: ['Size Blue Print me chala jata hai', 'Chhat mark karke plan banayein', 'Phir free quote'] },
+  { type: 'end' }]},
+buy: { title: 'Online store se order kaise karein', scenes: [
+  { type: 'title', icon: 'cart', head: 'Online store', sub: 'Order karna aasaan hai' },
+  { type: 'steps', icon: 'cart', head: 'Order ke kadam', steps: ['Product chunein', 'Pin code se availability dekhein', 'Cart me daalein', 'Details bharein', 'COD ya UPI se confirm'] },
+  { type: 'points', icon: 'truck', head: 'Order ke baad', lines: ['Hamari team aapse sampark karti hai', 'Madad ke liye WhatsApp ya call 09621050636'] },
+  { type: 'end' }]},
+experts: { title: 'Sunpowers hai to! Bharosa hai!', scenes: [
+  { type: 'title', icon: 'shield', head: 'Sunpowers hai to!', sub: 'Bharosa hai!' },
+  { type: 'points', icon: 'users', head: 'Support jo saath rehta hai', lines: ['5 saal call aur WhatsApp support', 'Warranty claim me poori madad', 'Maintenance aur audit packages', 'Error Detector se turant jaankari'] },
+  { type: 'points', icon: 'star', head: 'Kyun chunein', lines: ['2016 se 500+ projects', 'Adani, Waaree, Tata, Polycab, Luminous, Growatt', 'Sab kaam likhit me'] },
+  { type: 'end' }]},
+myplant: { title: 'Meri Plant: Plant ID se apna plant dekhein', scenes: [
+  { type: 'title', icon: 'sun', head: 'Meri Plant', sub: 'Plant ID se apna kaam live dekhein' },
+  { type: 'steps', icon: 'doc', head: 'Kaise use karein', steps: ['Apne mobile se login karein', 'Quotation number = Plant ID', 'Plant ID daalein (ek ya kai)', 'Cards aur timeline dekhein'] },
+  { type: 'points', icon: 'check', head: 'Aapko ek jagah milta hai', lines: ['Capacity, Plant ID, install date', 'Agli maintenance due', 'Payment — poora hone par hara tick', 'Quotation, bill, maintenance summary download'] },
+  { type: 'points', icon: 'shield', head: 'Sirf aapka plant', lines: ['Sirf aapke mobile se juda Plant ID judta hai', 'Doosre ka plant nahi dikhta'] },
+  { type: 'end' }]}
+};
