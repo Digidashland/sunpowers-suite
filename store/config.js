@@ -7,7 +7,7 @@ window.SP_CONFIG = {
   SUPABASE_KEY: 'sb_publishable_sN48EuIxQhDgS4xaalwJZA_aV-9mfLg',
   IMAGE_BUCKET: 'sp-images',
   // Footer me chhota brand (khaali '' = nahi dikhega)
-  POWERED_BY: 'Powered by DigiDashLand',
+  POWERED_BY: 'Powered by Digidashland.in',
   POWERED_URL: 'https://www.digidashland.in'
 };
 

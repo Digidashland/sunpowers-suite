@@ -38,31 +38,29 @@
     var b;
     if ((b = $('[data-edit]', m.el))) b.onclick = async function () { m.el.remove(); document.documentElement.style.overflow = ''; await C.plantForm(r); done && done(); };
     if ((b = $('[data-ver]', m.el))) b.onclick = async function () { try { await C.setStatus(r.id, 'verified', {}, 'Verified ✔ — commission apne aap ban gaya'); m.close(); } catch (e) {} };
-    if ((b = $('[data-rej]', m.el))) b.onclick = async function () { var why = await C.ask('Reject ki wajah', 'Kyun reject kar rahe hain?', { min: 3, danger: true, ok: 'Reject' }); if (why == null) return; try { await C.setStatus(r.id, 'rejected', { reject_reason: why }, 'Reject kar diya'); m.close(); } catch (e) {} };
+    if ((b = $('[data-rej]', m.el))) b.onclick = async function () { var why = await C.ask('Reject ki wajah', 'Kyun reject kar rahe hain?', { min: 3, danger: true, ok: 'Reject', tpl: 'reject' }); if (why == null) return; try { await C.setStatus(r.id, 'rejected', { reject_reason: why }, 'Reject kar diya'); m.close(); } catch (e) {} };
     if ((b = $('[data-del]', m.el))) b.onclick = async function () { if (await C.delWithReason(r, r.title)) m.close(); };
   }
 
-  C.mod('plants', {
-    title: 'Plants',
-    allowed: function () { return C.canAny('plants.create', 'plants.view_all'); },
-    render: async function (el, params, q) {
+  C.plantsRender = async function (el, params, q, route, extra) {
+      extra = extra || {};
       var st = q.status || '', uid = q.user || '', all = await C.list('plant', { limit: 3000, user_id: uid || null }), cnt = {};
       all.forEach(function (x) { cnt[x.status] = (cnt[x.status] || 0) + 1; });
       var list = all.filter(function (x) { return !st || x.status === st; }), ver = all.filter(function (x) { return x.status === 'verified'; });
-      var h = '<div class="ph"><div><h1>Plants</h1><p>Lage hue solar plant — verify hone par commission apne aap banta hai.</p></div><div class="row">' + C.reportBtns('Plants', function () { return { head: ['No', 'Customer', 'Mobile', 'kW', 'Prakar', 'Tareekh', 'Shahar', 'Deal value', 'Status', 'Jodne wala', 'Referral', 'Subsidy'], rows: list.map(function (x) { var d = x.data; return [x.ref, x.title, x.mobile || '', num(d.kw), d.ptype || '', C.fd(d.install), d.city || '', num(d.deal_value), (PST[x.status] || [x.status])[0], x.owner_name || '', d.ref || '', d.subsidy || '']; }) }; }) + (C.can('plants.create') ? '<button class="btn btn-p" data-act="add">' + C.ic('plus') + ' Plant jodein</button>' : '') + '</div></div>';
-      h += '<div class="kpis">' + C.kpi('Verified plants', ver.length, '', 'gold') + C.kpi('Kul kW', C.r2(C.sum(ver, function (x) { return x.data.kw; })) + ' kW') + C.kpi('Verify baaki', cnt.pending || 0, '', cnt.pending ? 'warn' : '', '#/plants?status=pending') + '</div>';
+      var h = '<div class="ph"><div><h1>Referral plants</h1><p>Dealer / influencer / staff ke laye hue plant — verify hone par commission apne aap banta hai.</p></div><div class="row">' + C.reportBtns('Plants', function () { return { head: ['No', 'Customer', 'Mobile', 'kW', 'Prakar', 'Tareekh', 'Shahar', 'Deal value', 'Status', 'Jodne wala', 'Referral', 'Subsidy'], rows: list.map(function (x) { var d = x.data; return [x.ref, x.title, x.mobile || '', num(d.kw), d.ptype || '', C.fd(d.install), d.city || '', num(d.deal_value), (PST[x.status] || [x.status])[0], x.owner_name || '', d.ref || '', d.subsidy || '']; }) }; }) + (C.can('plants.create') ? '<button class="btn btn-p" data-act="add">' + C.ic('plus') + ' Plant jodein</button>' : '') + '</div></div>';
+      h += '<div class="kpis">' + C.kpi('Verified plants', ver.length, '', 'gold') + C.kpi('Kul kW', C.r2(C.sum(ver, function (x) { return x.data.kw; })) + ' kW') + C.kpi('Verify baaki', cnt.pending || 0, '', cnt.pending ? 'warn' : '', route + C.qs(Object.assign({}, extra, { status: 'pending' }))) + '</div>';
       h += '<div class="bar">' + C.chips([['', 'Sab', all.length], ['pending', 'Verify baaki', cnt.pending || 0], ['verified', 'Verified', cnt.verified || 0], ['rejected', 'Reject', cnt.rejected || 0]], st, 'st') + '<input class="inp" type="search" data-q placeholder="Khojein">' + (C.can('plants.view_all') ? C.userFilter(uid) : '') + '</div>';
       h += list.length ? '<div class="list" id="pll">' + list.map(C.plantRow).join('') + '</div>' : '<div class="card">' + C.empty('plant', 'Koi plant nahi', C.can('plants.create') ? 'Lage hue plant jodein — verify hone par commission milega' : '') + '</div>';
       el.innerHTML = h;
       var pl = $('#pll', el); if (pl) C.filterList($('[data-q]', el), pl);
-      el.addEventListener('click', function (e) { var c = e.target.closest('[data-st]'); if (c) C.go('#/plants' + C.qs({ status: c.getAttribute('data-st'), user: uid })); });
-      var us = $('[data-user]', el); if (us) us.onchange = function () { C.go('#/plants' + C.qs({ status: st, user: this.value })); };
+      el.addEventListener('click', function (e) { var c = e.target.closest('[data-st]'); if (c) C.go(route + C.qs(Object.assign({}, extra, { status: c.getAttribute('data-st'), user: uid }))); });
+      var us = $('[data-user]', el); if (us) us.onchange = function () { C.go(route + C.qs(Object.assign({}, extra, { status: st, user: this.value }))); };
       C.bind(el, { add: function () { C.plantForm().then(function (r) { if (r) C.render(); }); }, popen: function (id, a, e) { if (e.target.closest('a')) return; plantView(id, function () { C.render(); }); } });
       if (q.open) { C.setQuery({ open: '' }); plantView(q.open, function () { C.render(); }); }
-    }
-  });
+  };
+  C.mod('plants', { title: 'Projects', nav: 'projects', allowed: function () { return C.canAny('plants.create', 'plants.view_all'); }, render: async function (el, params, q) { return C.go('#/projects' + C.qs({ tab: 'referral', status: q.status || '', user: q.user || '', open: q.open || '' })); } });
   /* customer page uses plantRow too */
-  document.addEventListener('click', function (e) { var r = e.target.closest('[data-act=popen]'); if (!r || C.parse().name === 'plants' || e.target.closest('a')) return; plantView(r.getAttribute('data-id'), function () { C.render(); }); });
+  document.addEventListener('click', function (e) { var r = e.target.closest('[data-act=popen]'); if (!r || C.parse().name === 'projects' || e.target.closest('a')) return; plantView(r.getAttribute('data-id'), function () { C.render(); }); });
 
   /* ================================================================ commission */
   C.mod('commission', {

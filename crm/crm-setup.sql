@@ -129,8 +129,11 @@ select '[
  {"g":"Products","k":"items.create","l":"Product / Project jode"},
  {"g":"Products","k":"items.edit","l":"Product / Project badle"},
  {"g":"Products","k":"items.delete","l":"Product / Project hataye"},
+ {"g":"Products","k":"items.categories","l":"Nayi category / sub-category jode ya naam badle"},
  {"g":"Products","k":"items.cost","l":"Kharid rate aur minimum rate dekhe"},
  {"g":"Products","k":"items.to_store","l":"Online Store ko bheje"},
+ {"g":"Products","k":"stock.reserve","l":"Stock reserve / hold kare (direct, online, anya)"},
+ {"g":"Products","k":"stock.override","l":"Stock kam hone par bhi quotation banaye (Admin jaisa)"},
  {"g":"Quotation","k":"quotes.view_all","l":"Sabki quotation dekhe"},
  {"g":"Quotation","k":"quotes.create","l":"Quotation banaye"},
  {"g":"Quotation","k":"quotes.edit","l":"Quotation badle"},
@@ -168,11 +171,14 @@ select '[
  {"g":"Admin","k":"settings.manage","l":"Company settings badle"},
  {"g":"Admin","k":"activity.view","l":"Activity record dekhe"},
  {"g":"Admin","k":"reports.view","l":"Reports dekhe"},
- {"g":"Privacy","k":"privacy.see_mobile","l":"Customer ka poora mobile number dekhe"}
+ {"g":"Privacy","k":"privacy.see_mobile","l":"Customer ka poora mobile number dekhe"},
+ {"g":"Marketing","k":"marketing.view","l":"Marketing & Grow section dekhe"},
+ {"g":"Marketing","k":"marketing.manage","l":"Marketing channels / agency badle"},
+ {"g":"Marketing","k":"marketing.leads","l":"Lead kahan se aayi (source report) dekhe"}
 ]'::jsonb $$;
 
 insert into public.crm_roles(role, perms) values
- ('manager', '{"customers.view_all":true,"customers.create":true,"customers.edit":true,"customers.assign":true,"customers.export":true,"items.view":true,"items.create":true,"items.edit":true,"items.cost":true,"items.to_store":true,"quotes.view_all":true,"quotes.create":true,"quotes.edit":true,"invoices.view_all":true,"invoices.create":true,"invoices.edit":true,"payments.record":true,"purchase.manage":true,"leads.view_all":true,"leads.create":true,"leads.import":true,"leads.assign":true,"leads.export":true,"reminders.view_all":true,"reminders.assign":true,"plants.view_all":true,"plants.create":true,"plants.verify":true,"earnings.view_all":true,"docs.view":true,"docs.upload":true,"docs.folders":true,"orders.view":true,"orders.manage":true,"team.stats":true,"reports.view":true,"privacy.see_mobile":true}'),
+ ('manager', '{"customers.view_all":true,"customers.create":true,"customers.edit":true,"customers.assign":true,"customers.export":true,"items.view":true,"items.create":true,"items.edit":true,"items.cost":true,"items.to_store":true,"items.categories":true,"stock.reserve":true,"quotes.view_all":true,"quotes.create":true,"quotes.edit":true,"invoices.view_all":true,"invoices.create":true,"invoices.edit":true,"payments.record":true,"purchase.manage":true,"leads.view_all":true,"leads.create":true,"leads.import":true,"leads.assign":true,"leads.export":true,"reminders.view_all":true,"reminders.assign":true,"plants.view_all":true,"plants.create":true,"plants.verify":true,"earnings.view_all":true,"docs.view":true,"docs.upload":true,"docs.folders":true,"orders.view":true,"orders.manage":true,"team.stats":true,"reports.view":true,"privacy.see_mobile":true}'),
  ('staff', '{"customers.create":true,"customers.edit":true,"items.view":true,"quotes.create":true,"quotes.edit":true,"invoices.create":true,"payments.record":true,"leads.create":true,"leads.import":true,"plants.create":true,"docs.view":true,"docs.upload":true,"orders.view":true,"privacy.see_mobile":true}'),
  ('dealer', '{"customers.create":true,"customers.edit":true,"items.view":true,"quotes.create":true,"quotes.edit":true,"leads.create":true,"leads.import":true,"plants.create":true,"docs.view":true,"privacy.see_mobile":true}'),
  ('influencer', '{"customers.create":true,"items.view":true,"quotes.create":true,"leads.create":true,"leads.import":true,"plants.create":true,"docs.view":true,"privacy.see_mobile":true}'),
@@ -483,7 +489,7 @@ declare s public.crm_ses := public.crm_session(p ->> 'token'); u public.crm_user
         r text := lower(coalesce(d ->> 'role', '')); un text := lower(trim(coalesce(d ->> 'username', ''))); m text := public.crm_mobile(d ->> 'mobile'); code text; i int := 0;
 begin
   perform public.crm_need(s, 'users.manage');
-  if r <> '' and r not in ('admin', 'manager', 'staff', 'dealer', 'influencer', 'consumer') then raise exception 'Role galat hai'; end if;
+  if r <> '' and r not in ('admin', 'manager', 'staff', 'dealer', 'influencer', 'consumer', 'marketing') then raise exception 'Role galat hai'; end if;
   if r = 'admin' and not public.crm_is_admin(s) then raise exception 'Admin role sirf Admin de sakta hai'; end if;
   if id_ is null then
     if un !~ '^[a-z0-9_.@-]{3,40}$' or un = 'admin' then raise exception 'Username 3-40 akshar ka ho (a-z, 0-9, _ . - @)'; end if;
@@ -572,7 +578,7 @@ begin
     d := d || jsonb_build_object('company', jsonb_build_object(
       'name', coalesce(ss ->> 'storeName', 'Sunpowers'), 'legal', coalesce(ss ->> 'legalName', ''), 'gstin', coalesce(ss ->> 'gstin', ''),
       'phone', coalesce(ss ->> 'phone', ''), 'email', coalesce(ss ->> 'email', ''), 'address', coalesce(ss ->> 'address', ''),
-      'website', coalesce(ss ->> 'mainSite', ''), 'store_url', coalesce(ss ->> 'siteUrl', ''), 'state', 'Uttar Pradesh', 'upi', coalesce(ss #>> '{payments,upi,upiId}', '')));
+      'website', coalesce(ss ->> 'mainSite', ''), 'store_url', case when coalesce(ss ->> 'siteUrl', '') ~* '^https?://((www\.)?sunpowers\.in|shop\.sunpowers\.in)/?$' then 'https://store.sunpowers.in' else coalesce(ss ->> 'siteUrl', '') end, 'state', 'Uttar Pradesh', 'upi', coalesce(ss #>> '{payments,upi,upiId}', '')));
   end if;
   if public.crm_can(s, 'settings.manage') then d := d || jsonb_build_object('secrets', coalesce(st.secrets, '{}'::jsonb) - 'resend_api_key'); end if;
   d := d - 'auth';
@@ -599,6 +605,7 @@ declare s public.crm_ses := public.crm_session(p ->> 'token'); k text := p ->> '
         uidf bigint := nullif(p ->> 'user_id', '')::bigint;
 begin
   if k is null or k !~ '^[a-z_]{2,20}$' then raise exception 'Galat list'; end if;
+  if k = 'quote' then perform public.crm_quote_expire_daily(); end if;
   return coalesce((select jsonb_agg(public.crm_row(s, r) order by r.id desc) from (
     select * from public.crm_records r where r.kind = k and r.deleted_at is null
       and (st is null or r.status = st) and (pid is null or r.party_id = pid)
@@ -615,6 +622,7 @@ end $$;
 create or replace function public.crm_get(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
 declare s public.crm_ses := public.crm_session(p ->> 'token'); r public.crm_records;
 begin
+  perform public.crm_quote_expire_daily();
   select * into r from public.crm_records where id = (p ->> 'id')::bigint;
   if not public.crm_vis(s, r) then raise exception 'Record nahi mila'; end if;
   return public.crm_row(s, r);
@@ -625,7 +633,7 @@ declare s public.crm_ses := public.crm_session(p ->> 'token'); k text := p ->> '
         d jsonb := coalesce(p -> 'data', '{}'::jsonb); old public.crm_records; r public.crm_records; isnew boolean := id_ is null or id_ = 0;
         mob text; ttl text; st text := coalesce(p ->> 'status', ''); asg bigint := nullif(p ->> 'assigned_to', '')::bigint; pid bigint := nullif(p ->> 'party_id', '')::bigint;
         due date := nullif(p ->> 'due_at', '')::date; amt numeric := 0; ref_ text; calc jsonb; srch text; ex public.crm_records; it public.crm_records; l jsonb;
-        lim numeric; owner_ bigint; f public.crm_records; prev_status text;
+        lim numeric; owner_ bigint; f public.crm_records; prev_status text; msg_ text;
 begin
   if k not in ('party', 'item', 'quote', 'invoice', 'payment', 'purchase', 'lead', 'reminder', 'plant', 'earning', 'folder', 'doc', 'note', 'notice') then raise exception 'Galat record'; end if;
   if jsonb_typeof(d) <> 'object' or length(d::text) > 200000 then raise exception 'Data bahut bada ya galat hai'; end if;
@@ -661,6 +669,7 @@ begin
     -- online store status: only the review flow can publish
     if not isnew then d := jsonb_set(d, '{store}', coalesce(old.data -> 'store', '{}'::jsonb) || (coalesce(d -> 'store', '{}'::jsonb) - 'status' - 'store_id' - 'reviewed_at')); end if;
     if isnew then d := jsonb_set(d, '{store}', (coalesce(d -> 'store', '{}'::jsonb) - 'store_id' - 'reviewed_at') || '{"status":"none"}'::jsonb); end if;
+    d := public.crm_item_prep(isnew, case when isnew then null else old.data end, d);   -- Round 13: auto SKU (immutable), project line SKUs
     st := coalesce(nullif(st, ''), 'active');
   elsif k in ('quote', 'invoice', 'purchase') then
     perform public.crm_need(s, case when k = 'purchase' then 'purchase.manage' when isnew then k || 's.create' else k || 's.edit' end);
@@ -682,10 +691,24 @@ begin
       if (s).uid <> 0 and public.crm_num(calc -> 'discount') > 0 and public.crm_num(calc -> 'discount') > coalesce(lim, 0) * (public.crm_num(calc -> 'subtotal') + public.crm_num(calc -> 'gst_total')) / 100 + 0.009 then
         raise exception 'Discount aapki limit (% %%) se zyada hai', coalesce(lim, 0); end if;
     end if;
+    if k = 'quote' then
+      d := d || jsonb_build_object('qtitle', left(trim(coalesce(d ->> 'qtitle', case when isnew then '' else old.data ->> 'qtitle' end, '')), 120));
+      if isnew and length(d ->> 'qtitle') < 2 then raise exception 'Quotation ka Title zaroori hai (jaise: 5 kW Rooftop - Sharma ji)'; end if;
+      if coalesce(d ->> 'valid_till', '') !~ '^\d{4}-\d{2}-\d{2}$' then
+        d := d || jsonb_build_object('valid_till', case when isnew or (old.data ->> 'valid_till') is null then (public.crm_today() + 15)::text else old.data ->> 'valid_till' end); end if;
+    end if;
     d := d || calc; amt := public.crm_num(calc -> 'grand'); ttl := coalesce(ex.title, ''); mob := ex.mobile;
     if isnew then ref_ := public.crm_next_no(k); else ref_ := old.ref; end if;
     st := coalesce(nullif(st, ''), case when isnew then case k when 'quote' then 'draft' when 'invoice' then 'due' else 'open' end else old.status end);
     if k = 'quote' and coalesce(d ->> 'send_on', '') ~ '^\d{4}-\d{2}-\d{2}$' then due := (d ->> 'send_on')::date; end if;
+    if k = 'quote' then
+      if st = 'expired' and (isnew or old.status <> 'expired') then raise exception 'Expired apne aap hota hai — Renew button use karein'; end if;
+      if not isnew and old.status = 'expired' then raise exception 'Expired quotation ko pehle Renew karein'; end if;
+      if st in ('draft', 'sent', 'accepted') and not public.crm_can(s, 'stock.override') then
+        msg_ := public.crm_quote_shortage(d -> 'lines', case when isnew then null else id_ end);
+        if msg_ is not null then raise exception 'Stock kam hai (20%% online ke liye surakshit): %', msg_; end if;
+      end if;
+    end if;
     if k = 'invoice' then
       due := coalesce(nullif(d ->> 'due_date', '')::date, due);
       if not isnew then d := d || jsonb_build_object('paid', old.data -> 'paid', 'balance', old.data -> 'balance'); end if;
@@ -764,7 +787,7 @@ begin
     perform public.crm_need(s, 'settings.manage'); mob := null;
   end if;
 
-  srch := lower(concat_ws(' ', ttl, ref_, mob, d ->> 'city', d ->> 'company', d ->> 'gstin', d ->> 'note', d ->> 'type', d ->> 'brand', d ->> 'category', d ->> 'source'));
+  srch := lower(concat_ws(' ', ttl, ref_, mob, d ->> 'city', d ->> 'company', d ->> 'gstin', d ->> 'note', d ->> 'type', d ->> 'brand', d ->> 'qtitle', d ->> 'category', d ->> 'subcategory', d ->> 'sku', d ->> 'mpn', d ->> 'source'));
   if isnew then
     insert into public.crm_records(kind, ref, title, mobile, status, owner_id, assigned_to, party_id, amount, due_at, data, search, created_by)
     values (k, ref_, ttl, nullif(mob, ''), st, coalesce(owner_, 0), asg, pid, coalesce(amt, 0), due, d, srch, (s).uid) returning * into r;
@@ -796,6 +819,12 @@ begin
   d := jsonb_build_object('token', p ->> 'token', 'kind', r.kind, 'id', r.id, 'status', st, 'data', r.data || coalesce(p -> 'patch', '{}'::jsonb));
   if r.kind in ('quote', 'invoice', 'purchase') then
     if r.kind = 'quote' and st not in ('draft', 'sent', 'accepted', 'rejected') then raise exception 'Galat status'; end if;
+    if r.kind = 'quote' and r.status = 'expired' then raise exception 'Expired quotation ko pehle Renew karein'; end if;
+    if r.kind = 'quote' and r.status = 'converted' then raise exception 'Bill ban chuka hai'; end if;
+    if r.kind = 'quote' and st in ('draft', 'sent', 'accepted') and r.status = 'rejected' and not public.crm_can(s, 'stock.override') then
+      perform public.crm_need(s, 'quotes.edit');
+      if public.crm_quote_shortage(r.data -> 'lines', r.id) is not null then raise exception 'Stock kam hai — is quotation ko dobara active nahi kar sakte'; end if;
+    end if;
     if r.kind = 'purchase' and st not in ('open', 'received', 'cancelled') then raise exception 'Galat status'; end if;
     if r.kind = 'invoice' then raise exception 'Bill ka status payment se apne aap badalta hai'; end if;
     perform public.crm_need(s, case r.kind when 'purchase' then 'purchase.manage' else 'quotes.edit' end);
@@ -815,6 +844,7 @@ begin
   select * into q from public.crm_records where id = (p ->> 'id')::bigint and kind = 'quote';
   if not public.crm_vis(s, q) then raise exception 'Quotation nahi mili'; end if;
   if q.status = 'converted' then raise exception 'Is quotation ka bill pehle ban chuka hai'; end if;
+  if q.status = 'expired' then raise exception 'Quotation expire ho chuki hai — pehle Renew karein'; end if;
   inv := public.crm_save(jsonb_build_object('token', p ->> 'token', 'kind', 'invoice', 'party_id', q.party_id,
     'data', (q.data - 'send_on' - 'valid_till') || jsonb_build_object('quote_id', q.id, 'quote_ref', q.ref, 'date', public.crm_today(), 'due_date', coalesce(p ->> 'due_date', ''))));
   update public.crm_records set status = 'converted', data = data || jsonb_build_object('invoice_id', inv ->> 'id', 'invoice_ref', inv ->> 'ref'), updated_at = now() where id = q.id;
@@ -1103,7 +1133,7 @@ begin
   perform public.crm_need(s, 'items.to_store');
   select * into r from public.crm_records where id = (p ->> 'id')::bigint and kind = 'item' and deleted_at is null;
   if r.id is null then raise exception 'Item nahi mila'; end if;
-  if coalesce(r.data ->> 'type', 'product') = 'project' then raise exception 'Project online store me nahi jata — sirf product'; end if;
+  if coalesce(r.data ->> 'type', 'product') not in ('product', 'project') then raise exception 'Sirf product ya project online store ko bheja ja sakta hai'; end if;
   update public.crm_records set data = jsonb_set(data, '{store}', coalesce(data -> 'store', '{}'::jsonb) || jsonb_build_object('status', 'pending', 'sent_at', now(), 'sent_by', (s).name)), updated_at = now() where id = r.id;
   perform public.crm_log(s, 'to_store', 'item', r.id, 'Online Store Admin ko bheja: ' || r.title);
   return jsonb_build_object('ok', true);
@@ -1233,7 +1263,7 @@ exception when undefined_object then null; end $$;
 -- default settings for login: sender + app links used in reset e-mails
 update public.crm_settings set data = jsonb_set(data, '{auth}', jsonb_build_object(
     'from', 'Sunpowers <no-reply@sunpowers.in>',
-    'urls', jsonb_build_object('store', 'https://shop.sunpowers.in', 'crm', 'https://crm.sunpowers.in', 'admin', 'https://admin.sunpowers.in'),
+    'urls', jsonb_build_object('store', 'https://store.sunpowers.in', 'crm', 'https://crm.sunpowers.in', 'admin', 'https://admin.sunpowers.in'),
     'legacy_password', false) || coalesce(data -> 'auth', '{}'::jsonb))
 where id = 1;
 
@@ -1327,6 +1357,7 @@ end $$;
 create or replace function public.crm_auth_send_otp(f jsonb, p_purpose text) returns jsonb language plpgsql security definer set search_path = public, extensions as $$
 declare uid bigint := (f ->> 'uid')::bigint; code text; last timestamptz; n int; tos text[];
 begin
+  if f ->> 'role' = 'marketing' then raise exception 'Marketing ID password se login hoti hai'; end if;
   select max(created_at), count(*) filter (where created_at > now() - interval '1 hour') into last, n from public.crm_otps where user_id = uid;
   if last is not null and last > now() - interval '40 seconds' then raise exception 'OTP abhi bheja hai — % second baad dobara maangein', 40 - floor(extract(epoch from now() - last))::int; end if;
   if n >= 6 then raise exception 'Bahut baar OTP maanga — 1 ghante baad koshish karein'; end if;
@@ -1372,6 +1403,7 @@ create or replace function public.crm_auth_start(p jsonb) returns jsonb language
 declare f jsonb := public.crm_auth_find(p ->> 'app', p ->> 'id');
 begin
   perform public.crm_auth_status_ok(f, false);
+  if f ->> 'role' = 'marketing' then return jsonb_build_object('step', 'password', 'name', f ->> 'name'); end if;
   if (f ->> 'has_pin')::boolean and public.crm_auth_trusted((f ->> 'uid')::bigint, p ->> 'device') and coalesce((p ->> 'otp')::boolean, false) = false then
     return jsonb_build_object('step', 'pin', 'pin_len', f -> 'pin_len', 'name', f ->> 'name', 'locked', (f ->> 'pin_fail')::int >= 5);
   end if;
@@ -1396,7 +1428,7 @@ begin
   if crypt(regexp_replace(coalesce(p ->> 'code', ''), '\D', '', 'g'), o.code_hash) <> o.code_hash then
     update public.crm_otps set tries = tries + 1 where id = o.id;
     perform pg_sleep(0.5);
-    return jsonb_build_object('error', case when o.tries >= 4 then 'Bahut baar galat OTP — naya OTP maangein' else 'OTP galat hai (' || (4 - o.tries) || ' baar aur)' end);
+    return jsonb_build_object('error', case when o.tries >= 4 then 'Bahut baar galat OTP — naya OTP maangein' else 'OTP galat hai' end);
   end if;
   tk := encode(gen_random_bytes(24), 'hex');
   update public.crm_otps set used = true, ticket_hash = public.crm_h(tk), ticket_expires = now() + interval '15 minutes' where id = o.id;
@@ -1429,12 +1461,12 @@ begin
   if uid = 0 then select pin_hash, pin_fail into h, fails from public.crm_auth_admin where id = 1;
   else select pin_hash, pin_fail into h, fails from public.crm_users where id = uid; end if;
   if coalesce(h, '') = '' then return 'PIN abhi bana nahi hai'; end if;
-  if fails >= 5 then return 'PIN 5 baar galat — lock ho gaya. "PIN bhool gaye?" se naya PIN banayein'; end if;
+  if fails >= 5 then return 'PIN lock ho gaya. "PIN bhool gaye?" se naya PIN banayein'; end if;
   if crypt(coalesce(p_pin, ''), h) <> h then
     if uid = 0 then update public.crm_auth_admin set pin_fail = pin_fail + 1 where id = 1; else update public.crm_users set pin_fail = pin_fail + 1 where id = uid; end if;
     perform pg_sleep(0.6);
-    if fails + 1 >= 5 then return 'PIN 5 baar galat — lock ho gaya. "PIN bhool gaye?" se naya PIN banayein'; end if;
-    return 'PIN galat hai (' || (4 - fails) || ' baar aur)';
+    if fails + 1 >= 5 then return 'PIN lock ho gaya. "PIN bhool gaye?" se naya PIN banayein'; end if;
+    return 'PIN galat hai';
   end if;
   return null;
 end $$;
@@ -1515,6 +1547,7 @@ end $$;
 create or replace function public.crm_auth_forgot(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
 declare f jsonb := public.crm_auth_find(p ->> 'app', p ->> 'id');
 begin
+  if f ->> 'role' = 'marketing' then return public.crm_auth_mkt_forgot(p) || jsonb_build_object('mkt', true); end if;
   perform public.crm_auth_status_ok(f, true);
   if not (f ->> 'has_q')::boolean or (f ->> 'q_fail')::int >= 5 then
     return public.crm_auth_send_link(public.crm_auth_backup(f, p), p ->> 'app');
@@ -1535,7 +1568,7 @@ begin
     else update public.crm_users set q_fail = q_fail + 1 where id = uid returning q_fail into fails; end if;
     perform pg_sleep(0.6);
     if fails >= 5 then return public.crm_auth_send_link(public.crm_auth_backup(f, p), p ->> 'app') || jsonb_build_object('failed', true); end if;
-    return jsonb_build_object('error', 'Jawab sahi nahi hain (' || (5 - fails) || ' baar aur — phir email par link aayega)');
+    return jsonb_build_object('error', 'Jawab sahi nahi hain');
   end if;
   perform public.crm_auth_store_pin(f, p ->> 'pin');
   insert into public.crm_activity(user_id, user_name, role, action, summary) values (uid, f ->> 'name', f ->> 'role', 'pin_reset', 'PIN badla (security sawal)');
@@ -1753,6 +1786,162 @@ begin
   return jsonb_build_object('part', part, 'rows', r, 'next', case when jsonb_array_length(r) = lim and part not in ('crm_settings', 'crm_auth_admin') then off + lim end);
 end $$;
 
+-- ---------------------------------------------------------------- Round 2: Marketing team (password + security sawal, bina OTP)
+do $$ begin
+  alter table public.crm_users drop constraint if exists crm_users_role_check;
+  alter table public.crm_users add constraint crm_users_role_check check (role in ('admin','manager','staff','dealer','influencer','consumer','marketing'));
+end $$;
+insert into public.crm_roles(role, perms) values ('marketing', '{"marketing.view":true,"marketing.leads":true,"leads.create":true,"leads.import":true}') on conflict (role) do nothing;
+
+-- marketing user: ID se password wala raasta
+create or replace function public.crm_auth_mkt_find(p jsonb) returns public.crm_users language plpgsql stable security definer set search_path = public as $$
+declare x text := lower(trim(coalesce(p ->> 'id', ''))); m text := public.crm_mobile(p ->> 'id'); u public.crm_users;
+begin
+  select * into u from public.crm_users where role = 'marketing' and (username = x or (x <> '' and lower(email) = x) or (length(m) = 10 and mobile = m)) order by id limit 1;
+  if u.id is null then raise exception 'Ye ID nahi mili'; end if;
+  if u.status = 'blocked' then raise exception 'Ye ID band hai — Admin se sampark karein'; end if;
+  if u.status = 'pending' then raise exception 'Aapki ID abhi verify nahi hui — Admin se sampark karein'; end if;
+  return u;
+end $$;
+
+create or replace function public.crm_auth_mkt_login(p jsonb) returns jsonb language plpgsql security definer set search_path = public, extensions as $$
+declare u public.crm_users := public.crm_auth_mkt_find(p); f jsonb; tk text;
+begin
+  if u.pin_fail >= 5 then return jsonb_build_object('error', 'ID lock ho gayi — Admin se password reset karwayein', 'locked', true); end if;
+  if coalesce(u.pass_hash, '') = '' or crypt(coalesce(p ->> 'password', ''), u.pass_hash) <> u.pass_hash then
+    update public.crm_users set pin_fail = pin_fail + 1 where id = u.id; perform pg_sleep(0.6);
+    return jsonb_build_object('error', case when u.pin_fail + 1 >= 5 then 'ID lock ho gayi — Admin se password reset karwayein' else 'Password galat hai' end);
+  end if;
+  f := jsonb_build_object('uid', u.id, 'name', u.name, 'role', u.role, 'status', u.status, 'has_q', u.q1 <> '' and u.q2 <> '', 'dev_name', p ->> 'dev_name');
+  if not (u.q1 <> '' and u.q2 <> '') then
+    tk := encode(gen_random_bytes(24), 'hex');
+    insert into public.crm_otps(user_id, purpose, code_hash, expires_at, used, ticket_hash, ticket_expires) values (u.id, 'mkt_q', '', now(), true, public.crm_h(tk), now() + interval '15 minutes');
+    update public.crm_users set pin_fail = 0 where id = u.id;
+    return jsonb_build_object('need_q', true, 'ticket', tk, 'name', u.name);
+  end if;
+  return public.crm_auth_session(f, p ->> 'device', 'crm');
+end $$;
+
+create or replace function public.crm_auth_mkt_setq(p jsonb) returns jsonb language plpgsql security definer set search_path = public, extensions as $$
+declare u public.crm_users := public.crm_auth_mkt_find(p); f jsonb;
+begin
+  if not public.crm_auth_ticket_ok(u.id, p ->> 'ticket') then raise exception 'Samay khatam — dobara login karein'; end if;
+  f := jsonb_build_object('uid', u.id, 'name', u.name, 'role', u.role, 'status', u.status, 'has_q', true, 'dev_name', p ->> 'dev_name');
+  perform public.crm_auth_set_q(f, p);
+  update public.crm_otps set ticket_expires = now() where user_id = u.id and ticket_hash = public.crm_h(p ->> 'ticket');
+  return public.crm_auth_session(f, p ->> 'device', 'crm');
+end $$;
+
+-- password bhool gaye: security sawal → naya password (5 galat = lock, phir Admin reset)
+create or replace function public.crm_auth_mkt_forgot(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
+declare u public.crm_users := public.crm_auth_mkt_find(p);
+begin
+  if not (u.q1 <> '' and u.q2 <> '') or u.q_fail >= 5 then return jsonb_build_object('error', 'Admin se password reset karwayein'); end if;
+  return jsonb_build_object('q1', u.q1, 'q2', u.q2, 'name', u.name);
+end $$;
+
+create or replace function public.crm_auth_mkt_answer(p jsonb) returns jsonb language plpgsql security definer set search_path = public, extensions as $$
+declare u public.crm_users := public.crm_auth_mkt_find(p); fails int; f jsonb;
+begin
+  if u.q_fail >= 5 then return jsonb_build_object('error', 'Admin se password reset karwayein'); end if;
+  if length(coalesce(p ->> 'password', '')) < 8 then raise exception 'Password kam se kam 8 akshar ka ho'; end if;
+  if not (coalesce(u.a1, '') <> '' and crypt(lower(trim(coalesce(p ->> 'a1', ''))), u.a1) = u.a1 and crypt(lower(trim(coalesce(p ->> 'a2', ''))), u.a2) = u.a2) then
+    update public.crm_users set q_fail = q_fail + 1 where id = u.id returning q_fail into fails; perform pg_sleep(0.6);
+    return jsonb_build_object('error', case when fails >= 5 then 'Admin se password reset karwayein' else 'Jawab sahi nahi hain' end);
+  end if;
+  update public.crm_users set pass_hash = crypt(p ->> 'password', gen_salt('bf')), q_fail = 0, pin_fail = 0 where id = u.id;
+  insert into public.crm_activity(user_id, user_name, role, action, summary) values (u.id, u.name, u.role, 'pass_reset', 'Password badla (security sawal)');
+  f := jsonb_build_object('uid', u.id, 'name', u.name, 'role', u.role, 'status', u.status, 'has_q', true, 'dev_name', p ->> 'dev_name');
+  return public.crm_auth_session(f, p ->> 'device', 'crm');
+end $$;
+
+-- Admin: marketing user banaye / password reset / sawal reset
+create or replace function public.crm_mkt_user(p jsonb) returns jsonb language plpgsql security definer set search_path = public, extensions as $$
+declare s public.crm_ses := public.crm_session(p ->> 'token'); d jsonb := coalesce(p -> 'user', '{}'::jsonb); id_ bigint := nullif(d ->> 'id', '')::bigint;
+        un text := lower(trim(coalesce(d ->> 'username', ''))); pw text := coalesce(d ->> 'password', ''); u public.crm_users; act text := coalesce(p ->> 'action', 'save');
+begin
+  if not (public.crm_is_admin(s) or public.crm_can(s, 'users.manage')) then raise exception 'Sirf Admin'; end if;
+  if pw <> '' and length(pw) < 8 then raise exception 'Password kam se kam 8 akshar ka ho'; end if;
+  if id_ is null then
+    if un !~ '^[a-z0-9_.@-]{3,40}$' or un = 'admin' then raise exception 'Username 3-40 akshar ka ho (a-z, 0-9, _ . - @)'; end if;
+    if exists (select 1 from public.crm_users where username = un) then raise exception 'Ye username pehle se liya hua hai'; end if;
+    if coalesce(trim(d ->> 'name'), '') = '' then raise exception 'Naam likhein'; end if;
+    if pw = '' then raise exception 'Password likhein (kam se kam 8 akshar)'; end if;
+    insert into public.crm_users(role, username, name, mobile, email, pass_hash, status, perms, meta)
+    values ('marketing', un, left(trim(d ->> 'name'), 80), public.crm_mobile(d ->> 'mobile'), lower(left(trim(coalesce(d ->> 'email', '')), 120)), crypt(pw, gen_salt('bf')), 'active',
+      coalesce(d -> 'perms', '{}'::jsonb), jsonb_build_object('agency', left(coalesce(d ->> 'agency', ''), 120))) returning * into u;
+    perform public.crm_log(s, 'user_create', 'user', u.id, 'Marketing user: ' || u.name);
+    return jsonb_build_object('id', u.id, 'username', u.username);
+  end if;
+  select * into u from public.crm_users where id = id_ and role = 'marketing';
+  if u.id is null then raise exception 'Marketing user nahi mila'; end if;
+  if act = 'reset_q' then update public.crm_users set q1 = '', a1 = '', q2 = '', a2 = '', q_fail = 0 where id = u.id;
+  elsif act = 'unlock' then update public.crm_users set pin_fail = 0, q_fail = 0 where id = u.id;
+  else
+    update public.crm_users set name = coalesce(nullif(trim(d ->> 'name'), ''), name), mobile = case when d ? 'mobile' then public.crm_mobile(d ->> 'mobile') else mobile end,
+      email = case when d ? 'email' then lower(left(trim(coalesce(d ->> 'email', '')), 120)) else email end,
+      status = case when d ->> 'status' in ('active', 'blocked') then d ->> 'status' else status end,
+      perms = case when d ? 'perms' then coalesce(d -> 'perms', '{}'::jsonb) else perms end,
+      meta = case when d ? 'agency' then meta || jsonb_build_object('agency', left(coalesce(d ->> 'agency', ''), 120)) else meta end,
+      pass_hash = case when pw <> '' then crypt(pw, gen_salt('bf')) else pass_hash end,
+      pin_fail = case when pw <> '' then 0 else pin_fail end, q_fail = case when pw <> '' then 0 else q_fail end
+    where id = u.id returning * into u;
+  end if;
+  if pw <> '' or act <> 'save' or u.status <> 'active' then delete from public.crm_sessions where user_id = u.id; end if;
+  perform public.crm_log(s, 'user_edit', 'user', u.id, 'Marketing user (' || act || '): ' || u.name);
+  return jsonb_build_object('ok', true);
+end $$;
+
+-- ---------------------------------------------------------------- Round 2: Marketing & Grow (channels, agency, lead source report)
+create or replace function public.crm_mkt_get(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
+declare s public.crm_ses := public.crm_session(p ->> 'token'); st public.crm_settings; m jsonb;
+begin
+  if not (public.crm_can(s, 'marketing.view') or public.crm_can(s, 'marketing.manage') or public.crm_can(s, 'marketing.leads')) then raise exception 'Aapko is kaam ki permission nahi hai'; end if;
+  select * into st from public.crm_settings where id = 1;
+  m := coalesce(st.data -> 'marketing', '{}'::jsonb);
+  if public.crm_can(s, 'marketing.manage') then m := m || jsonb_build_object('keys', coalesce(st.secrets -> 'mkt_keys', '{}'::jsonb)); end if;
+  return m || jsonb_build_object('can_manage', public.crm_can(s, 'marketing.manage'), 'can_leads', public.crm_can(s, 'marketing.leads'));
+end $$;
+
+create or replace function public.crm_mkt_save(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
+declare s public.crm_ses := public.crm_session(p ->> 'token'); d jsonb := coalesce(p -> 'data', '{}'::jsonb); k jsonb := p -> 'keys';
+begin
+  perform public.crm_need(s, 'marketing.manage');
+  if jsonb_typeof(d) <> 'object' or length(d::text) > 200000 then raise exception 'Data galat hai'; end if;
+  d := d - 'keys' - 'can_manage' - 'can_leads';
+  update public.crm_settings set data = jsonb_set(coalesce(data, '{}'::jsonb), '{marketing}', d),
+    secrets = case when jsonb_typeof(k) = 'object' then jsonb_set(coalesce(secrets, '{}'::jsonb), '{mkt_keys}', k) else secrets end, updated_at = now() where id = 1;
+  perform public.crm_log(s, 'settings', null, null, 'Marketing & Grow badla');
+  return jsonb_build_object('ok', true);
+end $$;
+
+-- lead kahan se aayi: sirf ginti (naam / mobile nahi)
+create or replace function public.crm_mkt_stats(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
+declare s public.crm_ses := public.crm_session(p ->> 'token'); m0 date := date_trunc('month', public.crm_today())::date; src jsonb; mon jsonb; enq jsonb;
+begin
+  if not public.crm_can(s, 'marketing.leads') then raise exception 'Aapko is kaam ki permission nahi hai'; end if;
+  select coalesce(jsonb_agg(jsonb_build_object('source', src_, 'leads', n, 'month', nm, 'won', w, 'lost', l, 'open', n - w - l) order by n desc), '[]') into src from (
+    select coalesce(nullif(trim(data ->> 'source'), ''), 'Pata nahi') src_, count(*) n, count(*) filter (where created_at >= m0) nm,
+      count(*) filter (where status = 'won') w, count(*) filter (where status = 'lost') l
+    from public.crm_records where kind = 'lead' and deleted_at is null group by 1) x;
+  select coalesce(jsonb_agg(jsonb_build_object('month', mo, 'leads', n, 'won', w) order by mo), '[]') into mon from (
+    select to_char(created_at at time zone 'Asia/Kolkata', 'YYYY-MM') mo, count(*) n, count(*) filter (where status = 'won') w
+    from public.crm_records where kind = 'lead' and deleted_at is null and created_at > now() - interval '12 months' group by 1) y;
+  select coalesce(jsonb_agg(jsonb_build_object('source', c, 'enquiries', n) order by n desc), '[]') into enq from (
+    select coalesce(nullif(trim(data ->> 'channel'), ''), nullif(trim(data ->> 'source'), ''), 'website') c, count(*) n from public.sp_enquiries group by 1) z;
+  return jsonb_build_object('sources', src, 'months', mon, 'enquiries', enq, 'month_start', m0);
+end $$;
+
+-- ---------------------------------------------------------------- Round 2: purane galat store link theek (store link = store.sunpowers.in)
+update public.crm_settings set data = jsonb_set(data, '{company,store_url}', '"https://store.sunpowers.in"')
+  where id = 1 and data #>> '{company,store_url}' ~* '^https?://((www\.)?sunpowers\.in|shop\.sunpowers\.in)/?$';
+update public.crm_settings set data = jsonb_set(data, '{auth,urls,store}', '"https://store.sunpowers.in"')
+  where id = 1 and data #>> '{auth,urls,store}' ~* 'shop\.sunpowers\.in';
+do $$ begin
+  update public.sp_store set data = jsonb_set(data, '{settings,siteUrl}', '"https://store.sunpowers.in"')
+    where data #>> '{settings,siteUrl}' ~* '^https?://((www\.)?sunpowers\.in|shop\.sunpowers\.in)/?$';
+exception when undefined_table then null; end $$;
+
 -- ---------------------------------------------------------------- permissions
 revoke all on function public.crm_session(text), public.crm_vis(public.crm_ses, public.crm_records), public.crm_row(public.crm_ses, public.crm_records),
     public.crm_log(public.crm_ses, text, text, bigint, text), public.crm_folder_ok(public.crm_ses, bigint), public.crm_next_no(text), public.crm_stock(jsonb, int),
@@ -1760,7 +1949,7 @@ revoke all on function public.crm_session(text), public.crm_vis(public.crm_ses, 
     public.crm_resend_key(), public.crm_mail(text[], text, text), public.crm_mail_tpl(text, text), public.crm_auth_find(text, text), public.crm_auth_status_ok(jsonb, boolean),
     public.crm_auth_send_otp(jsonb, text), public.crm_auth_backup(jsonb, jsonb), public.crm_auth_trusted(bigint, text), public.crm_auth_session(jsonb, text, text), public.crm_auth_ticket_ok(bigint, text),
     public.crm_auth_pin_check(jsonb, text), public.crm_auth_pin_valid(jsonb, text), public.crm_auth_set_q(jsonb, jsonb), public.crm_auth_store_pin(jsonb, text),
-    public.crm_auth_send_link(jsonb, text), public.crm_auth_who(text), public.crm_legacy(), public.crm_h(text), public.crm_mask_email(text) from public, anon, authenticated;
+    public.crm_auth_send_link(jsonb, text), public.crm_auth_mkt_find(jsonb), public.crm_auth_who(text), public.crm_legacy(), public.crm_h(text), public.crm_mask_email(text) from public, anon, authenticated;
 
 do $$ begin
   grant execute on function public.crm_register(jsonb), public.crm_login(jsonb), public.crm_logout(jsonb), public.crm_me(jsonb), public.crm_questions(jsonb), public.crm_reset(jsonb),
@@ -1772,7 +1961,7 @@ do $$ begin
     public.crm_auth_mode(jsonb), public.crm_auth_start(jsonb), public.crm_auth_resend(jsonb), public.crm_auth_otp(jsonb), public.crm_auth_master(jsonb), public.crm_auth_pin(jsonb), public.crm_auth_setpin(jsonb),
     public.crm_auth_forgot(jsonb), public.crm_auth_answer(jsonb), public.crm_auth_reset_info(jsonb), public.crm_auth_reset(jsonb), public.crm_auth_register(jsonb),
     public.crm_auth_me(jsonb), public.crm_auth_device_remove(jsonb), public.crm_auth_logout_all(jsonb), public.crm_auth_change_pin(jsonb), public.crm_auth_questions(jsonb),
-    public.crm_auth_admin_get(jsonb), public.crm_auth_admin_save(jsonb), public.crm_auth_test_mail(jsonb), public.crm_auth_mail_status(jsonb), public.crm_auth_user_reset(jsonb), public.crm_backup(jsonb), public.sp_admin_crm_items(text), public.sp_admin_crm_item_set(text, bigint, text, text, text)
+    public.crm_auth_admin_get(jsonb), public.crm_auth_admin_save(jsonb), public.crm_auth_test_mail(jsonb), public.crm_auth_mail_status(jsonb), public.crm_auth_user_reset(jsonb), public.crm_backup(jsonb), public.crm_auth_mkt_login(jsonb), public.crm_auth_mkt_setq(jsonb), public.crm_auth_mkt_forgot(jsonb), public.crm_auth_mkt_answer(jsonb), public.crm_mkt_user(jsonb), public.crm_mkt_get(jsonb), public.crm_mkt_save(jsonb), public.crm_mkt_stats(jsonb), public.sp_admin_crm_items(text), public.sp_admin_crm_item_set(text, bigint, text, text, text)
   to anon, authenticated;
 exception when undefined_object then null; end $$;
 

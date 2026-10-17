@@ -9,10 +9,11 @@
   C.STAGE = { new: ['Nayi', 'b'], contacted: ['Baat hui', 'v'], visit: ['Visit', 'o'], quote: ['Quotation', 'o'], won: ['Jeeti ✔', ''], lost: ['Haari', 'g'] };
   C.stagePill = function (s) { var x = C.STAGE[s] || [s, 'g']; return C.pill(x[0], x[1]); };
   C.PARTY_TYPES = [['customer', 'Customer'], ['supplier', 'Supplier / Vendor'], ['both', 'Dono']];
-  C.SOURCES = ['Walk-in', 'Reference', 'Website', 'Online Store', 'Facebook', 'Instagram', 'Google', 'WhatsApp', 'Camp / Event', 'Dealer', 'Influencer', 'Other'];
+  C.SOURCES = ['Walk-in', 'Reference', 'Website', 'Online Store', 'Facebook', 'Instagram', 'Google', 'JustDial', 'IndiaMART', 'TradeIndia', 'Sulekha', 'Meta Ads', 'Google Ads', 'YouTube', 'WhatsApp', 'Camp / Event', 'Dealer', 'Influencer', 'Other'];
 
   /* links to company store / website (with partner referral code) */
-  C.storeUrl = function () { var co = C.company(); return co.store_url || C.cfg.STORE_URL || ''; };
+  C.storeUrl = function () { var co = C.company(), u = String(co.store_url || '').trim(), site = String(co.website || '').replace(/^https?:\/\//, '').replace(/\/+$/, '').toLowerCase(), h = u.replace(/^https?:\/\//, '').replace(/\/+$/, '').toLowerCase();
+    if (!u || h === site || /^((www\.)?sunpowers\.in|shop\.sunpowers\.in)$/.test(h)) u = C.cfg.STORE_URL || u; return u || ''; }; // store link kabhi main website na khole
   C.siteUrl = function () { var co = C.company(); return co.website ? (/^https?:/.test(co.website) ? co.website : 'https://' + co.website) : (C.cfg.SITE_URL || ''); };
   C.refLink = function () { var u = C.storeUrl(); if (!u || !C.me || !C.me.ref_code) return u; return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'ref=' + encodeURIComponent(C.me.ref_code); };
   C.copy = async function (t, msg) { try { await navigator.clipboard.writeText(t); C.toast(msg || 'Copy ho gaya ✔'); } catch (e) { C.ask('Copy karein', 'Neeche wala text copy karein', { value: t }); } };
@@ -25,15 +26,16 @@
       var assign = C.can('customers.assign') && (C.cache.users || []).length;
       var body = '<form class="stack" id="pf"><div class="fg">' + C.f('Naam *', C.inp('name', d.name || rec.title, 'maxlength="120" required')) + C.f('Mobile *', C.inp('mobile', d.mobile || rec.mobile, 'inputmode="tel" maxlength="16"')) +
         C.f('Doosra mobile', C.inp('mobile2', d.mobile2, 'inputmode="tel" maxlength="16"')) + C.f('Email', C.inp('email', d.email, 'type="email"')) +
-        C.f('Shahar / Gaon', C.inp('city', d.city)) + C.f('Pincode', C.inp('pincode', d.pincode, 'inputmode="numeric" maxlength="6"')) +
-        C.f('Poora pata', C.ta('address', d.address, 'rows="2"'), 'full') + C.f('Company / Firm', C.inp('company', d.company)) + C.f('GSTIN', C.inp('gstin', d.gstin, 'maxlength="15" style="text-transform:uppercase"')) +
-        C.f('Prakar', C.sel('type', C.PARTY_TYPES, d.type || 'customer')) + C.f('Kahan se aaya', C.sel('source', C.SOURCES, d.source, '— chunein —')) +
+        '</div><div class="sec-t">Billing address</div>' + C.addrFields('', d, { defState: (C.company().state || 'Uttar Pradesh') }) + '<div class="fg">' + C.f('Company / Firm', C.inp('company', d.company)) + C.f('GSTIN', C.inp('gstin', d.gstin, 'maxlength="15" style="text-transform:uppercase"')) +
+        C.f('Prakar', C.sel('type', C.PARTY_TYPES, d.type || 'customer')) + C.f('Kahan se aaya', C.sel('source', (C.sourceList ? C.sourceList() : C.SOURCES), d.source, '— chunein —')) +
         C.f('Bijli ka bill (₹/mahina)', C.inp('bill', d.bill, 'inputmode="numeric"')) + C.f('Chahiye (kW)', C.inp('kw', d.kw, 'inputmode="decimal"')) +
         C.f('Opening balance (₹ lena hai)', C.inp('opening', d.opening, 'inputmode="decimal"')) + (assign ? C.f('Kiske paas rahe', '<select class="inp" name="assigned_to">' + C.userOpts(rec.assigned_to, '— Main / Owner —') + '</select>') : '') +
         C.f('Note', C.ta('note', d.note, 'rows="2"'), 'full') + '</div></form>';
       var m = C.modal({ title: isNew ? 'Naya customer' : 'Customer badlein', body: body, foot: '<button class="btn btn-o" data-close>Cancel</button><button class="btn btn-p" data-ok>' + C.ic('check') + ' Save</button>', onClose: function () { res(null); } });
+      C.addrBind(m.el);
       $('[data-ok]', m.el).onclick = async function () {
         var f = $('#pf', m.el), o = C.form(f); if (!C.need(f, ['name', 'mobile'])) return;
+        Object.assign(o, C.addrRead(o, ''));
         if (!C.validMob(o.mobile)) { f.mobile.classList.add('bad'); return C.toast('Sahi 10 ank ka mobile likhein', true); }
         var extra = {}; if (assign) { extra.assigned_to = o.assigned_to || null; delete o.assigned_to; }
         o.gstin = o.gstin.toUpperCase();
@@ -105,6 +107,7 @@
         var b = e.target.closest('[data-rep]'); if (!b) return;
         var x = await build(); if (!x || !x.rows) return;
         if (!window.XLSXLite) return C.toast('Excel tool load nahi hua', true);
+        var fx = await C.dlFilter(name, x, b.getAttribute('data-rep')); if (!fx) return; x = Object.assign({}, x, fx);
         var blob = window.XLSXLite.write([{ name: name.slice(0, 30), rows: [x.head].concat(x.rows), widths: x.head.map(function () { return 18; }) }]), fname = name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + C.today() + '.xlsx';
         if (b.getAttribute('data-rep') === 'dl') return C.download(blob, fname);
         C.shareAccountant(blob, fname, (x.text || name) + ' — ' + (C.company().name || ''));
@@ -154,4 +157,84 @@
   C.kpi = function (label, val, sub, cls, href, icon) { return '<' + (href ? 'a href="' + href + '"' : 'div') + ' class="kpi ' + (cls || '') + '"><span>' + (icon ? C.ic(icon) : '') + esc(label) + '</span><b>' + val + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</' + (href ? 'a' : 'div') + '>'; };
   document.addEventListener('click', function (e) { var r = e.target.closest('[data-href]'); if (!r || e.target.closest('a,button,input,select,textarea,label')) return; location.hash = r.getAttribute('data-href'); });
   C.sum = function (list, f) { return list.reduce(function (a, x) { return a + num(typeof f === 'function' ? f(x) : x[f]); }, 0); };
+
+  /* ------------------------------------------------ address: Country → State → District (+ Other / khud likhein) */
+  var OTHER = '__other';
+  function geo() { return window.SP_GEO || { countries: ['India', 'Other'], IN: {} }; }
+  function stateList() { return Object.keys(geo().IN || {}); }
+  C.addrFields = function (pfx, d, opt) {
+    d = d || {}; opt = opt || {}; pfx = pfx || '';
+    var G = geo(), country = d[pfx + 'country'] || d.country_ || 'India', inIndia = country === 'India', st = d[pfx + 'state'] || (inIndia && !d[pfx + 'state'] && opt.defState ? opt.defState : ''), stKnown = inIndia && stateList().indexOf(st) >= 0;
+    var dist = d[pfx + 'district'] || '', dists = stKnown ? (G.IN[st] || []) : [], dKnown = dists.indexOf(dist) >= 0;
+    var cOpts = G.countries.indexOf(country) >= 0 ? G.countries : G.countries.concat([country]);
+    return '<div class="fg addr" data-addr="' + pfx + '">' +
+      C.f('Country', '<select class="inp" name="' + pfx + 'country" data-ac="country">' + C.opts(cOpts, country) + '</select>') +
+      C.f('State', '<select class="inp" name="' + pfx + 'state" data-ac="state"' + (inIndia ? '' : ' hidden') + '>' + C.opts(stateList().map(function (x) { return [x, x]; }).concat([[OTHER, 'Other (khud likhein)']]), stKnown ? st : (st ? OTHER : ''), '— State chunein —') + '</select><input class="inp" name="' + pfx + 'state_x" data-ac="state_x" placeholder="State likhein" value="' + esc(stKnown ? '' : st) + '"' + (inIndia && (stKnown || !st) ? ' hidden' : '') + '>') +
+      C.f('District', '<select class="inp" name="' + pfx + 'district" data-ac="district"' + (stKnown ? '' : ' hidden') + '>' + C.opts(dists.map(function (x) { return [x, x]; }).concat([[OTHER, 'Other (khud likhein)']]), dKnown ? dist : (dist ? OTHER : ''), '— District chunein —') + '</select><input class="inp" name="' + pfx + 'district_x" data-ac="district_x" placeholder="District likhein" value="' + esc(dKnown ? '' : dist) + '"' + (stKnown && (dKnown || !dist) ? ' hidden' : '') + '>') +
+      C.f('Shahar / Gaon', C.inp(pfx + 'city', d[pfx + 'city'])) + C.f('Pincode', C.inp(pfx + 'pincode', d[pfx + 'pincode'], 'inputmode="numeric" maxlength="6"')) +
+      C.f('Poora pata <span class="o">(makaan / gali / mohalla)</span>', C.ta(pfx + 'address', d[pfx + 'address'], 'rows="2"'), 'full') + '</div>';
+  };
+  C.addrBind = function (root) {
+    root.addEventListener('change', function (e) {
+      var t = e.target, k = t.getAttribute && t.getAttribute('data-ac'); if (!k) return;
+      var box = t.closest('[data-addr]'), q = function (n) { return box.querySelector('[data-ac="' + n + '"]'); };
+      if (k === 'country') {
+        var ind = t.value === 'India'; q('state').hidden = !ind; q('state_x').hidden = ind; if (!ind) { q('state').value = ''; q('district').hidden = true; q('district').value = ''; q('district_x').hidden = false; } else { q('state_x').hidden = true; q('district_x').hidden = true; }
+      } else if (k === 'state') {
+        var st = t.value, list = (geo().IN || {})[st] || [], ds = q('district');
+        q('state_x').hidden = st !== OTHER; if (st === OTHER) setTimeout(function () { q('state_x').focus(); }, 0);
+        ds.innerHTML = C.opts(list.map(function (x) { return [x, x]; }).concat([[OTHER, 'Other (khud likhein)']]), '', '— District chunein —');
+        ds.hidden = !list.length; q('district_x').hidden = !!list.length; q('district_x').value = '';
+      } else if (k === 'district') { q('district_x').hidden = t.value !== OTHER; if (t.value === OTHER) setTimeout(function () { q('district_x').focus(); }, 0); }
+    });
+  };
+  /* form values (C.form) → clean address object */
+  C.addrRead = function (o, pfx) {
+    pfx = pfx || ''; var country = o[pfx + 'country'] || 'India', st = o[pfx + 'state'], ds = o[pfx + 'district'];
+    if (country !== 'India' || st === OTHER || !st) st = o[pfx + 'state_x'] || (st === OTHER ? '' : st || '');
+    if (ds === OTHER || !ds || country !== 'India') ds = o[pfx + 'district_x'] || (ds === OTHER ? '' : ds || '');
+    var a = { address: o[pfx + 'address'] || '', city: o[pfx + 'city'] || '', district: (ds || '').trim(), state: (st || '').trim(), country: country, pincode: o[pfx + 'pincode'] || '' };
+    ['country', 'state', 'state_x', 'district', 'district_x', 'city', 'pincode', 'address'].forEach(function (k) { delete o[pfx + k]; });
+    return a;
+  };
+  C.addrText = function (a) {
+    if (!a) return ''; var l2 = [a.city, a.district && a.district !== a.city ? a.district : ''].filter(Boolean).join(', ');
+    var l3 = [a.state, a.pincode].filter(Boolean).join(' - ');
+    return [a.address, l2, l3, a.country && a.country !== 'India' ? a.country : ''].filter(function (x) { return String(x || '').trim(); }).join('\n');
+  };
+
+  /* ------------------------------------------------ templates (Admin Settings → Templates me badle ja sakte hain) */
+  C.TPL_DEF = {
+    delete: ['Not interested', 'Postpone solar plan', 'Next month', 'Next week', 'Duplicate entry', 'Galat entry', 'Budget nahi hai', 'Doosri company se lagwa liya'],
+    note: ['Call kiya — phone nahi uthaya', 'Baat hui — quotation bhejni hai', 'Site visit fix hua', 'Next week call karna hai', 'Next month solar plan', 'Bijli bill ki photo maangi', 'Loan / finance ki jaankari chahiye', 'Subsidy ki jaankari di'],
+    reject: ['Documents poore nahi', 'Galat jaankari', 'Duplicate entry', 'Customer ne mana kiya'],
+    lost: ['Not interested', 'Budget nahi hai', 'Postpone solar plan', 'Doosri company se lagwa liya', 'Chhat / jagah nahi hai']
+  };
+  C.TPL_NAMES = { delete: 'Hatane (delete) ki wajah', note: 'Baat-cheet / follow-up note', reject: 'Reject ki wajah', lost: 'Lead haarne ki wajah' };
+  C.tpl = function (k) { var t = ((C.cache.settings || {}).templates || {})[k]; return Array.isArray(t) && t.length ? t : (C.TPL_DEF[k] || []); };
+  C.tplChips = function (k, target) { var list = C.tpl(k); if (!list.length) return ''; return '<div class="tplc" data-tplfor="' + esc(target) + '">' + list.map(function (x) { return '<button type="button" data-tpl="' + esc(x) + '">' + esc(x) + '</button>'; }).join('') + '</div>'; };
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-tpl]'); if (!b) return;
+    var box = b.closest('[data-tplfor]'), sel = box.getAttribute('data-tplfor'), root = box.closest('.md,.card,form,.mb') || document, inp = root.querySelector(sel) || document.querySelector(sel); if (!inp) return;
+    var v = b.getAttribute('data-tpl'), cur = inp.value.trim();
+    inp.value = !cur || cur === v ? v : (inp.tagName === 'TEXTAREA' ? cur + '\n' + v : cur + ' — ' + v);
+    inp.dispatchEvent(new Event('input', { bubbles: true })); inp.classList.remove('bad'); try { inp.focus(); } catch (x) {}
+  });
+
+  /* ------------------------------------------------ inline customer list (1 click select) */
+  C.partyInline = function (box, opt, onPick) {
+    opt = opt || {}; var all = null;
+    box.innerHTML = '<div class="row" style="margin-bottom:8px"><input class="inp" data-piq type="search" placeholder="Naam / mobile / shahar khojein">' + (C.can('customers.create') ? '<button type="button" class="btn btn-o" data-pinew>' + C.ic('plus') + ' Naya</button>' : '') + '</div><div class="list pil" style="max-height:300px;overflow:auto">' + C.loading() + '</div>';
+    var q = box.querySelector('[data-piq]'), lst = box.querySelector('.pil');
+    function draw() {
+      var s = q.value.toLowerCase().trim(), list = (all || []).filter(function (p) { return (!opt.type || (p.data.type || 'customer') === opt.type || p.data.type === 'both') && (!s || (p.title + ' ' + (p.mobile || '') + ' ' + (p.data.city || '') + ' ' + (p.data.company || '')).toLowerCase().indexOf(s) >= 0); });
+      lst.innerHTML = list.length ? list.slice(0, 300).map(function (p) { return '<button type="button" class="li click" style="width:100%;text-align:left" data-pi="' + p.id + '"><span class="av">' + esc(C.initials(p.title)) + '</span><span class="grow"><span class="t">' + esc(p.title) + '</span><span class="m"><span>' + esc(p.mobile || '') + '</span>' + (p.data.city ? '<span>' + esc(p.data.city) + '</span>' : '') + (p.owner_name ? '<span>' + esc(p.owner_name) + '</span>' : '') + '</span></span><span class="btn btn-p btn-sm">Chunein</span></button>'; }).join('') + (list.length > 300 ? '<p class="xs mute" style="padding:8px">Aur bhi hain — upar khojein</p>' : '') : C.empty('users', 'Koi customer nahi mila', C.can('customers.create') ? '"Naya" dabakar jodein' : '');
+    }
+    C.list('party', { limit: 3000 }).then(function (r) { all = r; draw(); }, function (e) { all = []; draw(); C.toast(e.message, true); });
+    q.addEventListener('input', draw);
+    box.addEventListener('click', async function (e) {
+      var b = e.target.closest('[data-pi]'); if (b) { var p = all.find(function (x) { return String(x.id) === b.getAttribute('data-pi'); }); if (p) onPick(p); return; }
+      if (e.target.closest('[data-pinew]')) { var v = q.value.trim(), pre = /^[\d\s+]{6,}$/.test(v) ? { mobile: v } : { name: v }; var np = await C.partyForm(null, { prefill: Object.assign(pre, opt.prefill || {}) }); if (np) onPick(np); }
+    });
+  };
 })();

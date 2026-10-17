@@ -1,7 +1,7 @@
 SUNPOWERS SUITE — ek repo, 4 hisse
 ==================================
 website/  → www.sunpowers.in    (Vercel Root Directory: website)
-store/    → shop.sunpowers.in   (Vercel Root Directory: store)
+store/    → store.sunpowers.in   (Vercel Root Directory: store)
 admin/    → admin.sunpowers.in  (Vercel Root Directory: admin)
 crm/      → crm.sunpowers.in    (Vercel Root Directory: crm)
 

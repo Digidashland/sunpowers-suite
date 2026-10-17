@@ -14,7 +14,7 @@ LIVE KARNE KE STEPS
      (pehle chala chuke hain to bhi dobara chalayein — naya function judega, data nahi mitega)
   2. CRM wali crm-setup.sql bhi RUN karein (customer login + OTP usi se chalta hai) — GUIDE-1-Supabase.txt dekhein
   3. GitHub ke store repo me ye files daalein (purani files hata kar) → Vercel apne aap live karega
-  4. Vercel → Project → Settings → Domains → shop.sunpowers.in jodein (DNS: GUIDE-2-DNS.txt)
+  4. Vercel → Project → Settings → Domains → store.sunpowers.in jodein (DNS: GUIDE-2-DNS.txt)
   5. Icons (icon-192/512, favicon, apple-touch-icon) naye logo se bane hain — "Add to Home Screen"
      par Sunpowers ka icon aayega
 
@@ -31,6 +31,6 @@ DHYAN DEIN
   • Admin Panel pehle /admin par tha — ab "3-Admin" zip alag Vercel project me lagayein.
 
 config.js
-  POWERED_BY / POWERED_URL — footer ki chhoti line ("Powered by DigiDashLand"). Khaali '' = nahi dikhegi
+  POWERED_BY / POWERED_URL — footer ki chhoti line ("Powered by Digidashland.in"). Khaali '' = nahi dikhegi
   SP_LICENSE — khaali rehne dein (sirf rental client ke liye)
 .vercelignore — setup.sql aur README website par public nahi honge.

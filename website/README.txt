@@ -8,7 +8,7 @@ LIVE KARNE KE STEPS
   4. config.js check karein:
        SHOP_URL  — Online Store (Main App) ka link
        LOGIN_URL — customer login (Main App ka "Mera Account" page)
-     (Pehle se bhare hain: https://shop.sunpowers.in aur …/?view=account)
+     (Pehle se bhare hain: https://store.sunpowers.in aur …/?view=account)
        WHATSAPP  — WhatsApp number
   5. Apni photos img/ folder me daalein (naam img/PHOTOS-YAHAN-DAALEIN.txt me likhe hain)
 

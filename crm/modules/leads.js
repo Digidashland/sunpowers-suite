@@ -9,7 +9,7 @@
     return new Promise(function (res) {
       var assign = C.can('leads.assign') && (C.cache.users || []).length;
       var body = '<form id="lf" class="fg">' + C.f('Naam', C.inp('name', d.name || (isNew ? '' : rec.title), 'maxlength="120"')) + C.f('Mobile *', C.inp('mobile', d.mobile || rec.mobile, 'inputmode="tel" maxlength="16"')) +
-        C.f('Shahar / Gaon', C.inp('city', d.city)) + C.f('Kahan se aayi', C.sel('source', C.SOURCES, d.source, '— chunein —')) +
+        C.f('Shahar / Gaon', C.inp('city', d.city)) + C.f('Kahan se aayi', C.sel('source', (C.sourceList ? C.sourceList() : C.SOURCES), d.source, '— chunein —')) +
         C.f('Bijli ka bill (₹/mahina)', C.inp('bill', d.bill, 'inputmode="numeric"')) + C.f('Chahiye (kW)', C.inp('kw', d.kw, 'inputmode="decimal"')) +
         C.f('Agla follow-up', C.inp('followup', d.followup || (isNew ? C.addDays(C.today(), 1) : ''), 'type="date"')) + (isNew ? C.f('Stage', C.sel('stage', STAGES.map(function (s) { return [s, C.STAGE[s][0]]; }), 'new')) : '') +
         (assign ? C.f('Kisko dena hai', '<select class="inp" name="assigned_to">' + C.userOpts(rec.assigned_to, '— Khud ke paas —') + '</select>', 'full') : '') +
@@ -17,7 +17,7 @@
       var m = C.modal({ title: isNew ? 'Nayi lead' : 'Lead badlein', body: body, foot: '<button class="btn btn-o" data-close>Cancel</button><button class="btn btn-p" data-ok>' + C.ic('check') + ' Save</button>', onClose: function () { res(null); } });
       $('[data-ok]', m.el).onclick = async function () {
         var f = $('#lf', m.el), o = C.form(f); if (!C.validMob(o.mobile)) { f.mobile.classList.add('bad'); return C.toast('Sahi 10 ank ka mobile likhein', true); }
-        var extra = {}; if (assign) { extra.assigned_to = o.assigned_to || null; } if (isNew && !assign) extra.assigned_to = C.me.id || null; if (isNew) extra.status = o.stage;
+        if (isNew) o.intake = d.intake || 'manual'; var extra = {}; if (assign) { extra.assigned_to = o.assigned_to || null; } if (isNew && !assign) extra.assigned_to = C.me.id || null; if (isNew) extra.status = o.stage;
         delete o.assigned_to; delete o.stage;
         try { var r = await C.save('lead', rec.id, Object.assign({}, rec.data || {}, o), extra); m.el.remove(); document.documentElement.style.overflow = ''; res(r); } catch (e) {}
       };
@@ -29,39 +29,50 @@
     var body = '<div class="row" style="margin-bottom:12px;flex-wrap:wrap">' + C.stagePill(r.status) + (d.company ? C.pill('Company lead', 'v') : '') + (d.source ? C.pill(d.source, 'g') : '') + '<span class="grow"></span>' + C.callBtns(r.mobile, 'Namaste ' + (d.name || '') + ', ' + (C.company().name || '') + ' se baat kar rahe hain.') + '</div>' +
       '<div class="fg" style="margin-bottom:12px"><div><div class="xs mute">Mobile</div><b>' + esc(r.mobile || '') + '</b></div><div><div class="xs mute">Shahar</div><b>' + esc(d.city || '—') + '</b></div><div><div class="xs mute">Bijli bill / kW</div><b>' + (d.bill ? '₹' + esc(d.bill) : '—') + ' / ' + esc(d.kw || '—') + '</b></div><div><div class="xs mute">Follow-up</div><b>' + esc(C.fd(r.due_at) || '—') + '</b></div><div><div class="xs mute">Kiske paas</div><b>' + esc(r.assigned_name || r.owner_name || '') + '</b></div><div><div class="xs mute">Aayi</div><b>' + esc(C.fd(r.created_at)) + '</b></div>' + (d.address ? '<div class="full"><div class="xs mute">Pata</div>' + esc(d.address) + '</div>' : '') + (d.note ? '<div class="full"><div class="xs mute">Note</div>' + esc(d.note) + '</div>' : '') + '</div>' +
       '<div class="sec-t">Stage badlein</div>' + C.chips(STAGES.map(function (s) { return [s, C.STAGE[s][0]]; }), r.status, 'st') +
-      '<div class="sec-t">Baat-cheet likhein</div><div class="row"><input class="inp" id="lg" placeholder="Kya baat hui? (jaise: Sunday ko visit bulaya)"><input class="inp" type="date" id="lfd" value="' + esc(r.due_at || '') + '" style="width:auto" title="Agla follow-up"><button class="btn btn-p" data-log>' + C.ic('send') + '</button></div>' +
+      '<div class="sec-t">Baat-cheet likhein</div><div class="row"><input class="inp" id="lg" placeholder="Kya baat hui? (jaise: Sunday ko visit bulaya)"><input class="inp" type="date" id="lfd" value="' + esc(r.due_at || '') + '" style="width:auto" title="Agla follow-up"><button class="btn btn-p" data-log>' + C.ic('send') + '</button></div>' + C.tplChips('note', '#lg') +
       (log.length ? '<div class="list" style="margin-top:10px">' + log.slice().reverse().map(function (x) { return '<div class="li"><span class="grow"><span class="sm">' + esc(x.t) + '</span><span class="m"><span>' + esc(x.by || '') + '</span><span>' + esc(C.fdt(x.at)) + '</span></span></span></div>'; }).join('') + '</div>' : '');
-    var foot = (C.can('leads.delete') || (r.owner_id === C.me.id && r.owner_id !== 0) ? '<button class="btn btn-r" data-del style="margin-right:auto">' + C.ic('trash') + '</button>' : '') + '<button class="btn btn-o" data-edit>' + C.ic('edit') + ' Badlein</button>' + (C.can('customers.create') && !d.party_id ? '<button class="btn btn-o" data-cust>' + C.ic('users') + ' Customer banayein</button>' : d.party_id ? '<a class="btn btn-o" href="#/customer/' + d.party_id + '">' + C.ic('users') + ' Customer</a>' : '') + (C.can('quotes.create') ? '<button class="btn btn-p" data-quote>' + C.ic('quote') + ' Quotation</button>' : '');
+    var canXfer = C.isAdmin() || r.owner_id === C.me.id || r.assigned_to === C.me.id;
+    var foot = (C.can('leads.delete') || (r.owner_id === C.me.id && r.owner_id !== 0) ? '<button class="btn btn-r" data-del style="margin-right:auto">' + C.ic('trash') + '</button>' : '') + '<button class="btn btn-o" data-edit>' + C.ic('edit') + ' Badlein</button>' + (!d.party_id && canXfer ? '<button class="btn btn-o" data-cust>' + C.ic('users') + ' Customer list me bhejein</button>' : d.party_id ? '<a class="btn btn-o" href="#/customer/' + d.party_id + '">' + C.ic('users') + ' Customer</a>' : '') + (C.can('quotes.create') ? '<button class="btn btn-p" data-quote>' + C.ic('quote') + ' Quotation</button>' : '');
     var m = C.modal({ title: r.title, body: body, foot: foot, size: 'wide', onClose: onChange });
     async function patch(st, p, msg) { try { await C.call('crm_save', { kind: 'lead', id: r.id, status: st || r.status, data: Object.assign({}, r.data, p || {}), party_id: r.party_id, assigned_to: r.assigned_to }); C.toast(msg || 'Update ho gaya ✔'); m.close(); leadView(id, onChange); } catch (e) { C.toast(e.message, true); } }
     m.el.addEventListener('click', async function (e) {
-      var s = e.target.closest('[data-st]'); if (s) { var st = s.getAttribute('data-st'), lg = log.concat([{ at: new Date().toISOString(), by: C.me.name, t: 'Stage → ' + C.STAGE[st][0] }]); patch(st, { log: lg }); }
+      var s = e.target.closest('[data-st]'); if (s) { var st = s.getAttribute('data-st'), why = ''; if (st === 'lost' && r.status !== 'lost') { why = await C.ask('Lead kyun haari?', 'Wajah chunein ya likhein', { tpl: 'lost', ok: 'Save' }); if (why == null) return; } var lg = log.concat([{ at: new Date().toISOString(), by: C.me.name, t: 'Stage → ' + C.STAGE[st][0] + (why ? ' — ' + why : '') }]); patch(st, st === 'lost' && why ? { log: lg, lost_reason: why } : { log: lg }); }
     });
     $('[data-log]', m.el).onclick = function () { var t = $('#lg', m.el).value.trim(), fu = $('#lfd', m.el).value; if (!t && fu === (r.due_at || '')) return C.toast('Kuch likhein', true); var lg = log.concat(t ? [{ at: new Date().toISOString(), by: C.me.name, t: t }] : []); patch(r.status === 'new' ? 'contacted' : r.status, { log: lg, followup: fu }, 'Likh liya ✔'); };
     $('[data-edit]', m.el).onclick = async function () { m.el.remove(); document.documentElement.style.overflow = ''; var x = await C.leadForm(r); leadView(id, onChange); };
     var del = $('[data-del]', m.el); if (del) del.onclick = async function () { if (await C.delWithReason(r, 'Lead "' + r.title + '"')) m.close(); };
-    var cu = $('[data-cust]', m.el); if (cu) cu.onclick = async function () {
-      var p = await C.partyForm(null, { prefill: { name: d.name || r.title, mobile: r.mobile, city: d.city, address: d.address, source: d.source, kw: d.kw, bill: d.bill, note: d.note } });
-      if (p) { await patch('won', { party_id: p.id, log: log.concat([{ at: new Date().toISOString(), by: C.me.name, t: 'Customer bana diya' }]) }, 'Customer ban gaya ✔'); }
-    };
+    /* Lead → Customer list: only after a conversation remark; name, mobile, address and city are mandatory */
+    async function transfer() {
+      if (!(r.data.log || []).length) { C.toast('Pehle customer se baat karke "Baat-cheet" me remark likhein', true); return null; }
+      return new Promise(function (res) {
+        var body = '<form id="xf" class="fg"><div class="note g full">Baat-cheet ke remark lead me save hain. Neeche customer ki zaroori details bharein.</div>' + C.f('Naam *', C.inp('name', d.name && !/^Lead \d/.test(d.name) ? d.name : (/^Lead \d/.test(r.title) ? '' : r.title))) + C.f('Mobile *', C.inp('mobile', r.mobile, 'inputmode="tel" maxlength="16"')) +
+          C.f('Pata *', C.ta('address', d.address, 'rows="2"'), 'full') + C.f('Shahar / Gaon *', C.inp('city', d.city)) + C.f('Pincode', C.inp('pincode', d.pincode, 'inputmode="numeric" maxlength="6"')) + C.f('Email', C.inp('email', d.email)) + C.f('Kahan se aaya', C.sel('source', (C.sourceList ? C.sourceList() : C.SOURCES), d.source, '— chunein —')) + '</form>';
+        var x = C.modal({ title: 'Customer list me bhejein', body: body, foot: '<button class="btn btn-o" data-close>Cancel</button><button class="btn btn-p" data-ok>' + C.ic('check') + ' Customer banayein</button>', onClose: function () { res(null); } });
+        $('[data-ok]', x.el).onclick = async function () {
+          var f = $('#xf', x.el), o = C.form(f); if (!C.need(f, ['name', 'mobile', 'address', 'city'])) return; if (!C.validMob(o.mobile)) { f.mobile.classList.add('bad'); return C.toast('Sahi 10 ank ka mobile likhein', true); }
+          try { var out = await C.run('crm_lead_transfer', { id: r.id, party: o }, 'Customer list me aa gaya ✔'); res(out.party_id); x.el.remove(); document.documentElement.style.overflow = ''; } catch (e) {}
+        };
+      });
+    }
+    var cu = $('[data-cust]', m.el); if (cu) cu.onclick = async function () { var pid = await transfer(); if (pid) { m.el.remove(); document.documentElement.style.overflow = ''; if (onChange) onChange(); C.go('#/customer/' + pid); } };
     var qb = $('[data-quote]', m.el); if (qb) qb.onclick = async function () {
       var pid = d.party_id;
       if (!pid) { var ex = await C.list('party', { q: r.mobile, limit: 5 }).catch(function () { return []; }); var hit = ex.find(function (x) { return x.mobile === r.mobile; }); if (hit) pid = hit.id; }
-      if (!pid && C.can('customers.create')) { var p = await C.partyForm(null, { prefill: { name: d.name || r.title, mobile: r.mobile, city: d.city, address: d.address, source: d.source } }); if (!p) return; pid = p.id; }
-      if (!pid) return C.toast('Pehle customer banwayein', true);
+      if (!pid) { if (!canXfer) return C.toast('Pehle lead ka user ya Admin ise Customer list me bheje', true); pid = await transfer(); if (!pid) return; }
       if (r.status !== 'won') { try { await C.call('crm_save', { kind: 'lead', id: r.id, status: 'quote', data: Object.assign({}, r.data, { party_id: pid }), party_id: r.party_id, assigned_to: r.assigned_to }); } catch (e) {} }
       m.el.remove(); document.documentElement.style.overflow = ''; C.go('#/quote/new?party=' + pid);
     };
   }
   C.leadView = leadView;
+  C.leadImport = function (preSrc) { return new Promise(function (res) { importDlg(function () { res(true); }, preSrc); }); };
 
   /* import from Excel / CSV / pasted text / phone contacts */
-  function importDlg(done) {
+  function importDlg(done, preSrc) {
     var assign = C.can('leads.assign') && (C.cache.users || []).length;
     var body = '<div class="note g" style="margin-bottom:12px">Excel / CSV me columns: <b>Name, Mobile, City, Source, Note, Followup</b> (pehli line heading). Ya neeche seedha naam + number paste karein (har line me ek).</div>' +
       '<div class="stack"><input type="file" class="inp" id="lfile" accept=".xlsx,.csv,.txt">' + ('contacts' in navigator && 'ContactsManager' in window ? '<button class="btn btn-o" data-ct>' + C.ic('phone') + ' Phone ke contacts se chunein</button>' : '') +
       C.f('Ya paste karein', '<textarea class="inp" id="lpaste" rows="5" placeholder="Ramesh Kumar 9876543210&#10;9123456780, Suresh, Lucknow"></textarea>') +
-      C.f('Source', C.sel('src', C.SOURCES, assign ? '' : 'Import', '— jo file me hai —', 'id="lsrc"')) +
+      C.f('Source', C.sel('src', (C.sourceList ? C.sourceList() : C.SOURCES), preSrc || (assign ? '' : 'Import'), '— jo file me hai —', 'id="lsrc"')) +
       (assign ? C.f('Kiski list me jaye? (Company leads)', '<select class="inp" id="lto">' + C.userOpts('', '— Meri khud ki list —') + '</select><span class="hint">Kisi user ko chunne par leads sirf usi ID ko dikhengi (Company leads).</span>') : '') + '<p id="lprev" class="sm b"></p></div>';
     var m = C.modal({ title: 'Leads import', body: body, foot: '<button class="btn btn-o" data-close>Cancel</button><button class="btn btn-p" data-ok>' + C.ic('upload') + ' Import</button>' }), rows = [];
     function parseText(t) {

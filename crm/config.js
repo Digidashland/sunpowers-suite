@@ -7,7 +7,7 @@
 window.CRM_CONFIG = {
   SUPABASE_URL: 'https://fotmykjrqrgjnzqbdsea.supabase.co',
   SUPABASE_KEY: 'sb_publishable_sN48EuIxQhDgS4xaalwJZA_aV-9mfLg',
-  STORE_URL: 'https://shop.sunpowers.in',
+  STORE_URL: 'https://store.sunpowers.in',
   SITE_URL: 'https://www.sunpowers.in'
 };
 

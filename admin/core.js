@@ -126,13 +126,24 @@
       var r = new FileReader(); r.onload = function () { res(r.result); }; r.onerror = function () { rej(new Error('Image read error')); }; r.readAsDataURL(blob);
     });
   };
+  /* Uploads are allowed only with a short-lived token that the admin panel gets after the admin logs in
+     (sp_admin_upload_token). Nobody else can write to the storage bucket. */
+  SP.getUploadToken = null;
+  async function upTok() {
+    if (SP._ut && Date.now() - SP._utAt < 6 * 3600e3) return SP._ut;
+    var t = '';
+    try { if (SP.getUploadToken) t = await SP.getUploadToken(); } catch (e) { t = ''; }
+    if (t) { SP._ut = t; SP._utAt = Date.now(); }
+    return t || 'img';
+  }
   SP.uploadImage = async function (blob) {
     if (!SP.backendReady()) throw new Error('no backend');
-    var ext = blob.type === 'image/gif' ? 'gif' : blob.type === 'image/png' ? 'png' : blob.type === 'image/webp' ? 'webp' : 'jpg';
-    var path = 'img/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+    var ty = blob.type || 'image/jpeg';
+    var ext = ty === 'image/gif' ? 'gif' : ty === 'image/png' ? 'png' : ty === 'image/webp' ? 'webp' : ty === 'video/mp4' ? 'mp4' : ty === 'video/webm' ? 'webm' : 'jpg';
+    var path = 'u/' + (await upTok()) + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
     var res = await fetch(base() + '/storage/v1/object/' + SP.BUCKET + '/' + path, {
       method: 'POST',
-      headers: authHeaders({ 'Content-Type': blob.type || 'image/jpeg', 'x-upsert': 'false', 'cache-control': 'max-age=31536000' }),
+      headers: authHeaders({ 'Content-Type': ty, 'x-upsert': 'false', 'cache-control': 'max-age=31536000' }),
       body: blob
     });
     if (!res.ok) { var t = ''; try { t = await res.text(); } catch (e) {} throw new Error('Upload failed (' + res.status + ') ' + t.slice(0, 120)); }
@@ -181,7 +192,30 @@
   SP.SLIDE_DEF = { image: '', bg: '#1b5e20', emoji: '☀️', title: '', subtitle: '', button: '', ribbon: '', linkType: 'none', link: '', visible: true };
   SP.SECTION_DEF = { title: 'New Section', titleEn: '', subtitle: '', kind: 'category', limit: 8, icon: '', visible: true };
   SP.PRODUCT_DEF = { title: '', titleEn: '', sections: [], tagline: '', desc: '', descEn: '', mrp: 0, offer: 0, unit: '', badge: '',
-    stock: 'in', visible: true, sort: 0, emoji: '☀️', bg: '#e8f5e9', image: '', images: [], link: '', sku: '', brand: '' };
+    stock: 'in', visible: true, sort: 0, emoji: '☀️', bg: '#e8f5e9', image: '', images: [], media: [], link: '', sku: '', brand: '' };
+
+  /* product media: max 5 (max 2 video), exactly one main. Source of truth when present; image/images derived for old consumers */
+  SP.MEDIA_MAX = 5; SP.VIDEO_MAX = 2;
+  SP.isVideoUrl = function (u) { return /^https?:\/\//i.test(u || ''); };
+  SP.cleanMedia = function (m) {
+    if (!Array.isArray(m)) return [];
+    var out = [], vids = 0;
+    m.forEach(function (x) {
+      if (!x || typeof x !== 'object' || out.length >= SP.MEDIA_MAX) return;
+      var t = x.type === 'video' ? 'video' : 'image', u = String(x.url || '').trim();
+      if (!u) return;
+      if (t === 'video') { if (!SP.isVideoUrl(u) || vids >= SP.VIDEO_MAX) return; vids++; } else if (!SP.isImg(u)) return;
+      out.push({ type: t, url: u, main: x.main === true });
+    });
+    var mi = -1; out.forEach(function (x, i) { if (x.main && mi < 0) mi = i; x.main = false; });
+    if (out.length) out[mi < 0 ? 0 : mi].main = true;
+    return out;
+  };
+  SP.mainMedia = function (p) { var m = (p && p.media) || []; for (var i = 0; i < m.length; i++) if (m[i].main) return m[i]; return m[0] || null; };
+  SP.mediaFromLegacy = function (p) {
+    var l = [p.image].concat(p.images || []).filter(function (u) { return u && SP.isImg(u); });
+    return l.slice(0, SP.MEDIA_MAX).map(function (u, i) { return { type: 'image', url: u, main: i === 0 }; });
+  };
 
   SP.normalize = function (d) {
     var def = SP.demo();
@@ -222,6 +256,12 @@
       p.sections = p.sections.filter(function (id) { return secIds[id]; });
       if (!Array.isArray(p.images)) p.images = p.images ? [String(p.images)] : [];
       p.images = p.images.filter(Boolean);
+      p.media = SP.cleanMedia(p.media);
+      if (p.media.length) {
+        var ph = p.media.filter(function (x) { return x.type === 'image'; }), mm = SP.mainMedia(p);
+        var mp = mm.type === 'image' ? mm : ph[0];
+        p.image = mp ? mp.url : ''; p.images = ph.filter(function (x) { return x !== mp; }).map(function (x) { return x.url; });
+      }
       p.mrp = SP.num(p.mrp); p.offer = SP.num(p.offer); p.sort = SP.num(p.sort);
       p.stock = p.stock === 'out' ? 'out' : 'in';
       return p;
@@ -243,7 +283,7 @@
   function migrateV2(out) {
     var st = out.settings, def = SP.demo().settings;
     if (st.email === 'contact@sunpowers.in') st.email = def.email;
-    if (st.siteUrl === 'https://www.sunpowers.in') st.siteUrl = def.siteUrl;
+    if (/^https?:\/\/((www\.)?sunpowers\.in|shop\.sunpowers\.in)\/?$/i.test(String(st.siteUrl || '').trim())) st.siteUrl = def.siteUrl; // store ka link main website / purana shop na ho
     if (st.location === 'India') st.location = def.location;
     if (!st.address) st.address = def.address;
     if (st.delivery === 'डिलीवरी चार्ज ऑर्डर कन्फ़र्म करते समय बताया जाएगा।') st.delivery = def.delivery;
@@ -612,8 +652,8 @@
         n++;
         products.push({
           id: 'p_' + c[0].slice(4) + '_' + (i + 1), title: p[0], titleEn: p[1], sections: [c[0]],
-          tagline: p[4], desc: p[0] + ' — Sunpowers द्वारा भरोसेमंद क्वालिटी, सही दाम और इंस्टॉलेशन सपोर्ट। (यह डेमो विवरण है, Admin से बदलें)',
-          descEn: p[1] + ' — trusted quality, fair price and installation support by Sunpowers. (Demo text — edit from Admin)',
+          tagline: p[4], desc: p[0] + ' — Sunpowers द्वारा भरोसेमंद क्वालिटी, सही दाम और इंस्टॉलेशन सपोर्ट।',
+          descEn: p[1] + ' — trusted quality, fair price and installation support by Sunpowers.',
           mrp: p[2], offer: p[3], unit: '', badge: p[5], stock: 'in', visible: true, sort: i + 1,
           emoji: c[3], bg: pastel[n % pastel.length], image: '', images: [], link: '', sku: 'SP-' + String(n).padStart(3, '0'), brand: 'Sunpowers'
         });
@@ -666,7 +706,7 @@
         googleRating: '5.0', googleReviews: '17', mainSite: 'https://www.sunpowers.in', gstNote: 'सभी कीमतें GST सहित',
         policyDate: '08-10-2026', reportDays: 7, policyConsent: true,
         shipping: { enabled: true, localPins: '226', localName: 'लखनऊ', localNameEn: 'Lucknow', localCharge: 0, otherCharge: 500, freeAbove: 10000 },
-        siteUrl: 'https://shop.sunpowers.in', brand: 'Sunpowers', themeColor: '#1e8e3e', defaultLang: 'hi',
+        siteUrl: 'https://store.sunpowers.in', brand: 'Sunpowers', themeColor: '#1e8e3e', defaultLang: 'hi',
         searchPlaceholder: 'सोलर पैनल, इन्वर्टर, बैटरी खोजें', stickyTicker: true, whatsappButton: true,
         footerText: 'Sunpowers — सोलर पैनल, इन्वर्टर, बैटरी, पंप और कम्प्लीट सोलर सिस्टम। इंस्टॉलेशन सहित।',
         delivery: 'लखनऊ में फ़्री डिलीवरी • बाकी जगह ₹500 • ₹10,000 से ऊपर के ऑर्डर पर फ़्री',
@@ -696,9 +736,9 @@
         'पेमेंट मोड चुनें और "ऑर्डर करें" दबाएँ — कन्फ़र्मेशन WhatsApp पर मिलेगा।'] },
       feedback: { title: 'ग्राहकों की राय', items: [] },
       videos: { title: 'हमारे वीडियो', items: [
-        { id: 'vd1', title: 'सोलर सिस्टम इंस्टॉलेशन (लिंक बदलें)', url: '' },
-        { id: 'vd2', title: 'ग्राहक अनुभव (लिंक बदलें)', url: '' },
-        { id: 'vd3', title: 'सोलर पंप डेमो (लिंक बदलें)', url: '' }] },
+        { id: 'vd1', title: 'सोलर सिस्टम इंस्टॉलेशन', url: '' },
+        { id: 'vd2', title: 'ग्राहक अनुभव', url: '' },
+        { id: 'vd3', title: 'सोलर पंप इंस्टॉलेशन', url: '' }] },
       pages: SP.clone(SP.PAGES_DEF),
       layout: layout
     };

@@ -1,12 +1,127 @@
 {
   "trailingSlash": false,
   "headers": [
-    { "source": "/(.*)", "headers": [
-      { "key": "X-Content-Type-Options", "value": "nosniff" },
-      { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
-    ] },
-    { "source": "/assets/(.*)", "headers": [ { "key": "Cache-Control", "value": "public, max-age=604800" } ] },
-    { "source": "/img/(.*)", "headers": [ { "key": "Cache-Control", "value": "public, max-age=2592000" } ] },
-    { "source": "/config.js", "headers": [ { "key": "Cache-Control", "value": "no-cache" } ] }
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800"
+        }
+      ]
+    },
+    {
+      "source": "/img/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=2592000"
+        }
+      ]
+    },
+    {
+      "source": "/config.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/about-us",
+      "destination": "/about.html",
+      "permanent": true
+    },
+    {
+      "source": "/about-us/",
+      "destination": "/about.html",
+      "permanent": true
+    },
+    {
+      "source": "/our-products-services",
+      "destination": "/services.html",
+      "permanent": true
+    },
+    {
+      "source": "/our-products-services/",
+      "destination": "/services.html",
+      "permanent": true
+    },
+    {
+      "source": "/experts-cabin",
+      "destination": "/experts.html",
+      "permanent": true
+    },
+    {
+      "source": "/experts-cabin/",
+      "destination": "/experts.html",
+      "permanent": true
+    },
+    {
+      "source": "/contact-us",
+      "destination": "/contact.html",
+      "permanent": true
+    },
+    {
+      "source": "/contact-us/",
+      "destination": "/contact.html",
+      "permanent": true
+    },
+    {
+      "source": "/privacy-policy",
+      "destination": "/privacy.html",
+      "permanent": true
+    },
+    {
+      "source": "/privacy-policy/",
+      "destination": "/privacy.html",
+      "permanent": true
+    },
+    {
+      "source": "/sunpowers-dasboard",
+      "destination": "https://store.sunpowers.in/?view=account",
+      "permanent": true
+    },
+    {
+      "source": "/sunpowers-dasboard/",
+      "destination": "https://store.sunpowers.in/?view=account",
+      "permanent": true
+    },
+    {
+      "source": "/sunpowers-online-hub",
+      "destination": "https://store.sunpowers.in/",
+      "permanent": true
+    },
+    {
+      "source": "/sunpowers-online-hub/",
+      "destination": "https://store.sunpowers.in/",
+      "permanent": true
+    },
+    {
+      "source": "/wp-admin/:path*",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/wp-login.php",
+      "destination": "/",
+      "permanent": false
+    }
   ]
 }

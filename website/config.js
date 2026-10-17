@@ -3,13 +3,13 @@
    ============================================================ */
 window.SITE = {
   // Online Store (Main App) ka link
-  SHOP_URL: 'https://shop.sunpowers.in',
+  SHOP_URL: 'https://store.sunpowers.in',
 
   // Customer Login ka link — Online Store (Main App) ka "Mera Account" page (khaali = Login button nahi dikhega)
-  LOGIN_URL: 'https://shop.sunpowers.in/?view=account',
+  LOGIN_URL: 'https://store.sunpowers.in/?view=account',
 
   // Footer me chhota brand (khaali = nahi dikhega)
-  POWERED_BY: 'Powered by DigiDashLand',
+  POWERED_BY: 'Powered by Digidashland.in',
   POWERED_URL: 'https://www.digidashland.in',
 
   // WhatsApp number (10 ank)

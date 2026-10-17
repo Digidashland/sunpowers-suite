@@ -1,7 +1,7 @@
 SUNPOWERS — POORA PACKAGE (4 alag zip + Logo + Guides)
 =======================================================
 1-Website.zip    → Website           → www.sunpowers.in   (Vercel)
-2-Main-App.zip   → Online Store      → shop.sunpowers.in  (Vercel)
+2-Main-App.zip   → Online Store      → store.sunpowers.in  (Vercel)
 3-Admin.zip      → Store Admin Panel → admin.sunpowers.in (Vercel)
 4-CRM.zip        → CRM               → crm.sunpowers.in   (Vercel)
 5-Logo-Pack.zip  → Saare logo (Full HD + chhote size + Android icon)
@@ -57,3 +57,5 @@ SURAKSHA
   • Key chat me share ho chuki hai — Resend me nayi key banakar purani "Revoke" kar dein.
   • Har hisse me .vercelignore hai — .sql aur README website par public nahi honge.
   • config.js me SP_LICENSE khaali hai = Sunpowers par koi license lock nahi (apni company).
+
+NAYA (Phase 1–3 + Blueprint): MASTER-COMMAND.txt padhein aur MASTER-UPDATE.sql chalayein.

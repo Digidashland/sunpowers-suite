@@ -107,7 +107,7 @@
   C.isAdmin = function () { return C.can('*'); };
   C.canAny = function () { for (var i = 0; i < arguments.length; i++) if (C.can(arguments[i])) return true; return false; };
   C.isPartner = function () { return C.me && (C.me.role === 'dealer' || C.me.role === 'influencer'); };
-  C.ROLE = { admin: 'Admin', manager: 'Manager', staff: 'Staff', dealer: 'Dealer', influencer: 'Influencer', consumer: 'Customer' };
+  C.ROLE = { admin: 'Admin', manager: 'Manager', staff: 'Staff', dealer: 'Dealer', influencer: 'Influencer', consumer: 'Customer', marketing: 'Marketing' };
   C.settings = async function (force) { if (!C.cache.settings || force) C.cache.settings = await C.call('crm_settings_get', {}); return C.cache.settings; };
   C.company = function () { return ((C.cache.settings || {}).company) || {}; };
   C.users = async function (force) { if (!C.cache.users || force) { try { C.cache.users = await C.call('crm_users_list', {}); } catch (e) { C.cache.users = []; } } return C.cache.users; };
@@ -135,13 +135,13 @@
   C.ask = function (title, label, opt) {
     opt = opt || {};
     return new Promise(function (res) {
-      var m = C.modal({ title: title, size: 'sm', body: '<div class="f"><label>' + esc(label) + '</label>' + (opt.area ? '<textarea class="inp" id="askv"></textarea>' : '<input class="inp" id="askv" value="' + esc(opt.value || '') + '">') + '</div>' + (opt.hint ? '<p class="hint" style="margin-top:6px">' + esc(opt.hint) + '</p>' : ''), foot: '<button class="btn btn-o" data-close>Cancel</button><button class="btn ' + (opt.danger ? 'btn-r' : 'btn-p') + '" data-ok>' + esc(opt.ok || 'OK') + '</button>', onClose: function () { res(null); } });
+      var m = C.modal({ title: title, size: 'sm', body: '<div class="f"><label>' + esc(label) + '</label>' + (opt.area ? '<textarea class="inp" id="askv"></textarea>' : '<input class="inp" id="askv" value="' + esc(opt.value || '') + '">') + '</div>' + (opt.tpl && C.tplChips ? C.tplChips(opt.tpl, '#askv') : '') + (opt.hint ? '<p class="hint" style="margin-top:6px">' + esc(opt.hint) + '</p>' : ''), foot: '<button class="btn btn-o" data-close>Cancel</button><button class="btn ' + (opt.danger ? 'btn-r' : 'btn-p') + '" data-ok>' + esc(opt.ok || 'OK') + '</button>', onClose: function () { res(null); } });
       $('[data-ok]', m.el).onclick = function () { var v = $('#askv', m.el).value.trim(); if (opt.min && v.length < opt.min) { $('#askv', m.el).classList.add('bad'); return; } m.el.remove(); document.documentElement.style.overflow = ''; res(v); };
     });
   };
   C.delWithReason = async function (rec, label) {
     var needReason = ['party', 'quote', 'invoice', 'payment', 'plant', 'earning'].indexOf(rec.kind) >= 0, why = '';
-    if (needReason) { why = await C.ask('Hatane ki wajah', (label || rec.title || '') + ' ko kyun hata rahe hain?', { min: 3, danger: true, ok: 'Hatao', hint: 'Ye wajah Activity record me hamesha rahegi.' }); if (why == null) return false; }
+    if (needReason) { why = await C.ask('Hatane ki wajah', (label || rec.title || '') + ' ko kyun hata rahe hain?', { min: 3, danger: true, ok: 'Hatao', tpl: 'delete', hint: 'Upar se chunein ya apni wajah likhein. Ye Activity record me rahegi.' }); if (why == null) return false; }
     else if (!(await C.confirm((label || rec.title || 'Ye record') + ' hatayein?', 'Hatao', true))) return false;
     try { await C.run('crm_delete', { id: rec.id, reason: why }, 'Hata diya'); return true; } catch (e) { return false; }
   };
@@ -155,7 +155,7 @@
   C.loading = function () { return '<div class="loading"><span class="spin"></span> Load ho raha hai…</div>'; };
   C.pill = function (t, cls) { return '<span class="pill ' + (cls || '') + '">' + esc(t) + '</span>'; };
   C.bind = function (root, map) { root.addEventListener('click', function (e) { var a = e.target.closest('[data-act]'); if (!a || !root.contains(a)) return; var f = map[a.getAttribute('data-act')]; if (f) { e.preventDefault(); f(a.getAttribute('data-id'), a, e); } }); };
-  C.filterList = function (input, container) { input.addEventListener('input', function () { var q = input.value.toLowerCase().trim(); $$('.li', container).forEach(function (li) { li.hidden = !!q && li.textContent.toLowerCase().indexOf(q) < 0; }); }); };
+  C.filterList = function (input, container, sel) { input.addEventListener('input', function () { var q = input.value.toLowerCase().trim(); $$(sel || '.li', container).forEach(function (li) { li.hidden = !!q && li.textContent.toLowerCase().indexOf(q) < 0; }); }); };
 
   /* ================================================================ files, share, print, pdf, excel */
   C.compress = function (file, max, q) {
@@ -180,15 +180,40 @@
   };
   C.printHtml = function (html, title) {
     var f = document.createElement('iframe'); f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0'; document.body.appendChild(f);
-    var d = f.contentWindow.document; d.open(); d.write('<!doctype html><html><head><meta charset="utf-8"><title>' + esc(title || 'Print') + '</title></head><body style="margin:0">' + html + '</body></html>'); d.close();
+    // "Powered by" patti har page ke neeche: tfoot har page par jagah chhodta hai, patti position:fixed se har page par chhapti hai
+    if (html.indexOf('pstrip') >= 0) html = '<table style="width:100%;border-collapse:collapse"><tbody><tr><td style="padding:0">' + html + '</td></tr></tbody><tfoot><tr><td style="height:12mm;padding:0"></td></tr></tfoot></table>';
+    var d = f.contentWindow.document; d.open(); d.write('<!doctype html><html><head><meta charset="utf-8"><title>' + esc(title || 'Print') + '</title><style>@page{size:A4;margin:10mm 8mm 8mm}</style></head><body style="margin:0">' + html + '</body></html>'); d.close();
     setTimeout(function () { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) {} setTimeout(function () { f.remove(); }, 2000); }, 400);
   };
   C.loadScript = function (src) { return new Promise(function (res, rej) { if ($('script[src="' + src + '"]')) return res(); var s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = function () { s.remove(); rej(new Error('load')); }; document.head.appendChild(s); }); };
   C.pdfBlob = async function (html, name) {
     await C.loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
     var box = document.createElement('div'); box.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;background:#fff'; box.innerHTML = html; document.body.appendChild(box);
-    try { return await window.html2pdf().set({ margin: [8, 8, 10, 8], filename: name, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy'] } }).from(box.firstElementChild || box).outputPdf('blob'); }
+    var pw = html.indexOf('pstrip') >= 0 ? C.powered() : null;
+    try {
+      var w = window.html2pdf().set({ margin: [8, 8, pw ? 16 : 10, 8], filename: name, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy'] } }).from(box.firstElementChild || box);
+      if (pw && w.toPdf) w = w.toPdf().get('pdf').then(function (pdf) { C.pdfStrip(pdf, pw); });
+      return await w.outputPdf('blob');
+    }
     finally { box.remove(); }
+  };
+  /* har PDF page ke neeche hari patti + clickable "Powered by" link */
+  C.powered = function () {
+    var co = ((C.cache.settings || {}).company) || {}, t = co.powered == null ? 'Powered by: www.digidashland.in' : String(co.powered).trim();
+    if (!t) return null;
+    var m = /((https?:\/\/)?(www\.)?[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?)/i.exec(t);
+    return { text: t, url: m ? (/^https?:/i.test(m[1]) ? m[1] : 'https://' + m[1]) : 'https://www.digidashland.in' };
+  };
+  C.pdfStrip = function (pdf, pw) {
+    try {
+      var n = pdf.internal.getNumberOfPages(), W = pdf.internal.pageSize.getWidth(), H = pdf.internal.pageSize.getHeight();
+      for (var i = 1; i <= n; i++) {
+        pdf.setPage(i); pdf.setFillColor(30, 142, 62); pdf.rect(0, H - 9, W, 9, 'F');
+        pdf.setTextColor(255, 255, 255); pdf.setFontSize(9); try { pdf.setFont('helvetica', 'bold'); } catch (e) {}
+        var tw = pdf.getTextWidth(pw.text); pdf.textWithLink(pw.text, (W - tw) / 2, H - 3.4, { url: pw.url });
+        if (n > 1) { pdf.setFontSize(8); try { pdf.setFont('helvetica', 'normal'); } catch (e) {} pdf.text(i + ' / ' + n, W - 8, H - 3.4, { align: 'right' }); }
+      }
+    } catch (e) { /* patti na bane to bhi PDF chale */ }
   };
   /* share a printable document as PDF (WhatsApp / any app); falls back to Print + WhatsApp text */
   C.sharePdf = async function (html, name, text, phone) {
@@ -197,7 +222,7 @@
     if (blob) return C.share(blob, name, text, phone);
     C.toast('PDF ke liye Print → "Save as PDF" chunein', false); C.printHtml(html, name); window.open(C.wa(phone || '', text || ''), '_blank'); return 'print';
   };
-  C.xl = function (name, head, rows) { if (!window.XLSXLite) return C.toast('Excel tool load nahi hua', true); C.download(window.XLSXLite.write([{ name: name, rows: [head].concat(rows), widths: head.map(function () { return 18; }) }]), name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + today() + '.xlsx'); };
+  C.xl = async function (name, head, rows) { if (!window.XLSXLite) return C.toast('Excel tool load nahi hua', true); var fx = C.dlFilter ? await C.dlFilter(name, { head: head, rows: rows }) : { head: head, rows: rows }; if (!fx) return; head = fx.head; rows = fx.rows; C.download(window.XLSXLite.write([{ name: name, rows: [head].concat(rows), widths: head.map(function () { return 18; }) }]), name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + today() + '.xlsx'); };
   C.readSheet = async function (file) {
     if (/\.csv$/i.test(file.name)) { var t = await file.text(); return C.csv(t); }
     var wb = await window.XLSXLite.read(await file.arrayBuffer()); return wb[Object.keys(wb)[0]] || [];
@@ -219,27 +244,30 @@
   };
 
   /* ================================================================ printable bill (quotation / invoice / purchase) */
-  C.BILL_CSS = '.bill{font-family:Arial,Helvetica,sans-serif;color:#1c2a21;font-size:12.5px;padding:6px;background:#fff}.bill table{width:100%;border-collapse:collapse}.bill .hd td{vertical-align:top}.bill .hdw{border-bottom:3px solid #1e8e3e;padding-bottom:10px;margin-bottom:12px}.bill h1{margin:0 0 4px;font-size:21px;color:#0b2e1f}.bill .ttl{font-size:19px;font-weight:700;color:#1e8e3e;text-align:right;letter-spacing:.04em}.bill .sm{font-size:11.5px;color:#3d4b42;line-height:1.5}.bill .box{border:1px solid #d7e3d5;padding:8px 10px;border-radius:4px;vertical-align:top}.bill .box b.h{display:block;color:#1e8e3e;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}.bill .it th{background:#0b2e1f;color:#fff;padding:7px;font-size:11.5px;text-align:left}.bill .it td{border:1px solid #d7e3d5;padding:7px;vertical-align:top}.bill .r{text-align:right}.bill .tot td{padding:4px 8px}.bill .gt td{font-weight:700;font-size:15px;background:#e7f3e9;border-top:2px solid #1e8e3e}.bill .words{margin:10px 0;padding:8px 10px;background:#f4f9f3;border-left:4px solid #1e8e3e}.bill h4{margin:14px 0 5px;color:#0b2e1f;font-size:13px}.bill .ph th{background:#e7f3e9;padding:6px;font-size:11.5px;text-align:left;border:1px solid #d7e3d5}.bill .ph td{border:1px solid #d7e3d5;padding:6px}.bill .det{font-size:11px;color:#4d5b52;margin-top:3px;line-height:1.45}.bill .ttl2{font-weight:700;color:#15702f;font-size:11px;margin-bottom:2px;text-transform:uppercase;letter-spacing:.03em}.bill .ft{margin-top:22px;text-align:center;font-size:10px;color:#8a978e}.bill .pg{page-break-inside:avoid}';
+  C.BILL_CSS = '.bill{font-family:Arial,Helvetica,sans-serif;color:#1c2a21;font-size:12.5px;padding:6px;background:#fff}.bill table{width:100%;border-collapse:collapse}.bill .hd td{vertical-align:top}.bill .hdw{border-bottom:3px solid #1e8e3e;padding-bottom:10px;margin-bottom:12px}.bill h1{margin:0 0 4px;font-size:21px;color:#0b2e1f}.bill .ttl{font-size:19px;font-weight:700;color:#1e8e3e;text-align:right;letter-spacing:.04em}.bill .sm{font-size:11.5px;color:#3d4b42;line-height:1.5}.bill .box{border:1px solid #d7e3d5;padding:8px 10px;border-radius:4px;vertical-align:top}.bill .box b.h{display:block;color:#1e8e3e;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}.bill .it th{background:#0b2e1f;color:#fff;padding:7px;font-size:11.5px;text-align:left}.bill .it td{border:1px solid #d7e3d5;padding:7px;vertical-align:top}.bill .r{text-align:right}.bill .tot td{padding:4px 8px}.bill .gt td{font-weight:700;font-size:15px;background:#e7f3e9;border-top:2px solid #1e8e3e}.bill .words{margin:10px 0;padding:8px 10px;background:#f4f9f3;border-left:4px solid #1e8e3e}.bill h4{margin:14px 0 5px;color:#0b2e1f;font-size:13px}.bill .ph th{background:#e7f3e9;padding:6px;font-size:11.5px;text-align:left;border:1px solid #d7e3d5}.bill .ph td{border:1px solid #d7e3d5;padding:6px}.bill .det{font-size:11px;color:#4d5b52;margin-top:3px;line-height:1.45}.bill .ttl2{font-weight:700;color:#15702f;font-size:11px;margin-bottom:2px;text-transform:uppercase;letter-spacing:.03em}.bill .ft{margin-top:22px;text-align:center;font-size:10px;color:#8a978e}.bill .pg{page-break-inside:avoid}.pstrip{display:block;margin-top:22px;background:#1e8e3e;color:#fff!important;text-align:center;font:700 11px Arial,Helvetica,sans-serif;padding:7px 10px;text-decoration:none;border-radius:4px;-webkit-print-color-adjust:exact;print-color-adjust:exact}@media print{.pstrip{position:fixed;left:0;right:0;bottom:0;margin:0;border-radius:0}}';
+  C.pstrip = function () { var p = C.powered(); return p ? '<a class="pstrip" data-html2canvas-ignore="true" href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.text) + '</a>' : ''; };
   C.itemDetails = function (l) { var h = '', d = C.lines(l.desc), m = C.lines(l.more); if (d.length) h += '<div class="det">' + d.map(function (x, n) { return (n + 1) + '. ' + esc(x); }).join('<br>') + '</div>'; if (m.length) h += '<div class="det"><i>' + m.map(esc).join('<br>') + '</i></div>'; return h; };
   C.billHtml = function (rec, type) {
     var S = C.cache.settings || {}, co = S.company || {}, d = rec.data || {}, pt = d.party || {}, T = type === 'invoice' ? 'TAX INVOICE' : type === 'purchase' ? 'PURCHASE ORDER' : 'QUOTATION';
+    var hideP = type === 'quote' && d.show_item_prices === false;
     var rows = (d.lines || []).map(function (l, n) {
       var body = (l.title ? '<div class="ttl2">' + esc(l.title) + '</div>' : '') + '<b>' + esc(l.name) + '</b>';
       if ((l.kind || 'product') === 'project') body += '<div class="det">' + (l.proj_items || []).map(function (x) { return '• ' + (x.title ? esc(x.title) + ' – ' : '') + esc(x.name) + ' × ' + esc(x.qty) + (l.show_prices && num(x.price) ? ' @ ' + money(x.price) : '') + (C.lines(x.desc).length ? '<br><span style="padding-left:12px;display:inline-block">' + C.lines(x.desc).map(esc).join('<br>') + '</span>' : ''); }).join('<br>') + '</div>' + C.itemDetails(l);
       else body += C.itemDetails(l);
       var amt = num(l.qty) * num(l.price);
-      return '<tr class="pg"><td>' + (n + 1) + '</td><td>' + body + '</td><td>' + esc(l.hsn || '') + '</td><td class="r">' + esc(l.qty) + (l.unit ? ' ' + esc(l.unit) : '') + '</td><td class="r">' + money(l.price) + '</td><td class="r">' + esc(num(l.gst)) + '%</td><td class="r">' + money(amt * (1 + num(l.gst) / 100)) + '</td></tr>';
+      return '<tr class="pg"><td>' + (n + 1) + '</td><td>' + body + '</td><td>' + esc(l.hsn || '') + '</td><td class="r">' + esc(l.qty) + (l.unit ? ' ' + esc(l.unit) : '') + '</td>' + (hideP ? '' : '<td class="r">' + money(l.price) + '</td><td class="r">' + esc(num(l.gst)) + '%</td><td class="r">' + money(amt * (1 + num(l.gst) / 100)) + '</td>') + '</tr>';
     }).join('');
-    var h = '<div class="bill"><div class="hdw"><table class="hd"><tr><td style="width:62%">' + '<img src="' + esc(co.logo || C.LOGO_FULL()) + '" style="max-height:62px;max-width:150px;float:left;margin-right:10px">' + '<h1>' + esc(co.legal || co.name || '') + '</h1><div class="sm">' + esc(co.address || '') + (co.state ? '<br>' + esc(co.state) : '') + '<br>' + (co.phone ? 'Ph: ' + esc(co.phone) : '') + (co.email ? ' | ' + esc(co.email) : '') + (co.website ? '<br>' + esc(co.website) : '') + (co.gstin ? '<br><b>GSTIN:</b> ' + esc(co.gstin) : '') + (co.pan ? ' &nbsp; <b>PAN:</b> ' + esc(co.pan) : '') + '</div></td><td><div class="ttl">' + T + '</div><div class="sm r" style="margin-top:6px"><b>No:</b> ' + esc(rec.ref || '') + '<br><b>Date:</b> ' + esc(fd(d.date || rec.created_at)) + (d.valid_till && type === 'quote' ? '<br><b>Valid till:</b> ' + esc(fd(d.valid_till)) : '') + (d.quote_ref ? '<br><b>Ref:</b> ' + esc(d.quote_ref) : '') + (d.due_date && type === 'invoice' ? '<br><b>Due:</b> ' + esc(fd(d.due_date)) : '') + '</div></td></tr></table></div>';
-    h += '<table style="margin-bottom:12px"><tr><td class="box" style="width:50%"><b class="h">' + (type === 'purchase' ? 'Supplier' : 'Bill To') + '</b><strong>' + esc(pt.name || rec.title || '') + '</strong><div class="sm">' + esc(pt.address || '') + (pt.city ? (pt.address ? ', ' : '') + esc(pt.city) : '') + (pt.mobile || rec.mobile ? '<br>Ph: ' + esc(pt.mobile || rec.mobile) : '') + (pt.email ? '<br>' + esc(pt.email) : '') + (pt.gstin ? '<br>GSTIN: ' + esc(pt.gstin) : '') + '</div></td>' + (d.ship ? '<td class="box"><b class="h">Ship To</b><div class="sm">' + esc(d.ship).replace(/\n/g, '<br>') + '</div></td>' : '<td></td>') + '</tr></table>';
-    h += '<table class="it"><thead><tr><th style="width:26px">#</th><th>Item</th><th style="width:62px">HSN</th><th class="r" style="width:54px">Qty</th><th class="r" style="width:86px">Rate</th><th class="r" style="width:48px">GST</th><th class="r" style="width:96px">Amount</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    var h = '<div class="bill" data-noi18n><div class="hdw"><table class="hd"><tr><td style="width:62%">' + '<img src="' + esc(co.logo || C.LOGO_FULL()) + '" style="max-height:62px;max-width:150px;float:left;margin-right:10px">' + '<h1>' + esc(co.legal || co.name || '') + '</h1><div class="sm">' + esc(co.address || '') + (co.state ? '<br>' + esc(co.state) : '') + '<br>' + (co.phone ? 'Ph: ' + esc(co.phone) : '') + (co.email ? ' | ' + esc(co.email) : '') + (co.website ? '<br>' + esc(co.website) : '') + (co.gstin ? '<br><b>GSTIN:</b> ' + esc(co.gstin) : '') + (co.pan ? ' &nbsp; <b>PAN:</b> ' + esc(co.pan) : '') + '</div></td><td><div class="ttl">' + T + '</div><div class="sm r" style="margin-top:6px"><b>No:</b> ' + esc(rec.ref || '') + '<br><b>Date:</b> ' + esc(fd(d.date || rec.created_at)) + (d.valid_till && type === 'quote' ? '<br><b>Valid till:</b> ' + esc(fd(d.valid_till)) : '') + (d.quote_ref ? '<br><b>Ref:</b> ' + esc(d.quote_ref) : '') + (d.due_date && type === 'invoice' ? '<br><b>Due:</b> ' + esc(fd(d.due_date)) : '') + '</div></td></tr></table></div>';
+    h += '<table style="margin-bottom:12px"><tr><td class="box" style="width:50%"><b class="h">' + (type === 'purchase' ? 'Supplier' : 'Bill To') + '</b><strong>' + esc(pt.name || rec.title || '') + '</strong><div class="sm">' + (C.addrText && (pt.state || pt.district || pt.pincode) ? esc(C.addrText(pt)).replace(/\n/g, '<br>') : esc(pt.address || '') + (pt.city ? (pt.address ? ', ' : '') + esc(pt.city) : '')) + (pt.mobile || rec.mobile ? '<br>Ph: ' + esc(pt.mobile || rec.mobile) : '') + (pt.email ? '<br>' + esc(pt.email) : '') + (pt.gstin ? '<br>GSTIN: ' + esc(pt.gstin) : '') + '</div></td>' + (d.ship ? '<td class="box"><b class="h">Ship To</b><div class="sm">' + esc(d.ship).replace(/\n/g, '<br>') + '</div></td>' : '<td></td>') + '</tr></table>';
+    if (type === 'quote' && d.qtitle) h += '<div style="margin:0 0 10px;font-size:14px"><b>Subject:</b> ' + esc(d.qtitle) + '</div>';
+    h += '<table class="it"><thead><tr><th style="width:26px">#</th><th>Item</th><th style="width:62px">HSN</th><th class="r" style="width:54px">Qty</th>' + (hideP ? '' : '<th class="r" style="width:86px">Rate</th><th class="r" style="width:48px">GST</th><th class="r" style="width:96px">Amount</th>') + '</tr></thead><tbody>' + rows + '</tbody></table>';
     h += '<table style="margin-top:8px"><tr><td style="width:52%"></td><td><table class="tot"><tr><td>Subtotal</td><td class="r">' + money(d.subtotal, 1) + '</td></tr><tr><td>GST</td><td class="r">' + money(d.gst_total, 1) + '</td></tr>' + (num(d.discount) > 0 ? '<tr><td>Discount</td><td class="r">−' + money(d.discount, 1) + '</td></tr>' : '') + '<tr class="gt"><td>Grand Total</td><td class="r">' + money(d.grand, 1) + '</td></tr>' + (type === 'invoice' ? '<tr><td>Paid</td><td class="r">' + money(d.paid || 0, 1) + '</td></tr><tr><td><b>Balance Due</b></td><td class="r"><b>' + money(d.balance != null ? d.balance : d.grand, 1) + '</b></td></tr>' : '') + '</table></td></tr></table>';
     h += '<div class="words"><b>Amount in words:</b> ' + C.words(d.grand) + '</div>';
     if (type === 'invoice' && (rec.payments || []).length) h += '<h4>Payment History</h4><table class="ph"><thead><tr><th>Date</th><th>Mode</th><th>Ref / UTR</th><th class="r">Amount</th></tr></thead><tbody>' + rec.payments.map(function (p) { return '<tr><td>' + esc(fd(p.due_at)) + '</td><td>' + esc(p.data.mode || '') + '</td><td>' + esc(p.data.utr || p.ref || '-') + '</td><td class="r">' + money(p.amount) + '</td></tr>'; }).join('') + '</tbody></table>';
     var bank = co.bank_name || co.bank_acc || co.upi;
     var terms = d.notes || (type === 'quote' ? co.terms_quote : '') || co.terms;
     if (bank || terms) { h += '<table style="margin-top:12px"><tr>'; if (bank && type !== 'purchase') h += '<td class="box" style="width:50%"><b class="h">Bank Details</b><div class="sm">' + (co.bank_holder ? 'A/c Name: ' + esc(co.bank_holder) + '<br>' : '') + (co.bank_name ? 'Bank: ' + esc(co.bank_name) + '<br>' : '') + (co.bank_acc ? 'A/c No: ' + esc(co.bank_acc) + '<br>' : '') + (co.bank_ifsc ? 'IFSC: ' + esc(co.bank_ifsc) + '<br>' : '') + (co.upi ? 'UPI: ' + esc(co.upi) : '') + '</div></td>'; if (terms) h += '<td class="box"><b class="h">Terms &amp; Notes</b><div class="sm">' + esc(terms).replace(/\n/g, '<br>') + '</div></td>'; h += '</tr></table>'; }
-    h += '<table style="margin-top:30px" class="pg"><tr><td class="sm" style="width:55%;vertical-align:bottom">' + (type === 'purchase' ? '' : 'Customer Signature') + '</td><td class="sm r">For <b>' + esc(co.legal || co.name || '') + '</b><br>' + (co.sign ? '<img src="' + esc(co.sign) + '" style="max-height:48px;max-width:160px;display:inline-block"><br>' : '<br><br><br>') + esc(co.sign_label || 'Authorised Signatory') + '</td></tr></table>' + (co.powered !== '' ? '<div class="ft">' + esc(co.powered || 'Powered by : www.digidashland.in') + '</div>' : '') + '</div>';
+    h += '<table style="margin-top:30px" class="pg"><tr><td class="sm" style="width:55%;vertical-align:bottom">' + (type === 'purchase' ? '' : 'Customer Signature') + '</td><td class="sm r">For <b>' + esc(co.legal || co.name || '') + '</b><br>' + (co.sign ? '<img src="' + esc(co.sign) + '" style="max-height:48px;max-width:160px;display:inline-block"><br>' : '<br><br><br>') + esc(co.sign_label || 'Authorised Signatory') + '</td></tr></table>' + C.pstrip() + '</div>';
     return '<style>' + C.BILL_CSS + '</style>' + h;
   };
 
@@ -259,6 +287,7 @@
     try {
       await def.render(fresh, r.params, r.query, r.name);
       if (seq !== renderSeq) return;
+      try { if (C.addHint) C.addHint(fresh, r.name); } catch (e) {}
       view.replaceWith(fresh); window.scrollTo(0, 0); C.fitPreviews();
       document.title = (def.title ? (typeof def.title === 'function' ? def.title(r) : def.title) + ' · ' : '') + (C.company().name || 'CRM');
     } catch (e) {
@@ -282,30 +311,40 @@
       { k: 'customers', l: 'Customers', i: 'users', show: function () { return C.canAny('customers.create', 'customers.view_all') || C.isPartner(); } }
     ] },
     { g: 'Sales', items: [
-      { k: 'quotes', l: 'Quotation', i: 'quote', show: function () { return C.canAny('quotes.create', 'quotes.view_all'); } },
+      { k: 'quotes', l: 'Quotations & Templates', i: 'quote', show: function () { return C.canAny('quotes.create', 'quotes.view_all'); } },
+      { k: 'projects', l: 'Projects', i: 'plant', rib: 'Live tracking', show: function () { return C.canAny('quotes.create', 'quotes.view_all', 'plants.create', 'plants.view_all'); } },
       { k: 'billing', l: 'Billing', i: 'bill', show: function () { return C.canAny('invoices.create', 'invoices.view_all', 'payments.record', 'purchase.manage') || C.isPartner(); } },
-      { k: 'items', l: 'Products & Projects', i: 'box', show: function () { return C.can('items.view'); } },
+      { k: 'items', l: 'Inventory/Stock', i: 'box', show: function () { return C.can('items.view'); } },
+      { k: 'blueprint', l: 'Project blue print', i: 'plant', show: function () { return C.canAny('leads.create', 'leads.view_all'); } },
+      { k: 'accounts', l: 'Accounts', i: 'rupee', show: function () { return C.canAny('accounts.manage', 'accounts.view'); } },
+      { k: 'reports', l: 'Reports', i: 'quote', show: function () { return C.can('reports.view'); } },
+      { k: 'analytics', l: 'Analytics', i: 'activity', show: function () { return C.can('analytics.view'); } },
+      { k: 'maintenance', l: 'Maintenance & Audit', i: 'settings', show: function () { return C.canAny('items.view', 'reminders.view_all', 'customers.create', 'customers.view_all'); } },
       { k: 'orders', l: 'Store Orders', i: 'cart', cnt: 'orders', show: function () { return C.can('orders.view'); } }
     ] },
     { g: 'Field', items: [
-      { k: 'plants', l: 'Plants', i: 'plant', show: function () { return C.canAny('plants.create', 'plants.view_all'); } },
       { k: 'commission', l: 'Commission', i: 'rupee', show: function () { return C.canAny('earnings.view_all', 'earnings.manage') || C.isPartner(); } },
-      { k: 'docs', l: 'Documents', i: 'folder', show: function () { return C.can('docs.view'); } }
+      { k: 'docs', l: 'Documents & Gallery', i: 'folder', show: function () { return C.can('docs.view'); } }
+    ] },
+    { g: 'Grow', items: [
+      { k: 'marketing', l: 'Marketing & Grow', i: 'megaphone', show: function () { return C.canAny('marketing.view', 'marketing.manage', 'marketing.leads'); } }
     ] },
     { g: 'Company', items: [
       { k: 'team', l: 'Team & Permission', i: 'team', show: function () { return C.canAny('users.manage', 'team.stats'); } },
       { k: 'activity', l: 'Activity Record', i: 'activity', show: function () { return C.can('activity.view'); } },
       { k: 'settings', l: 'Settings', i: 'settings', show: function () { return C.can('settings.manage'); } },
+      { k: 'connections', l: 'Connections', i: 'key', show: function () { return C.isAdmin(); } },
+      { k: 'hints', l: 'Help & Hints', i: 'shield', show: function () { return C.isAdmin(); } },
       { k: 'profile', l: 'Meri Profile', i: 'user' }
     ] }
   ];
   function navHtml() {
-    return C.NAV.map(function (g) { var it = g.items.filter(function (x) { return !x.show || x.show(); }); if (!it.length) return ''; return '<h6>' + esc(g.g) + '</h6>' + it.map(function (x) { return '<a href="#/' + x.k + '" data-nav="' + x.k + '">' + C.ic(x.i) + '<span>' + esc(x.l) + '</span>' + (x.cnt ? '<span class="cnt" data-cnt="' + x.cnt + '" hidden></span>' : '') + '</a>'; }).join(''); }).join('');
+    return C.NAV.map(function (g) { var it = g.items.filter(function (x) { return !x.show || x.show(); }); if (!it.length) return ''; return '<h6>' + esc(g.g) + '</h6>' + it.map(function (x) { return '<a href="#/' + x.k + '" data-nav="' + x.k + '">' + C.ic(x.i) + '<span>' + esc(x.l) + '</span>' + (x.rib ? '<span class="nrib">' + esc(x.rib) + '</span>' : '') + (x.cnt ? '<span class="cnt" data-cnt="' + x.cnt + '" hidden></span>' : '') + '</a>'; }).join(''); }).join('');
   }
   function mobNavHtml() {
     var list = [{ k: 'home', l: 'Home', i: 'home' }, { k: 'today', l: 'Aaj', i: 'today', cnt: 'today' }];
     if (C.canAny('leads.create', 'leads.view_all')) list.push({ k: 'leads', l: 'Leads', i: 'lead' });
-    if (C.canAny('quotes.create', 'quotes.view_all')) list.push({ k: 'quotes', l: 'Quotation', i: 'quote' }); else list.push({ k: 'customers', l: 'Customers', i: 'users' });
+    if (C.canAny('quotes.create', 'quotes.view_all')) list.push({ k: 'quotes', l: 'Quotations & Templates', i: 'quote' }); else list.push({ k: 'customers', l: 'Customers', i: 'users' });
     list = list.slice(0, 4);
     return list.map(function (x) { return '<a href="#/' + x.k + '" data-nav="' + x.k + '">' + C.ic(x.i) + esc(x.l) + (x.cnt ? '<span class="cnt" data-cnt="' + x.cnt + '" hidden></span>' : '') + '</a>'; }).join('') + '<button type="button" id="mobMore">' + C.ic('grid') + 'Menu</button>';
   }
@@ -319,17 +358,20 @@
       '<div class="search collapsed-m" id="search">' + C.ic('search') + '<input id="q" type="search" placeholder="Customer, mobile, quotation, document khojein…" autocomplete="off" aria-label="Khojein"><div class="sres" id="sres" hidden></div></div>' +
       '<div class="acts"><button class="btn btn-g btn-icon mob-only" id="searchBtn" aria-label="Khojein">' + C.ic('search') + '</button>' +
       (C.cfg.STORE_URL ? '<a class="btn btn-o btn-sm desk-only" href="' + esc(C.cfg.STORE_URL) + '" target="_blank" rel="noopener">' + C.ic('store') + ' Store</a>' : '') +
+      (C.siteUrl && C.siteUrl() ? '<a class="btn btn-o btn-sm desk-only" id="lnkSite" href="' + esc(C.siteUrl()) + '" target="_blank" rel="noopener">' + C.ic('globe') + ' Website</a>' : '') +
+      '<button type="button" class="btn btn-o btn-sm" data-sp-lang="short" id="langBtn" aria-label="Language"></button>' +
       '<div class="bell" style="position:relative"><button class="btn btn-g btn-icon" id="bellBtn" aria-label="Notifications">' + C.ic('bell') + '<span class="dot" id="bellDot" hidden></span></button></div></div></header>' +
       '<main id="view" class="view"></main></div></div><nav class="mob-nav" aria-label="Quick menu">' + mobNavHtml() + '</nav><div class="toasts" id="toasts"></div>';
     $('[data-logout]').onclick = C.logout;
     $('#menuBtn').onclick = openSide; $('#mobMore').onclick = openSide;
     initSearch(); initBell();
     if (window.innerWidth <= 900) $('#search').classList.add('collapsed');
+    if (window.SPLOOK && SPLOOK.cur()) { try { SPLOOK.again(); } catch (e) {} }
   }
   function openSide() { $('#side').classList.add('open'); var s = document.createElement('div'); s.className = 'scrim'; s.id = 'scrim'; s.onclick = function () { $('#side').classList.remove('open'); s.remove(); }; document.body.appendChild(s); }
 
   /* ---------------- global search */
-  var KIND = { party: ['Customer', 'users', 'customer/'], lead: ['Lead', 'lead', 'leads?open='], quote: ['Quotation', 'quote', 'quote/'], invoice: ['Bill', 'bill', 'invoice/'], item: ['Product', 'box', 'items?open='], doc: ['Document', 'folder', 'docs?doc='], folder: ['Folder', 'folder', 'docs/'], plant: ['Plant', 'plant', 'plants?open='], payment: ['Payment', 'rupee', 'billing?tab=payments&open='] };
+  var KIND = { party: ['Customer', 'users', 'customer/'], lead: ['Lead', 'lead', 'leads?open='], quote: ['Quotation', 'quote', 'quote/'], invoice: ['Bill', 'bill', 'invoice/'], item: ['Product', 'box', 'items?open='], doc: ['Document', 'folder', 'docs?doc='], folder: ['Folder', 'folder', 'docs/'], plant: ['Plant', 'plant', 'projects?tab=referral&open='], payment: ['Payment', 'rupee', 'billing?tab=payments&open='] };
   C.recLink = function (kind, id) { var k = KIND[kind]; return k ? '#/' + k[2] + id : '#/home'; };
   function closeSearch() { var r = $('#sres'); if (r) r.hidden = true; if (window.innerWidth <= 900 && $('#search')) $('#search').classList.add('collapsed'); }
   function initSearch() {
@@ -352,7 +394,7 @@
   /* ---------------- bell / notifications */
   var pulseItems = [], pulseTimer = null;
   function beep() { try { var A = window.AudioContext || window.webkitAudioContext; if (!A) return; var a = new A(), o = a.createOscillator(), g = a.createGain(); o.frequency.value = 880; o.connect(g); g.connect(a.destination); g.gain.setValueAtTime(0.08, a.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + 0.35); o.start(); o.stop(a.currentTime + 0.36); } catch (e) {} }
-  var TYPEI = { order: ['cart', 'Order', 'orders?tab=orders'], enquiry: ['globe', 'Enquiry', 'orders?tab=enquiries'], lead: ['lead', 'Lead', 'leads?open='], reminder: ['today', 'Kaam', 'today'], plant: ['plant', 'Plant', 'plants?open='], user: ['user', 'ID', 'team'] };
+  var TYPEI = { order: ['cart', 'Order', 'orders?tab=orders'], enquiry: ['globe', 'Enquiry', 'orders?tab=enquiries'], lead: ['lead', 'Lead', 'leads?open='], reminder: ['today', 'Kaam', 'today'], plant: ['plant', 'Plant', 'projects?tab=referral&open='], user: ['user', 'ID', 'team'] };
   async function pulse(first) {
     if (!C.me || document.hidden) return;
     try {
@@ -386,7 +428,7 @@
   /* ================================================================ auth screens (Email OTP + PIN — assets/auth.js) */
   function authHtml() {
     var co = C.company();
-    return '<div class="auth"><section class="auth-art"><div class="brand">' + C.LOGO + '<span><b>' + esc(co.name || 'Sunpowers') + '</b><small>CRM</small></span></div><div><h1>Har lead, har quotation, har plant — <em>ek jagah.</em></h1><p>Billing, quotation, leads, reminders, documents aur team ka poora hisab — mobile aur computer dono par.</p><ul><li>' + C.ic('check') + 'Pehli baar Email OTP, phir sirf PIN</li><li>' + C.ic('check') + 'Quotation aur GST bill ek click me WhatsApp par</li><li>' + C.ic('check') + 'Har user ko sirf uska data — Admin ko sab</li></ul></div><p class="xs" style="color:var(--on-dark-mute)">© ' + new Date().getFullYear() + ' ' + esc(co.legal || co.name || 'Sunpowers') + '</p></section><section class="auth-form"><div class="auth-card" id="authBox"></div></section></div><div class="toasts" id="toasts"></div>';
+    return '<button type="button" class="btn btn-o btn-sm auth-lang" data-sp-lang="long" aria-label="Language"></button><div class="auth"><section class="auth-art"><div class="brand">' + C.LOGO + '<span><b>' + esc(co.name || 'Sunpowers') + '</b><small>CRM</small></span></div><div><h1>Har lead, har quotation, har plant — <em>ek jagah.</em></h1><p>Billing, quotation, leads, reminders, documents aur team ka poora hisab — mobile aur computer dono par.</p><ul><li>' + C.ic('check') + 'Pehli baar Email OTP, phir sirf PIN</li><li>' + C.ic('check') + 'Quotation aur GST bill ek click me WhatsApp par</li><li>' + C.ic('check') + 'Har user ko sirf uska data — Admin ko sab</li></ul></div><p class="xs" style="color:var(--on-dark-mute)">© ' + new Date().getFullYear() + ' ' + esc(co.legal || co.name || 'Sunpowers') + '</p></section><section class="auth-form"><div class="auth-card" id="authBox"></div></section></div><div class="toasts" id="toasts"></div>';
   }
   function saveToken(r) {
     C.token = r.token;
@@ -415,12 +457,13 @@
     try { await C.settings(); } catch (e) { C.cache.settings = {}; }
     if (C.canAny('users.manage', 'leads.assign', 'reminders.assign', 'customers.assign', 'earnings.manage', 'team.stats', 'docs.folders')) C.users();
     shell();
+    if (window.SPLOOK) { try { SPLOOK.boot('crm', { ctx: { userId: C.me.id, mount: function () { return document.querySelector('.main'); }, before: function () { return document.querySelector('.main > .top'); } } }); } catch (e) {} }
     if (!location.hash || location.hash === '#' || location.hash === '#/') location.hash = '#/home'; else C.render();
   }
   window.addEventListener('hashchange', function () { C.render(); });
   window.addEventListener('pagehide', function () { C._bye = true; });
   C.boot = boot;
-  document.addEventListener('DOMContentLoaded', function () {
-    boot();
-  });
+  /* start now if the page is already loaded (some hosts insert the page after DOMContentLoaded) */
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { boot(); });
+  else boot();
 })();

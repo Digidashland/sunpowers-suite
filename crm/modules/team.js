@@ -9,21 +9,32 @@
   async function userForm(u, roleDefs) {
     var isNew = !u; u = u || { role: 'staff', status: 'active', perms: {}, meta: {} };
     var meta = Object.assign({ commission: {} }, u.meta || {}), cat = C.me.catalog || [], g = groups(cat), admin = C.isAdmin();
-    var roleOpts = (admin ? ['admin'] : []).concat(ROLES).map(function (r) { return [r, C.ROLE[r]]; });
+    var roleOpts = (admin ? ['admin'] : []).concat(ROLES).concat(u.role === 'marketing' ? ['marketing'] : []).map(function (r) { return [r, C.ROLE[r]]; }), mkt = u.role === 'marketing';
     function permHtml(role) {
       var def = (roleDefs || {})[role] || {};
-      return Object.keys(g).map(function (k) { return '<div class="perm-g"><h5>' + esc(k) + '</h5>' + g[k].map(function (p) { var v = u.perms && u.perms[p.k] != null ? (u.perms[p.k] ? 'allow' : 'deny') : ''; return '<div class="tri"><span class="grow">' + esc(p.l) + '</span><select class="inp" data-pk="' + p.k + '"><option value="">Role jaisa (' + (def[p.k] ? '✔' : '✖') + ')</option><option value="allow"' + (v === 'allow' ? ' selected' : '') + '>✔ Haan</option><option value="deny"' + (v === 'deny' ? ' selected' : '') + '>✖ Nahi</option></select></div>'; }).join('') + '</div>'; }).join('');
+      return Object.keys(g).map(function (k) {
+        return '<div class="perm-g"><h5>' + esc(k) + '<span class="pgt"><a href="javascript:void(0)" data-gt="1">Sab tick</a> · <a href="javascript:void(0)" data-gt="0">Sab untick</a></span></h5>' + g[k].map(function (p) {
+          var d = !!def[p.k], v = u.perms && u.perms[p.k] != null ? !!u.perms[p.k] : d;
+          return '<label class="ck tri2' + (v !== d ? ' chg' : '') + '"><input type="checkbox" data-pk="' + p.k + '" data-def="' + (d ? 1 : 0) + '"' + (v ? ' checked' : '') + '> <span class="grow">' + esc(p.l) + '</span>' + (v !== d ? '<small class="o"> (role se alag)</small>' : '') + '</label>';
+        }).join('') + '</div>';
+      }).join('');
     }
     var body = '<form id="uf" class="stack"><div class="fg">' + C.f('Naam *', C.inp('name', u.name)) + C.f('Username *' + (isNew ? '' : ' <span class="o">(badal nahi sakte)</span>'), C.inp('username', u.username, isNew ? 'autocomplete="off"' : 'readonly')) +
       C.f('Mobile', C.inp('mobile', u.mobile, 'inputmode="tel"')) + C.f('Email * <span class="o">(login OTP isi par)</span>', C.inp('email', u.email, 'type="email"')) +
       C.f('Role', C.sel('role', roleOpts, u.role)) + C.f('Status', C.sel('status', Object.keys(STS).map(function (s) { return [s, STS[s][0]]; }), u.status)) +
       (!isNew ? C.f('Login', '<button type="button" class="btn btn-o" data-lreset>' + C.ic('refresh') + ' Login reset (PIN + phone hatayein)</button>') : C.f('Login', '<p class="hint" style="margin:6px 0 0">User pehli baar Email OTP se login karke apna 4 ank ka PIN banayega.</p>')) + (u.ref_code ? C.f('Referral code', '<input class="inp" value="' + esc(u.ref_code) + '" readonly>') : '') + '</div>' +
       '<div class="sec-t">Commission, limit aur target</div><div class="fg g3">' + C.f('Commission kaise', C.sel('c_mode', [['', 'Koi nahi'], ['per_kw', '₹ per kW'], ['fixed', '₹ fixed per plant'], ['percent', '% deal value']], meta.commission.mode || '')) + C.f('Commission value', C.inp('c_value', meta.commission.value, 'inputmode="decimal"')) + C.f('Max discount % (quotation)', C.inp('max_discount_pct', meta.max_discount_pct, 'inputmode="decimal"')) + C.f('Mahine ka target (₹)', C.inp('target_monthly', meta.target_monthly, 'inputmode="decimal"')) + '</div>' +
-      '<details style="margin-top:6px"><summary class="b" style="cursor:pointer;color:var(--leaf-d)">' + C.ic('key') + ' Is user ki alag permission (tick / untick)</summary><p class="hint" style="margin:8px 0">"Role jaisa" = role ki default setting. Sirf is user ke liye badalna ho to Haan / Nahi chunein.</p><div class="perm-grid" id="pg">' + permHtml(u.role) + '</div></details></form>';
+      '<details style="margin-top:6px"><summary class="b" style="cursor:pointer;color:var(--leaf-d)">' + C.ic('key') + ' Is user ki alag permission (tick / untick)</summary><p class="hint" style="margin:8px 0">Role ki default setting pehle se tick hai. Jo point is user ko dena / hatana ho, uska tick lagayein ya hatayein. <a href="javascript:void(0)" data-pdef>Sab role jaisa karein</a></p><div class="perm-grid" id="pg">' + permHtml(u.role) + '</div></details></form>';
     return new Promise(function (res) {
       var m = C.modal({ title: isNew ? 'Naya user' : u.name, size: 'wide', body: body, foot: (!isNew ? '<button class="btn btn-r" data-del style="margin-right:auto">' + C.ic('trash') + ' Hatayein</button>' : '') + '<button class="btn btn-o" data-close>Cancel</button><button class="btn btn-p" data-ok>' + C.ic('check') + ' Save</button>', onClose: function () { res(null); } });
       var f = $('#uf', m.el);
-      f.role.onchange = function () { $$('[data-pk]', m.el).forEach(function (s) { if (s.value) u.perms[s.getAttribute('data-pk')] = s.value === 'allow'; else delete u.perms[s.getAttribute('data-pk')]; }); $('#pg', m.el).innerHTML = permHtml(f.role.value); };
+      f.role.onchange = function () { u.perms = {}; $('#pg', m.el).innerHTML = permHtml(f.role.value); };
+      m.el.addEventListener('click', function (e) {
+        var gt = e.target.closest('[data-gt]'); if (gt) { $$('[data-pk]', gt.closest('.perm-g')).forEach(function (c) { c.checked = gt.getAttribute('data-gt') === '1'; mark(c); }); return; }
+        if (e.target.closest('[data-pdef]')) { u.perms = {}; $('#pg', m.el).innerHTML = permHtml(f.role.value); }
+      });
+      m.el.addEventListener('change', function (e) { if (e.target.matches('[data-pk]')) mark(e.target); });
+      function mark(c) { var l = c.closest('label'); l.classList.toggle('chg', c.checked !== (c.getAttribute('data-def') === '1')); }
       var lr = $('[data-lreset]', m.el); if (lr) lr.onclick = async function () { if (!(await C.confirm(u.name + ' ka PIN aur saare phone hata dein? Agli baar Email OTP se naya PIN banayega.', 'Reset karein', true))) return; try { await C.run('crm_auth_user_reset', { id: u.id }, 'Login reset ho gaya ✔'); } catch (e) {} };
       var del = $('[data-del]', m.el); if (del) del.onclick = async function () {
         var others = (C.cache.users || []).filter(function (x) { return x.id !== u.id && x.status === 'active' && x.role !== 'consumer'; });
@@ -31,10 +42,10 @@
         $('[data-ok]', mm.el).onclick = async function () { try { await C.run('crm_user_delete', { id: u.id, transfer_to: $('#tto', mm.el).value || null }, 'User hata diya'); mm.close(); m.el.remove(); document.documentElement.style.overflow = ''; res({ deleted: true }); } catch (e) {} };
       };
       $('[data-ok]', m.el).onclick = async function () {
-        var o = C.form(f); if (!C.need(f, ['name', 'email'].concat(isNew ? ['username'] : []))) return;
-        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(o.email)) { f.email.classList.add('bad'); return C.toast('Sahi email likhein — login OTP isi par jayega', true); }
+        var o = C.form(f); if (!C.need(f, ['name'].concat(mkt ? [] : ['email']).concat(isNew ? ['username'] : []))) return;
+        if (!(mkt && !o.email) && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(o.email)) { f.email.classList.add('bad'); return C.toast('Sahi email likhein — login OTP isi par jayega', true); }
         if (o.mobile && !C.validMob(o.mobile)) return C.toast('Mobile sahi likhein', true);
-        var perms = Object.assign({}, u.perms || {}); $$('[data-pk]', m.el).forEach(function (s) { var k = s.getAttribute('data-pk'); if (s.value) perms[k] = s.value === 'allow'; else delete perms[k]; });
+        var perms = {}; $$('[data-pk]', m.el).forEach(function (c) { var k = c.getAttribute('data-pk'); if (c.checked !== (c.getAttribute('data-def') === '1')) perms[k] = c.checked; });
         var mt = Object.assign({}, u.meta || {}, { commission: { mode: o.c_mode, value: num(o.c_value) }, max_discount_pct: num(o.max_discount_pct), target_monthly: num(o.target_monthly) });
         var user = { id: u.id || null, name: o.name, mobile: o.mobile, email: o.email, role: o.role, status: o.status, perms: perms, meta: mt };
         if (isNew) user.username = o.username.toLowerCase();
@@ -62,7 +73,7 @@
         else if (tab === 'roles') {
           var role = q.r || 'manager', cat = C.me.catalog || [], g = groups(cat), def = (roleDefs || {})[role] || {};
           tb.innerHTML = '<div class="bar">' + C.chips(ROLES.map(function (r) { return [r, C.ROLE[r]]; }), role, 'r') + '<span class="sp"></span><button class="btn btn-o btn-sm" data-act="all">Sab tick</button><button class="btn btn-o btn-sm" data-act="none">Sab untick</button><button class="btn btn-p" data-act="rsave">' + C.ic('check') + ' Save</button></div><div class="note g" style="margin-bottom:12px">Ye <b>' + C.ROLE[role] + '</b> role ki default permission hai — is role ke sabhi users par lagegi. Kisi ek user ke liye alag chahiye to Users → user kholein → "alag permission".</div><div class="perm-grid">' +
-            Object.keys(g).map(function (k) { return '<div class="perm-g"><h5>' + esc(k) + '</h5>' + g[k].map(function (p) { return '<label class="ck" style="padding:4px 0"><input type="checkbox" data-rk="' + p.k + '"' + (def[p.k] ? ' checked' : '') + '> ' + esc(p.l) + '</label>'; }).join('') + '</div>'; }).join('') + '</div>';
+            Object.keys(g).map(function (k) { return '<div class="perm-g"><h5>' + esc(k) + '<span class="pgt"><a href="javascript:void(0)" data-rg="1">Sab tick</a> · <a href="javascript:void(0)" data-rg="0">Sab untick</a></span></h5>' + g[k].map(function (p) { return '<label class="ck" style="padding:4px 0"><input type="checkbox" data-rk="' + p.k + '"' + (def[p.k] ? ' checked' : '') + '> ' + esc(p.l) + '</label>'; }).join('') + '</div>'; }).join('') + '</div>';
         } else if (tab === 'perf') {
           var from = q.from || C.addDays(C.today(), -30), st = await C.call('crm_team_stats', { from: from });
           tb.innerHTML = '<div class="bar"><span class="sm b">Kab se:</span><input class="inp" type="date" data-from value="' + esc(from) + '" style="width:auto"><span class="sp"></span>' + C.reportBtns('Team performance', function () { return { head: ['Naam', 'Role', 'Aakhri login', 'Khule kaam', 'Overdue', 'Poore', 'Late poore', 'Leads', 'Jeeti', 'Quotation', 'Sale', 'Plants'], rows: st.map(function (s) { return [s.name, C.ROLE[s.role] || s.role, s.last_seen ? C.fdt(s.last_seen) : '', s.open, s.overdue, s.done, s.late, s.leads, s.won, s.quotes, num(s.sales), s.plants]; }) }; }) + '</div>' +
@@ -74,6 +85,7 @@
       }
       await draw();
       el.addEventListener('click', function (e) {
+        var rg = e.target.closest('[data-rg]'); if (rg) { $$('[data-rk]', rg.closest('.perm-g')).forEach(function (c) { c.checked = rg.getAttribute('data-rg') === '1'; }); return; }
         var t = e.target.closest('[data-tab]'); if (t) { C.go('#/team?tab=' + t.getAttribute('data-tab')); return; }
         var r = e.target.closest('[data-r]'); if (r) { C.go('#/team?tab=roles&r=' + r.getAttribute('data-r')); return; }
         var rf = e.target.closest('[data-rf]'); if (rf) C.go('#/team' + C.qs({ tab: 'users', role: rf.getAttribute('data-rf') }));
