@@ -47,13 +47,12 @@
 
   function payModes() {
     var p = S().payments || {}, m = [];
-    if (p.cod && p.cod.enabled) m.push({ k: 'cod', label: p.cod.label || 'Cash on Delivery', desc: Math.round(num(p.cod.advancePct)) + (lg() === 'hi' ? '% एडवांस, बाकी डिलीवरी पर' : '% advance, rest on delivery') });
+    /* sab products PREPAID — Cash on Delivery band hai */
     if (p.upi && p.upi.enabled) m.push({ k: 'upi', label: p.upi.label || 'UPI', desc: (lg() === 'hi' ? 'पूरा पेमेंट UPI से' : 'Pay in full by UPI') + (p.upi.upiId ? ' • ' + p.upi.upiId : '') });
     return m;
   }
   function calc(total, m) {
     var pct = num(((S().payments || {}).cod || {}).advancePct);
-    if (m === 'cod') { var a = Math.round(total * pct / 100); return { adv: a, due: total - a }; }
     return { adv: total, due: 0 };
   }
   function shipFor(sub, pin) {
@@ -158,7 +157,7 @@
     trk('checkout', subtotal());
     SPGate.require('order', async function () {
       if (placing) return; placing = true; var btn = document.getElementById('coPlace'); if (btn) { btn.disabled = true; btn.textContent = t('placing'); }
-      var sub = subtotal(), sh = shipFor(sub, form.pin), total = sub + sh.charge, r = calc(total, mode), ls = lines().filter(function (l) { return !l.out; }).map(function (l) { var pr = C.price(l.p); return { id: l.p.id, title: l.p.title, titleEn: l.p.titleEn, sku: l.p.sku, qty: l.qty, price: pr, amount: pr * l.qty }; });
+      var sub = subtotal(), sh = shipFor(sub, form.pin), total = sub + sh.charge, r = calc(total, mode), ls = lines().filter(function (l) { return !l.out; }).map(function (l) { var pr = C.price(l.p); return { id: l.p.id, title: l.p.title, titleEn: l.p.titleEn, sku: l.p.sku, gst: l.p.gst, qty: l.qty, price: pr, amount: pr * l.qty }; });
       var ck = document.getElementById('co-ok');
       var order = { name: form.name.trim(), phone: cleanPhone(form.phone), address: form.addr.trim(), city: form.city.trim(), pincode: digits(form.pin), note: form.note.trim(), payment: mode, items: ls, subtotal: sub, shipping: sh.charge, total: total, advance: r.adv, due: r.due,
         policyAccepted: !!(ck && ck.checked), lang: lg(), page: location.origin + location.pathname, src: 'shop', token: SPGate.token() };
@@ -166,7 +165,7 @@
       try { id = await C.rpc('sp_place_order', { p_order: order }, 20000); } catch (e) { err = e; }
       if (id) { try { ono = await C.rpc('sp_order_no', { p_id: id, p_token: SPGate.token() }, 12000); } catch (e) { ono = null; } }
       placing = false;
-      if (!id) { if (btn) { btn.disabled = false; btn.textContent = '✅ ' + t('place'); } return failBox(t('fail'), err && err.message); }
+      if (!id) { if (btn) { btn.disabled = false; btn.textContent = '✅ ' + t('place'); } return failBox(t('fail'), err && /OUT_OF_STOCK/.test(err.message || '') ? ((lg() === 'en' ? 'Sorry, someone just booked this — not enough stock: ' : 'माफ़ कीजिए, अभी इतना स्टॉक नहीं बचा (किसी और का ऑर्डर आ चुका है): ') + String(err.message).replace(/^OUT_OF_STOCK:\s*/, '')) : (err && err.message)); }
       var my = lsGet('sp_worders', []); if (!Array.isArray(my)) my = []; my.unshift({ id: id, no: ono || '', at: Date.now(), total: total, adv: r.adv, pay: mode }); lsSet('sp_worders', my.slice(0, 30));
       var text = orderText(id, ono); C.setCart([]); trk('order', total); success(id, ono, r, text);
     });
@@ -185,7 +184,8 @@
       (u.upiId ? '<div class="co-upi"><span>' + esc(t('upi')) + ': <b id="coUpi">' + esc(u.upiId) + '</b></span><button type="button" class="btn btn-line btn-sm" id="coCopy">' + esc(t('copy')) + '</button></div><div class="co-act"><a class="btn btn-sun" href="' + esc(link) + '">📱 ' + esc(t('payNow')) + ' — ' + money(r.adv) + '</a></div>' : '') +
       '<div class="co-act">' + payLinks(r.adv) + '</div>' +
       '<div class="co-upi" style="text-align:left;display:block"><b>' + esc(t('utrQ')) + '</b><div style="display:flex;gap:8px;margin-top:8px"><input id="coUtr" maxlength="30" placeholder="UTR" style="flex:1;min-width:0;padding:10px;border:1px solid #cfd8cf;border-radius:10px"><button type="button" class="btn btn-sun btn-sm" id="coUtrGo">' + esc(t('utrGo')) + '</button></div><div id="coUtrMsg" style="margin-top:8px" hidden></div></div>' +
-      '<div class="co-act"><a class="btn btn-wa" target="_blank" rel="noopener" href="' + esc(waLink(text)) + '">💬 ' + esc(t('wa')) + '</a><a class="btn btn-line" href="shop.html">' + esc(t('more')) + '</a></div></div>';
+      '<div class="co-upi" style="text-align:left;display:block;background:#fff8e1;border-color:#f0d58a">ℹ️ ' + esc(lg() === 'hi' ? 'पेमेंट और लोकेशन वेरिफ़ाई होने के बाद Invoice आपकी Orders details में दिखेगा — वहीं से डाउनलोड कर सकते हैं।' : 'After verification of payment & Location, Invoice will appear on your Orders details — you can download it from there.') + '<br><small>' + esc(lg() === 'hi' ? 'UTR / स्लिप डालना ज़रूरी नहीं — हमारी टीम आपको कॉल करेगी। सभी ऑर्डर प्रीपेड हैं।' : 'UTR / slip is optional — our team will call you. All orders are prepaid.') + '</small></div>' +
+      '<div class="co-act"><a class="btn btn-wa" target="_blank" rel="noopener" href="' + esc(waLink(text)) + '">💬 ' + esc(t('wa')) + '</a><a class="btn btn-line" href="shop.html">' + esc(t('more')) + '</a><a class="btn btn-line" href="orders.html">🧾 ' + esc(lg() === 'hi' ? 'मेरे ऑर्डर / Invoice' : 'My Orders / Invoice') + '</a></div></div>';
     var cp = document.getElementById('coCopy'); if (cp) cp.onclick = function () { try { navigator.clipboard.writeText(u.upiId); } catch (e) {} cp.textContent = t('copied'); };
     document.getElementById('coUtrGo').onclick = async function () {
       var b = this, m = document.getElementById('coUtrMsg'); b.disabled = true;

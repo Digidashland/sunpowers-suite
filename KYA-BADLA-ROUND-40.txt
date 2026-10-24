@@ -1,0 +1,19 @@
+ROUND 40 — HAR PAGE PAR "MANAGE" DROPDOWN (CRM)
+
+1. Har CRM page ke heading ke neeche list seedhi dikhti hai.
+2. Heading ke right side par sirf main button (jaise "+ Add New Customer", "Nayi quotation", "Naya kaam") bahar rehta hai.
+3. Us page ki baaki sab cheezein — filter chips / dropdown / date, Download, Download & Share to Accountant, extra action — us page ke apne "Manage" dropdown me chali jaati hain.
+4. Dropdown ke sabse neeche "Kaise use karein" (us page ka hint) hai.
+5. Search box list ke upar hi rehta hai.
+6. Exceptions (jaan-bujhkar bahar): bulk-select wali bar (Items page, checkbox + Send buttons), aur modal ke andar ki cheezein.
+7. Code: crm/modules/hints.js (sweep + MutationObserver, Round 40), crm/assets/crm.css (.mg-acts, .mg-help), crm/index.html (hints.js?v=11, crm.css?v=7).
+8. Koi SQL change nahi. Koi naya route nahi.
+
+TEST: /tmp/q/m/r60.py (sab routes, 390 + 1280, errors 0), r59, r55–r58, r41 (updated), r46, r50 (updated).
+
+UPDATE (final):
+- Home aur Settings is rule se bahar hain (jaisa tha waisa hi).
+- Har baaki page: heading ke right side par sirf main button (btn-p) bahar. Filter, chips, dropdown, date, checkbox/bulk bar, Download, Share, Upload, extra action, Help/hint sab Manage dropdown ke andar.
+- Card ke andar ke Download/Share buttons bhi dropdown me, card ke naam ke group me.
+- Search box list ke upar hi rehta hai.
+- Audit: /tmp/q/m/r64.py — sidebar ke sab pages: headOutside=0, barOutside=0, cardOutside=0, errors 0.

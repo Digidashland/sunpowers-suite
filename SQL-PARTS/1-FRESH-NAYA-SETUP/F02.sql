@@ -1,7 +1,7 @@
 -- ============================================================================
--- SUNPOWERS — NAYA PROJECT SETUP — part 2 of 15
--- Naya (khali) Supabase project: pehle F01..F06, phir 2-UPDATE ke U01..U09.
--- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (F01 -> F06, phir U01 -> U09). Safe to re-run.
+-- SUNPOWERS — NAYA PROJECT SETUP — part 2 of 18
+-- Naya (khali) Supabase project: pehle F01..F06, phir 2-UPDATE ke U01..U12.
+-- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (F01 -> F06, phir U01 -> U12). Safe to re-run.
 -- ============================================================================
 
 -- =====================================================================
@@ -152,6 +152,7 @@ select '[
  {"g":"Billing","k":"payments.record","l":"Payment jode"},
  {"g":"Billing","k":"payments.delete","l":"Payment hataye"},
  {"g":"Billing","k":"purchase.manage","l":"Purchase order banaye"},
+ {"g":"Billing","k":"accounts.manage","l":"Accounts: kharcha, P&L, GST, ITR report"},
  {"g":"Leads","k":"leads.view_all","l":"Sabki leads dekhe"},
  {"g":"Leads","k":"leads.create","l":"Lead jode"},
  {"g":"Leads","k":"leads.import","l":"Leads import kare"},
@@ -180,7 +181,38 @@ select '[
  {"g":"Privacy","k":"privacy.see_mobile","l":"Customer ka poora mobile number dekhe"},
  {"g":"Marketing","k":"marketing.view","l":"Marketing & Grow section dekhe"},
  {"g":"Marketing","k":"marketing.manage","l":"Marketing channels / agency badle"},
- {"g":"Marketing","k":"marketing.leads","l":"Lead kahan se aayi (source report) dekhe"}
+ {"g":"Marketing","k":"marketing.leads","l":"Lead kahan se aayi (source report) dekhe"},
+ {"g":"Dashboard & Analytics","k":"dashboard.money","l":"Dashboard par kamai, baki aur collection ke aankde dekhe"},
+ {"g":"Dashboard & Analytics","k":"dashboard.team","l":"Dashboard par poori team ka kaam dekhe (warna sirf apna)"},
+ {"g":"Dashboard & Analytics","k":"analytics.view","l":"Analytics menu dekhe"},
+ {"g":"Dashboard & Analytics","k":"analytics.all","l":"Poori company ka analytics dekhe (warna sirf apna)"},
+ {"g":"Accounts & Reports","k":"accounts.view","l":"Accounts dekhe (ledger, baki, kharcha) - sirf padhna"},
+ {"g":"Accounts & Reports","k":"reports.download","l":"Reports download kare"},
+ {"g":"Download / Upload","k":"sheets.download","l":"Edit ke liye sheet download kare"},
+ {"g":"Download / Upload","k":"sheets.upload","l":"Edit ki hui sheet upload kare"},
+ {"g":"Download / Upload","k":"sheets.manage","l":"Sabki sheet ke code dekhe aur band kare"},
+ {"g":"Download / Upload","k":"items.export","l":"Inventory / stock Excel nikale"},
+ {"g":"Products","k":"stock.view","l":"Stock, reserve aur expiry report dekhe"},
+ {"g":"Customer flow","k":"flow.step.1","l":"Step 1: Add Customer — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.2","l":"Step 2: Conversation — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.3","l":"Step 3: Quotation — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.4","l":"Step 4: Site Visit — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.5","l":"Step 5: Blueprint — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.6","l":"Step 6: Confirmation — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.7","l":"Step 7: Apply Process — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.8","l":"Step 8: Hand Over Technician — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.9","l":"Step 9: Start Installation — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.10","l":"Step 10: Verification / Commissioning — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.11","l":"Step 11: Net Metering — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.12","l":"Step 12: Finish Work — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.13","l":"Step 13: Subsidy Redeem — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.14","l":"Step 14: Send Demo / Files — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.15","l":"Step 15: Loan / Finance — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.16","l":"Step 16: Suggest / Referral — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.17","l":"Step 17: AMC / Maintenance — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.18","l":"Step 18: Complaint Status — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.19","l":"Step 19: Leads — dekhe aur badle"},
+ {"g":"Projects","k":"projects.netmetering","l":"Projects me Net Metering step khole (customer ka)"}
 ]'::jsonb $$;
 
 insert into public.crm_roles(role, perms) values
@@ -203,7 +235,6 @@ create or replace function public.crm_fy(d date) returns text language sql immut
 create or replace function public.crm_num(v jsonb) returns numeric language sql immutable as $$
   select case when v is null then 0 when jsonb_typeof(v) = 'number' then (v #>> '{}')::numeric
               when jsonb_typeof(v) = 'string' and (v #>> '{}') ~ '^\s*-?[0-9]+(\.[0-9]+)?\s*$' then trim(v #>> '{}')::numeric else 0 end $$;
-create or replace function public.crm_err(msg text) returns void language plpgsql as $$ begin raise exception '%', msg; end $$;
 
 create or replace function public.crm_session(p_token text) returns public.crm_ses
 language plpgsql security definer set search_path = public, extensions as $$
@@ -375,34 +406,6 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------- accounts
-create or replace function public.crm_register(p jsonb) returns jsonb
-language plpgsql security definer set search_path = public, extensions as $$
-declare r text := lower(coalesce(p ->> 'role', '')); un text := lower(trim(coalesce(p ->> 'username', ''))); m text := public.crm_mobile(p ->> 'mobile');
-        st text; code text; i int := 0;
-begin
-  perform public.crm_legacy();
-  if r not in ('dealer', 'influencer', 'consumer') then raise exception 'Is role ki ID sirf Admin bana sakta hai'; end if;
-  if m !~ '^[6-9][0-9]{9}$' then raise exception 'Sahi 10 ank ka mobile number likhein'; end if;
-  if r = 'consumer' and un = '' then un := m; end if;
-  if un !~ '^[a-z0-9_.@-]{3,40}$' then raise exception 'Username 3-40 akshar ka ho (a-z, 0-9, _ . - @)'; end if;
-  if un = 'admin' then raise exception 'Ye username nahi le sakte'; end if;
-  if length(coalesce(p ->> 'password', '')) < 6 then raise exception 'Password kam se kam 6 akshar ka ho'; end if;
-  if coalesce(trim(p ->> 'name'), '') = '' then raise exception 'Naam likhein'; end if;
-  if coalesce(p ->> 'q1', '') = '' or coalesce(p ->> 'q2', '') = '' or p ->> 'q1' = p ->> 'q2' or coalesce(trim(p ->> 'a1'), '') = '' or coalesce(trim(p ->> 'a2'), '') = '' then
-    raise exception '2 alag security sawal aur unke jawab zaroori hain'; end if;
-  if exists (select 1 from public.crm_users where username = un) then raise exception 'Ye username pehle se liya hua hai'; end if;
-  if r = 'consumer' and exists (select 1 from public.crm_users where role = 'consumer' and mobile = m) then raise exception 'Is mobile se ID pehle se bani hai — login karein'; end if;
-  st := case when r = 'consumer' then 'active' else 'pending' end;
-  if r in ('dealer', 'influencer') then
-    loop code := upper(left(r, 1)) || 'SP' || (100000 + floor(random() * 900000))::int::text;
-      exit when not exists (select 1 from public.crm_users where ref_code = code); i := i + 1; if i > 20 then raise exception 'Dobara koshish karein'; end if; end loop;
-  end if;
-  insert into public.crm_users(role, username, name, mobile, email, pass_hash, q1, a1, q2, a2, status, ref_code)
-  values (r, un, left(trim(p ->> 'name'), 80), m, left(coalesce(p ->> 'email', ''), 120), crypt(p ->> 'password', gen_salt('bf')),
-    left(p ->> 'q1', 120), crypt(lower(trim(p ->> 'a1')), gen_salt('bf')), left(p ->> 'q2', 120), crypt(lower(trim(p ->> 'a2')), gen_salt('bf')), st, code);
-  insert into public.crm_activity(user_id, user_name, role, action, summary) values (null, trim(p ->> 'name'), r, 'register', 'Nayi ID: ' || un);
-  return jsonb_build_object('username', un, 'status', st, 'ref_code', code);
-end $$;
 
 create or replace function public.crm_login(p jsonb) returns jsonb
 language plpgsql security definer set search_path = public, extensions as $$
@@ -441,28 +444,7 @@ begin
     'username', case when (s).uid = 0 then 'admin' else u.username end, 'email', u.email, 'meta', coalesce(u.meta, '{}'::jsonb), 'catalog', public.crm_perm_catalog());
 end $$;
 
-create or replace function public.crm_questions(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
-declare u public.crm_users; x text := lower(trim(coalesce(p ->> 'user', '')));
-begin
-  perform public.crm_legacy();
-  select * into u from public.crm_users where (username = x or mobile = public.crm_mobile(x)) and (coalesce((p ->> 'consumer')::boolean, false) = (role = 'consumer')) and q1 <> '' order by id limit 1;
-  if u.id is null then perform pg_sleep(1); raise exception 'Ye username nahi mila'; end if;
-  return jsonb_build_object('q1', u.q1, 'q2', u.q2);
-end $$;
 
-create or replace function public.crm_reset(p jsonb) returns jsonb language plpgsql security definer set search_path = public, extensions as $$
-declare u public.crm_users; x text := lower(trim(coalesce(p ->> 'user', '')));
-begin
-  perform public.crm_legacy();
-  select * into u from public.crm_users where (username = x or mobile = public.crm_mobile(x)) and (coalesce((p ->> 'consumer')::boolean, false) = (role = 'consumer')) and q1 <> '' order by id limit 1;
-  if u.id is null or crypt(lower(trim(coalesce(p ->> 'a1', ''))), u.a1) <> u.a1 or crypt(lower(trim(coalesce(p ->> 'a2', ''))), u.a2) <> u.a2 then
-    perform pg_sleep(1); raise exception 'Jawab sahi nahi hain'; end if;
-  if length(coalesce(p ->> 'new', '')) < 6 then raise exception 'Naya password kam se kam 6 akshar ka ho'; end if;
-  update public.crm_users set pass_hash = crypt(p ->> 'new', gen_salt('bf')) where id = u.id;
-  delete from public.crm_sessions where user_id = u.id;
-  insert into public.crm_activity(user_id, user_name, role, action, summary) values (u.id, u.name, u.role, 'password', 'Password reset (security sawal)');
-  return jsonb_build_object('ok', true);
-end $$;
 
 create or replace function public.crm_password(p jsonb) returns jsonb language plpgsql security definer set search_path = public, extensions as $$
 declare s public.crm_ses := public.crm_session(p ->> 'token'); h text;
@@ -552,5 +534,53 @@ begin
   delete from public.crm_sessions where user_id = u.id;
   delete from public.crm_users where id = u.id;
   perform public.crm_log(s, 'user_delete', 'user', u.id, 'User hataya: ' || u.name || ' — data ' || coalesce(public.crm_uname(to_), 'Company') || ' ko diya');
+  return jsonb_build_object('ok', true);
+end $$;
+
+create or replace function public.crm_roles_get(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
+declare s public.crm_ses := public.crm_session(p ->> 'token');
+begin
+  perform public.crm_need(s, 'users.manage');
+  return jsonb_build_object('catalog', public.crm_perm_catalog(), 'roles', (select jsonb_object_agg(role, perms) from public.crm_roles));
+end $$;
+
+create or replace function public.crm_role_save(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
+declare s public.crm_ses := public.crm_session(p ->> 'token'); r text := p ->> 'role';
+begin
+  if not public.crm_is_admin(s) then raise exception 'Role permission sirf Admin badal sakta hai'; end if;
+  if r not in ('manager', 'staff', 'dealer', 'influencer') then raise exception 'Role galat hai'; end if;
+  if jsonb_typeof(p -> 'perms') <> 'object' then raise exception 'Data galat hai'; end if;
+  insert into public.crm_roles(role, perms) values (r, p -> 'perms') on conflict (role) do update set perms = excluded.perms;
+  perform public.crm_log(s, 'role_edit', 'role', null, 'Role permission badli: ' || r);
+  return jsonb_build_object('ok', true);
+end $$;
+
+-- ---------------------------------------------------------------- settings
+create or replace function public.crm_settings_get(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
+declare s public.crm_ses := public.crm_session(p ->> 'token'); st public.crm_settings; ss jsonb; d jsonb;
+begin
+  select * into st from public.crm_settings where id = 1;
+  d := coalesce(st.data, '{}'::jsonb);
+  if not (d ? 'company') then
+    select data -> 'settings' into ss from public.sp_store where id = 'main';
+    d := d || jsonb_build_object('company', jsonb_build_object(
+      'name', coalesce(ss ->> 'storeName', 'Sunpowers'), 'legal', coalesce(ss ->> 'legalName', ''), 'gstin', coalesce(ss ->> 'gstin', ''),
+      'phone', coalesce(ss ->> 'phone', ''), 'email', coalesce(ss ->> 'email', ''), 'address', coalesce(ss ->> 'address', ''),
+      'website', coalesce(ss ->> 'mainSite', ''), 'store_url', case when coalesce(ss ->> 'siteUrl', '') ~* '^https?://((www\.)?sunpowers\.in|shop\.sunpowers\.in)/?$' then 'https://store.sunpowers.in' else coalesce(ss ->> 'siteUrl', '') end, 'state', 'Uttar Pradesh', 'upi', coalesce(ss #>> '{payments,upi,upiId}', '')));
+  end if;
+  if public.crm_can(s, 'settings.manage') then d := d || jsonb_build_object('secrets', coalesce(st.secrets, '{}'::jsonb) - 'resend_api_key'); end if;
+  d := d - 'auth';
+  return d;
+end $$;
+
+create or replace function public.crm_settings_save(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
+declare s public.crm_ses := public.crm_session(p ->> 'token'); d jsonb := p -> 'data';
+begin
+  perform public.crm_need(s, 'settings.manage');
+  if jsonb_typeof(d) <> 'object' or length(d::text) > 400000 then raise exception 'Data galat hai'; end if;
+  update public.crm_settings set data = (d - 'secrets' - 'auth') || jsonb_build_object('auth', coalesce(data -> 'auth', '{}'::jsonb)),
+    secrets = case when d ? 'secrets' and jsonb_typeof(d -> 'secrets') = 'object' then ((d -> 'secrets') - 'resend_api_key') || jsonb_strip_nulls(jsonb_build_object('resend_api_key', secrets -> 'resend_api_key')) else secrets end,
+    updated_at = now() where id = 1;
+  perform public.crm_log(s, 'settings', null, null, 'Company settings badli');
   return jsonb_build_object('ok', true);
 end $$;

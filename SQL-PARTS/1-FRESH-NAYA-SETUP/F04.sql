@@ -1,27 +1,8 @@
 -- ============================================================================
--- SUNPOWERS — NAYA PROJECT SETUP — part 4 of 15
--- Naya (khali) Supabase project: pehle F01..F06, phir 2-UPDATE ke U01..U09.
--- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (F01 -> F06, phir U01 -> U09). Safe to re-run.
+-- SUNPOWERS — NAYA PROJECT SETUP — part 4 of 18
+-- Naya (khali) Supabase project: pehle F01..F06, phir 2-UPDATE ke U01..U12.
+-- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (F01 -> F06, phir U01 -> U12). Safe to re-run.
 -- ============================================================================
-
-create or replace function public.crm_team_stats(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
-declare s public.crm_ses := public.crm_session(p ->> 'token'); dt date := public.crm_today(); fr date := coalesce(nullif(p ->> 'from', '')::date, public.crm_today() - 30);
-begin
-  perform public.crm_need(s, 'team.stats');
-  return coalesce((select jsonb_agg(jsonb_build_object('id', u.id, 'name', u.name, 'role', u.role, 'last_seen', u.last_seen,
-    'open', (select count(*) from public.crm_records r where r.kind = 'reminder' and r.deleted_at is null and r.status = 'open' and coalesce(r.assigned_to, r.owner_id) = u.id),
-    'overdue', (select count(*) from public.crm_records r where r.deleted_at is null and coalesce(r.assigned_to, r.owner_id) = u.id and r.due_at < dt
-                 and ((r.kind = 'reminder' and r.status = 'open') or (r.kind = 'lead' and r.status not in ('won', 'lost')))),
-    'done', (select count(*) from public.crm_records r where r.kind = 'reminder' and r.deleted_at is null and r.status = 'done' and coalesce(r.assigned_to, r.owner_id) = u.id and r.updated_at::date >= fr),
-    'late', (select count(*) from public.crm_records r where r.kind = 'reminder' and r.deleted_at is null and r.status = 'done' and coalesce(r.assigned_to, r.owner_id) = u.id and r.updated_at::date >= fr
-              and (r.data ->> 'done_at')::timestamptz::date > r.due_at),
-    'leads', (select count(*) from public.crm_records r where r.kind = 'lead' and r.deleted_at is null and coalesce(r.assigned_to, r.owner_id) = u.id),
-    'won', (select count(*) from public.crm_records r where r.kind = 'lead' and r.deleted_at is null and r.status = 'won' and coalesce(r.assigned_to, r.owner_id) = u.id),
-    'quotes', (select count(*) from public.crm_records r where r.kind = 'quote' and r.deleted_at is null and r.owner_id = u.id and r.created_at::date >= fr),
-    'sales', (select coalesce(sum(amount), 0) from public.crm_records r where r.kind = 'invoice' and r.deleted_at is null and r.owner_id = u.id and r.created_at::date >= fr),
-    'plants', (select count(*) from public.crm_records r where r.kind = 'plant' and r.deleted_at is null and r.status = 'verified' and (r.owner_id = u.id or upper(r.data ->> 'ref') = u.ref_code))
-  ) order by u.name) from public.crm_users u where u.role not in ('consumer') and u.status = 'active'), '[]'::jsonb);
-end $$;
 
 create or replace function public.crm_dashboard(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
 declare s public.crm_ses := public.crm_session(p ->> 'token'); dt date := public.crm_today(); m0 date := date_trunc('month', public.crm_today())::date; res jsonb; u bigint := (s).uid;
@@ -396,6 +377,7 @@ create or replace function public.crm_auth_start(p jsonb) returns jsonb language
 declare f jsonb := public.crm_auth_find(p ->> 'app', p ->> 'id');
 begin
   perform public.crm_auth_status_ok(f, false);
+  if coalesce(p ->> 'app', '') = 'crm' and (f ->> 'uid')::bigint = 0 then raise exception 'Admin login yahan nahi hota. Admin panel se login karein.'; end if;
   if f ->> 'role' = 'marketing' then return jsonb_build_object('step', 'password', 'name', f ->> 'name'); end if;
   if (f ->> 'has_pin')::boolean and public.crm_auth_trusted((f ->> 'uid')::bigint, p ->> 'device') and coalesce((p ->> 'otp')::boolean, false) = false then
     return jsonb_build_object('step', 'pin', 'pin_len', f -> 'pin_len', 'name', f ->> 'name', 'locked', (f ->> 'pin_fail')::int >= 5);
@@ -434,6 +416,8 @@ create or replace function public.crm_auth_master(p jsonb) returns jsonb languag
 declare f jsonb := public.crm_auth_find(p ->> 'app', p ->> 'id'); h text; tk text; recent int;
 begin
   if (f ->> 'uid')::bigint <> 0 then raise exception 'Ye sirf Admin ke liye hai'; end if;
+  if coalesce(p ->> 'app', '') = 'crm' and (f ->> 'uid')::bigint = 0 then raise exception 'Admin login yahan nahi hota. Admin panel se login karein.'; end if;
+
   select count(*) into recent from public.crm_activity where action = 'master_fail' and at > now() - interval '1 hour';
   if recent >= 5 then raise exception 'Bahut baar galat — 1 ghante baad koshish karein'; end if;
   select pass_hash into h from public.sp_admin where id = 1;
@@ -462,4 +446,30 @@ begin
     return 'PIN galat hai';
   end if;
   return null;
+end $$;
+
+create or replace function public.crm_auth_pin_valid(f jsonb, p_pin text) returns void language plpgsql immutable as $$
+begin
+  if coalesce(p_pin, '') !~ ('^\d{' || (f ->> 'pin_len') || '}$') then raise exception 'PIN % ank ka hona chahiye', f ->> 'pin_len'; end if;
+  if p_pin ~ '^(\d)\1+$' or p_pin in ('1234', '4321', '123456', '654321', '012345', '0123') then raise exception 'Itna aasaan PIN nahi — doosra PIN chunein'; end if;
+end $$;
+
+create or replace function public.crm_auth_set_q(f jsonb, p jsonb) returns void language plpgsql security definer set search_path = public, extensions as $$
+declare uid bigint := (f ->> 'uid')::bigint;
+begin
+  if coalesce(p ->> 'q1', '') = '' or coalesce(p ->> 'q2', '') = '' or p ->> 'q1' = p ->> 'q2' or coalesce(trim(p ->> 'a1'), '') = '' or coalesce(trim(p ->> 'a2'), '') = '' then
+    raise exception '2 alag security sawal aur unke jawab likhein'; end if;
+  if uid = 0 then
+    update public.crm_auth_admin set q1 = left(p ->> 'q1', 120), a1 = crypt(lower(trim(p ->> 'a1')), gen_salt('bf')), q2 = left(p ->> 'q2', 120), a2 = crypt(lower(trim(p ->> 'a2')), gen_salt('bf')), q_fail = 0, updated_at = now() where id = 1;
+  else
+    update public.crm_users set q1 = left(p ->> 'q1', 120), a1 = crypt(lower(trim(p ->> 'a1')), gen_salt('bf')), q2 = left(p ->> 'q2', 120), a2 = crypt(lower(trim(p ->> 'a2')), gen_salt('bf')), q_fail = 0 where id = uid;
+  end if;
+end $$;
+
+create or replace function public.crm_auth_store_pin(f jsonb, p_pin text) returns void language plpgsql security definer set search_path = public, extensions as $$
+declare uid bigint := (f ->> 'uid')::bigint;
+begin
+  perform public.crm_auth_pin_valid(f, p_pin);
+  if uid = 0 then update public.crm_auth_admin set pin_hash = crypt(p_pin, gen_salt('bf')), pin_fail = 0, updated_at = now() where id = 1;
+  else update public.crm_users set pin_hash = crypt(p_pin, gen_salt('bf')), pin_fail = 0 where id = uid; end if;
 end $$;

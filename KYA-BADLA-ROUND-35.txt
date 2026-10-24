@@ -1,0 +1,10 @@
+ROUND 35 — Customer ID, Pending Inquiries, Customer app profile (abhi LIVE nahi karna)
+=====================================================================================
+1. HAR CUSTOMER KI EK PERMANENT ID: SP-C-000123 (store, website, shop page, offline, call — kahin se bhi). Ek mobile = ek ID (lead aur customer ki ID same). ID aur stage form se badli nahi ja sakti.
+2. STAGE: Lead -> Pending Inquiry -> Customer. Customer add hote hi "Pending Inquiry". PEHLA BILL bante hi apne aap All Customers me.
+3. CRM menu: naya "Pending Inquiries" (Leads aur Customers ke beech). Wahi customer page / flow / site visit / quotation. Inquiry apne aap kabhi nahi hatti — sirf manual delete (reason ke saath). "Purani (30+ din)" sirf filter hai.
+4. Customer app / shop page: login ke baad Plant ID ki jagah Customer ID. Projects (status timeline, warranty, AMC visits), Products (bill, warranty), Services (status), Quotations (pending). Purane Plant ID wale customers apne mobile se apne aap jud jate hain.
+5. ADVANCE: is round me NAHI banaya (aap tarika batayenge).
+
+SQL: ROUND 35 section (ROUND-34-SQL-ONLY.sql me bhi). Staging pehle. DHYAN: purane customers jinka koi bill nahi hai wo "Pending Inquiries" me dikhenge (hataye nahi gaye).
+Redeploy: CRM + Store + Website (sp-plant.js v3).

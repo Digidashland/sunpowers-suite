@@ -87,7 +87,7 @@
         C.f('Kharcha (₹)', C.inp('cost', c.cost, 'inputmode="decimal"')) + C.f('Kharcha kaisa', C.sel('cost_mode', [['month', 'Har mahine'], ['total', 'Poora campaign']], c.cost_mode || 'month')) +
         C.f('Kab se', C.inp('start', c.start, 'type="date"')) + C.f('Kab tak', C.inp('end', c.end, 'type="date"')) +
         C.f('Tracking code', C.inp('code', c.code || '', 'maxlength="10" style="text-transform:uppercase" placeholder="Apne aap banega"')) + C.f('Kiske paas <span class="o">(vendor / agency)</span>', C.inp('vendor', c.vendor, 'maxlength="80"')) +
-        '<div class="f full" data-dig><label>API key / token <span class="o">(sirf Admin / marketing manager dekh sakta hai)</span></label><input class="inp" name="key" type="password" autocomplete="off" value="' + esc((keys || {})[c.id] || '') + '"><span class="hint">Lead form link neeche "Copy" se milega — ad / QR / bio me lagayein, us link se aayi enquiry is channel ke naam se aayegi.</span></div>' +
+        '<div class="f full" data-dig><span class="hint">Lead form link neeche "Copy" se milega — ad / QR / bio me lagayein, us link se aayi enquiry is channel ke naam se aayegi. Platform ki API key <b>Connections</b> menu me lagti hai.</span></div>' +
         C.f('Note', C.ta('note', c.note, 'rows="2"'), 'full') + '<div class="f full"><label class="ck"><input type="checkbox" name="on"' + (c.on !== false ? ' checked' : '') + '> Chalu hai</label></div></form>';
       var m = C.modal({ title: isNew ? 'Naya channel' : c.name, body: body, foot: (isNew ? '' : '<button class="btn btn-r" data-del style="margin-right:auto">' + C.ic('trash') + '</button>') + '<button class="btn btn-o" data-close>Cancel</button><button class="btn btn-p" data-ok>' + C.ic('check') + ' Save</button>', onClose: function () { res(false); } });
       var f = $('#chf', m.el); function dig() { $('[data-dig]', m.el).hidden = (TYPE[f.type.value] || [])[2] !== 'd'; } dig(); f.type.onchange = function () { dig(); if (!f.name.value) f.name.placeholder = (TYPE[f.type.value] || [])[1] || ''; };
@@ -95,8 +95,7 @@
         var o = C.form(f); if (!o.name) o.name = (TYPE[o.type] || [])[1] || ''; if (!o.name) { f.name.classList.add('bad'); return; }
         var others = list.filter(function (x) { return x.id !== c.id; });
         if (others.some(function (x) { return x.name.toLowerCase() === o.name.toLowerCase(); })) return C.toast('Is naam ka channel pehle se hai', true);
-        var k = o.key; delete o.key; Object.assign(c, o, { cost: C.r2(o.cost || 0), code: (o.code || '').toUpperCase().replace(/[^A-Z0-9]/g, '') || code(o.name, others) });
-        keys = Object.assign({}, keys || {}); if ((TYPE[c.type] || [])[2] === 'd' && k) keys[c.id] = k; else delete keys[c.id];
+        Object.assign(c, o, { cost: C.r2(o.cost || 0), code: (o.code || '').toUpperCase().replace(/[^A-Z0-9]/g, '') || code(o.name, others) });
         M.channels = others.concat([c]);
         try { await save(M, keys, 'Channel save ho gaya ✔'); m.el.remove(); document.documentElement.style.overflow = ''; res(true); } catch (e) {}
       };

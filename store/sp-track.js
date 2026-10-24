@@ -6,6 +6,7 @@
   'use strict';
   var me = document.currentScript, SITE = (me && me.getAttribute('data-site')) || 'website';
   if (window.SPTRK) return;
+  try { if (/[?&]spprev=1(&|$)/.test(location.search) && window.parent !== window) return; } catch (e) {}
   var CFG = window.SP_CONFIG || window.SITE || {};
   var URL_ = String(CFG.SUPABASE_URL || '').replace(/\/+$/, ''), KEY = String(CFG.SUPABASE_KEY || '').trim();
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {} return null; }

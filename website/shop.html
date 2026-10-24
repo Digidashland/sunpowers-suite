@@ -21,68 +21,57 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/site.css?v=6">
+<link rel="stylesheet" href="assets/site.css?v=8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/shopx.css?v=1">
+<style>body.sx-page{background:#f4f7f3;margin:0}.sx{min-height:100vh}body.sx-page .wc-fbar{bottom:calc(64px + env(safe-area-inset-bottom,0px));border-radius:14px 14px 0 0}body.sx-page{padding-bottom:0}.sx .sx-wrap#main{padding-top:12px}</style>
 <style>.i18n-wait body{visibility:hidden}</style>
 <script>try{if(String(localStorage.getItem("sp_lang")).indexOf("off")<0)document.documentElement.classList.add("i18n-wait")}catch(e){}</script>
-<script src="assets/sp-i18n.js?v=1"></script>
-<script src="assets/i18n-dict.js?v=1"></script>
+<script src="assets/sp-i18n.js?v=12"></script>
+<script src="assets/sp-voice.js?v=2" defer></script>
+<script src="assets/i18n-dict.js?v=3"></script>
 <script src="assets/i18n-extra.js?v=1"></script>
 <script src="assets/i18n-gen.js?v=1"></script>
-<script src="assets/i18n-langs.js?v=1"></script>
+<script src="assets/i18n-langs.js?v=2"></script>
 <script src="assets/sp-look.js?v=1" data-app="website"></script>
 </head>
-<body>
+<body class="sx-page">
 <a class="sr" href="#main">Skip to content</a>
-<header class="hdr hdr-c" data-hdr-c>
-  <div class="hdr-main"><div class="wrap">
-    <a class="brand" href="index.html" aria-label="Sunpowers.in home"><img class="lg" src="assets/logo-mark.png" alt="" width="40" height="44"><span class="bn"><b>Sunpowers<em class="dotin">.in</em></b></span></a>
-    <span class="pgn" data-pgn>Shop</span>
-    <button type="button" class="hsb" data-site-search aria-label="Search"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span>Search products, services…</span></button>
-    <button class="menu-btn" id="menuBtn" aria-label="Menu kholein" aria-expanded="false" aria-controls="drawer"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
-  </div></div>
-</header>
-<div class="drawer" id="drawer" aria-hidden="true"><div class="scrim"></div><div class="panel" role="dialog" aria-label="Menu">
-  <button class="close" aria-label="Menu band karein"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-  <a class="nl" href="index.html">Home<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a><a class="nl" href="about.html">About Us<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a><a class="nl" href="services.html">Products &amp; Services<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a><div class="dsub"><a href="on-grid-solar.html">On-Grid Solar</a><a href="off-grid-solar.html">Off-Grid Solar</a><a href="hybrid-solar.html">Hybrid Solar</a><a href="residential-solar.html">Residential Solar</a><a href="commercial-solar.html">Commercial Solar</a><a href="industrial-solar.html">Industrial Solar</a><a href="vfd-solar.html">VFD Solar (Chakki / Pump)</a><a href="solar-panel-cleaning.html">Solar Panel Cleaning</a><a href="installation-shifting.html">Installation &amp; Shifting</a><a href="solar-maintenance-audit.html">Solar Maintenance &amp; Audit</a></div><a class="nl" href="shop.html" aria-current="page">Shop<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a><a class="nl" href="solar-maintenance-audit.html">Maintenance &amp; Audit<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a><a class="nl" href="error-detector.html">Error Detector<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a><a class="nl" href="blueprint.html">Blue Print<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a><a class="nl" href="contact.html">Contact Us<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a><a class="nl" href="experts.html">Experts Cabin<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a><a class="nl" href="calculator.html">Solar Calculator<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
-  <a class="btn btn-sun" data-book="" href="contact.html">Free Site Visit Book Karein</a>
-  <a class="btn btn-line" href="shop.html"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/><path d="M2 3h3l2.7 12.4a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L21 7H6"/></svg> Shop</a>
-  <a class="btn btn-line" data-app aria-disabled="true"><span data-app-t>📲 App · Coming soon</span></a>
-  <button type="button" class="btn btn-line" data-hlogin><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg> <span data-hl-t>Login</span></button>
-  <a class="btn btn-line" href="tel:+919621050636"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg> Call 09621050636</a>
-  <button type="button" class="btn btn-line hb-lang-d" data-sp-lang="long" aria-label="Language"></button>
-  <a class="btn btn-line" href="mailto:helpsunpowers@gmail.com"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="m22 6-10 7L2 6"/></svg> helpsunpowers@gmail.com</a>
-  <p class="dr-time">Mon–Sat 9 AM–8 PM • Sun 10 AM–6 PM</p>
-  <a class="btn btn-wa" data-wa="Namaste Sunpowers, mujhe solar ki jaankari chahiye" href="https://wa.me/919621050636" target="_blank" rel="noopener"><svg class="ico f" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5 0-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8 0-1.4.7-2 1-2.3.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.1.1.7-.1 1.3z"/></svg> WhatsApp</a>
-</div></div>
-<main id="main">
-<section class="p-h1" data-sid="s1"><h1 class="sr-only" data-cms="shop:t58e39c">Shop</h1></section><section class="sec tight vg-sec" data-sid="s2"><div class="wrap"><div data-vguide="buy"></div></div></section><section class="sec" data-sid="s3"><div class="wrap"><div id="shopPage" aria-live="polite"><p class="wc-note">…</p></div></div></section></main>
-<footer class="ftr"><div class="wrap">
-  <div class="fgrid2">
-    <div class="fl">
-      <div class="fl-b">
-        <a class="brand" href="index.html"><img class="lg" src="assets/logo-mark-light.png" alt="" width="40" height="44"><span><b>Sunpowers</b><small>sunpowers hai to! bharosa hai!</small></span></a>
-        <div class="soc">
-          <a href="https://www.youtube.com/@sunpowers" target="_blank" rel="noopener" aria-label="YouTube"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9 5 3-5 3z"/></svg></a>
-          <a href="https://www.instagram.com/sunpowers.in" target="_blank" rel="noopener" aria-label="Instagram"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg></a>
-          <a href="https://www.facebook.com/share/1HwbkZd1oK/" target="_blank" rel="noopener" aria-label="Facebook"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
-          <a href="https://maps.app.goo.gl/9r7jtxRPokG3yKVw8" target="_blank" rel="noopener" aria-label="Google Maps"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 3 6v15l6-3 6 3 6-3V3l-6 3z"/><path d="M9 3v15M15 6v15"/></svg></a>
-        </div>
-      </div>
-      <div class="fl-c"><h4>Company</h4><ul class="cols">
-      <li><a href="about.html">About Us</a></li><li><a href="services.html">Products &amp; Services</a></li><li><a href="solar-maintenance-audit.html">Maintenance &amp; Audit</a></li><li><a href="experts.html">Experts Cabin</a></li><li><a href="contact.html">Contact Us</a></li><li><a href="blueprint.html">Project Blue Print</a></li><li><a href="calculator.html">Solar Calculator</a></li><li><a href="subsidy.html">PM Surya Ghar Yojana</a></li><li><a href="faq.html">FAQ</a></li>
-      <li><a href="shop.html">Shop</a></li><li><a data-app aria-disabled="true"><span data-app-t>Download App · Coming soon</span></a></li><li><a href="error-detector.html">Solar Error Detector</a></li><li><a data-hlogin href="#"><span data-hl-t>Login</span></a></li></ul></div>
+<div class="sx" id="sxApp">
+<header class="sx-hdr">
+  <div class="sx-wrap">
+    <div class="sx-hdr-top">
+      <a class="sx-brand" href="shop.html"><span class="sx-brand-logo" id="sxLogo"><img src="assets/logo-mark.png" alt="" width="36" height="36"></span><span class="sx-brand-name" id="sxName" data-noi18n>Sunpowers</span></a>
+      <button type="button" class="sx-pill" id="sxLoc" data-wc-pin data-noi18n>📍 India</button>
+      <button type="button" class="ibtn lbtn" data-sp-lang="short" aria-label="Language"></button>
+      <button type="button" class="ibtn" data-hlogin aria-label="Login"><span class="ic">👤</span><span class="dot hide"></span></button>
+      <a class="ibtn" href="checkout.html" id="sxCartBtn" aria-label="Cart">🛒<span class="badge hide" id="sxBadge">0</span></a>
     </div>
-    <div class="fr">
-      <div><h4>Policies</h4><ul>
-      <li><a href="privacy.html">Privacy Policy</a></li><li><a href="terms.html">Terms &amp; Conditions</a></li><li><a href="refund-policy.html">Refund &amp; Cancellation</a></li><li><a href="shipping-policy.html">Shipping &amp; Delivery</a></li></ul></div>
-      <div><h4>Contact</h4><ul>
-      <li><a href="tel:+919621050636">+91 9621050636</a></li><li><a href="mailto:helpsunpowers@gmail.com">helpsunpowers@gmail.com</a></li><li>Plot No. 49, Amrai Gaon, Faizabad Road, Lucknow, Uttar Pradesh - 226016</li><li>Mon–Sat 9 AM–8 PM, Sun 10 AM–6 PM</li></ul></div>
+    <div class="search">
+      <span>🔍</span>
+      <input id="sxQ" type="search" autocomplete="off" placeholder="Search products" aria-label="Search" data-noi18n>
+      <button type="button" class="x hide" id="sxQx" aria-label="Clear">✕</button>
     </div>
   </div>
-  <div class="legal"><span>© <span data-year>2026</span> Sunpowers Enterprises • GSTIN 09AQMPY6347CZ29</span><span>Subsidy, ROI aur bachat ke aankde anumanit hain — asli rakam site, sarkari niyam aur bank par nirbhar.</span><a data-powered hidden href="https://www.digidashland.in" target="_blank" rel="noopener" style="opacity:.75">Powered by Digidashland.in</a></div>
-</div></footer>
-<a class="fab" data-wa="Namaste Sunpowers, mujhe solar ki jaankari chahiye" href="https://wa.me/919621050636" target="_blank" rel="noopener" aria-label="WhatsApp par baat karein"><svg class="ico f" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5 0-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8 0-1.4.7-2 1-2.3.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.1.1.7-.1 1.3z"/></svg></a>
-<nav class="mbar" aria-label="Quick contact"><a class="c" href="tel:+919621050636"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg> Call</a><a class="w" data-wa="Namaste Sunpowers, mujhe solar ki jaankari chahiye" href="https://wa.me/919621050636" target="_blank" rel="noopener"><svg class="ico f" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5 0-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8 0-1.4.7-2 1-2.3.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.1.1.7-.1 1.3z"/></svg> WhatsApp</a><a class="q" href="contact.html">Free Quote</a></nav>
+</header>
+<main class="sx-wrap" id="main">
+<section class="p-h1" data-sid="s1"><h1 class="sr-only" data-cms="shop:t58e39c">Shop</h1></section>
+<section data-sid="s3"><div id="shopPage" aria-live="polite"><p class="wc-note">…</p></div></section>
+<section class="vg-sec" data-sid="s2" style="margin-top:18px"><div data-vguide="buy"></div></section>
+</main>
+<footer id="sxFoot" class="pfoot"></footer>
+<a class="sx-fab hide" id="sxFab" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 32 32" fill="currentColor"><path d="M16 3C9 3 3.3 8.6 3.3 15.6c0 2.4.7 4.7 1.9 6.7L3 29l6.9-2.2c1.9 1 4 1.6 6.1 1.6 7 0 12.7-5.6 12.7-12.6S23 3 16 3zm0 23c-2 0-3.9-.6-5.5-1.6l-.4-.2-4.1 1.3 1.3-4-.3-.4c-1.1-1.7-1.7-3.6-1.7-5.6C5.3 9.8 10.1 5.1 16 5.1s10.7 4.7 10.7 10.5S21.9 26 16 26zm5.9-7.8c-.3-.2-1.9-.9-2.2-1s-.5-.2-.7.2-.8 1-1 1.2-.4.2-.7.1a8.7 8.7 0 0 1-4.3-3.7c-.3-.6.3-.5.9-1.7.1-.2 0-.4 0-.5l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4s-1.2 1.1-1.2 2.8 1.2 3.2 1.4 3.5c.2.2 2.4 3.6 5.8 5 2.2.9 3 .9 4.1.8.7-.1 1.9-.8 2.2-1.5s.3-1.4.2-1.5c-.1-.1-.3-.2-.6-.3z"/></svg></a>
+<nav class="sx-nav" aria-label="Main">
+  <div class="sx-wrap">
+    <a href="shop.html" data-sx-tab="home"><span class="i">🏠</span><span data-sxt="home">Home</span></a>
+    <a href="#" data-sx-tab="cats"><span class="i">🗂️</span><span data-sxt="cats">Categories</span></a>
+    <a href="#" class="cam" data-doctor="" aria-label="Solar Error Detector"><span class="i"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.500" r="3.500"/></svg></span><span data-sxt="doc">Error check</span></a>
+    <a href="#" data-sx-tab="wish"><span class="i">❤️<span class="badge hide" id="sxWishBadge">0</span></span><span data-sxt="wish">Wishlist</span></a>
+    <a href="checkout.html" data-sx-tab="cart"><span class="i">🛒<span class="badge hide" id="sxBadge2">0</span></span><span data-sxt="cart">Cart</span></a>
+    <a href="contact.html" data-sx-tab="help"><span class="i">💬</span><span data-sxt="help">Help</span></a>
+  </div>
+</nav>
+</div>
 <script src="config.js?v=1"></script>
 <div class="vpop" id="visitPop" role="dialog" aria-modal="true" aria-labelledby="vpopT" hidden><div class="vpop-b"><button type="button" class="vpop-x" data-vpop-close aria-label="Close">×</button>
 <h2 id="vpopT">Free site visit book karein</h2><p class="sub" id="vpopS">Naam aur number dein — hamari team call karegi.</p><form class="lead" data-lead="Home — Site visit popup" novalidate><div class="fbody"><div class="fgrid" style="grid-template-columns:1fr">
@@ -100,15 +89,16 @@
 <p class="ferr" aria-live="polite"></p>
 <button class="btn btn-leaf" type="submit" style="width:100%" data-sub>Callback lijiye <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button></div></div><div class="done" role="status"><div class="tick"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></div><h3>Dhanyavaad!</h3><p>Aapki jaankari mil gayi. Hamari team jaldi call karegi (kaam ke samay me lagbhag 30 minute me).</p><div class="btns" style="justify-content:center"><a class="btn btn-wa" data-wa-done href="https://wa.me/919621050636" target="_blank" rel="noopener"><svg class="ico f" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5 0-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8 0-1.4.7-2 1-2.3.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.1.1.7-.1 1.3z"/></svg> Bijli bill WhatsApp karein</a><button type="button" class="btn btn-line" data-again>Ek aur form</button></div></div></form><button type="button" class="vpop-skip" data-vpop-close>Not now</button></div></div><script src="assets/lic.js?v=1" data-app="website"></script>
 <script src="assets/sp-track.js?v=1" data-site="website"></script>
-<script src="assets/sp-gate.js?v=1"></script>
+<script src="assets/sp-gate.js?v=2"></script>
 <script src="assets/gate-init.js?v=1"></script>
-<script src="assets/sp-plant.js?v=1"></script>
-<script src="assets/sp-doctor.js?v=2"></script>
+<script src="assets/sp-plant.js?v=4"></script>
+<script src="assets/sp-doctor.js?v=3"></script>
 <script src="assets/site.js?v=3"></script>
 <script src="assets/site-extra.js?v=3"></script>
 <script src="assets/vguide.js?v=1" defer></script>
-<script src="assets/cms.js?v=3"></script>
-<script src="assets/sp-builder.js?v=2" defer></script>
-<script src="assets/cart.js?v=5" defer></script>
+<script src="assets/cms.js?v=7"></script>
+<script src="assets/sp-builder.js?v=8" defer></script>
+<script src="assets/shopx.js?v=2" defer></script>
+<script src="assets/cart.js?v=14" defer></script>
 </body>
 </html>

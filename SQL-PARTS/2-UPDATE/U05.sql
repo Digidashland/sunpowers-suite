@@ -1,41 +1,8 @@
 -- ============================================================================
--- SUNPOWERS — DATABASE UPDATE — part 5 of 9
+-- SUNPOWERS — DATABASE UPDATE — part 5 of 12
 -- Purane project par update (naya ya purana, dono par chalega).
--- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (U01 -> U09). Safe to re-run.
+-- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (U01 -> U12). Safe to re-run.
 -- ============================================================================
-
-create or replace function public.crm_sheet_issue(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
-declare s public.crm_ses := public.crm_session(p ->> 'token'); kind_ text := coalesce(nullif(p ->> 'kind', ''), 'item'); ids_ jsonb; cols_ jsonb := coalesce(p -> 'cols', '[]'::jsonb); c text;
-        ok_ids jsonb; code_ text; allowed text[] := array['name', 'title', 'category', 'subcategory', 'price', 'mrp', 'gst', 'hsn', 'unit', 'desc', 'more', 'brand', 'mpn', 'image_link', 'stock', 'warranty', 'cost_price', 'min_price'];
-        days int := 30;
-begin
-  if kind_ <> 'item' then raise exception 'Galat sheet'; end if;
-  perform public.crm_need(s, 'items.edit'); perform public.crm_need(s, 'sheets.download');
-  if jsonb_typeof(p -> 'ids') <> 'array' or jsonb_array_length(p -> 'ids') = 0 then raise exception 'Koi row nahi chuni'; end if;
-  if jsonb_array_length(p -> 'ids') > 5000 then raise exception 'Ek sheet me 5000 se zyada rows nahi'; end if;
-  if jsonb_typeof(cols_) <> 'array' or jsonb_array_length(cols_) = 0 then raise exception 'Koi column nahi chuna'; end if;
-  for c in select jsonb_array_elements_text(cols_) loop
-    if not (c = any(allowed) or c like 'spec:%') then raise exception 'Column "%" sheet me nahi ja sakta', c; end if;
-    if c in ('cost_price', 'min_price') and not public.crm_can(s, 'items.cost') then raise exception 'Kharid / minimum rate dekhne ki permission nahi hai'; end if;
-  end loop;
-  select coalesce(jsonb_agg(r.id), '[]'::jsonb) into ok_ids from public.crm_records r
-   where r.kind = 'item' and r.deleted_at is null and r.id::text in (select jsonb_array_elements_text(p -> 'ids')) and public.crm_vis(s, r);
-  if jsonb_array_length(ok_ids) = 0 then raise exception 'Chuni hui rows aapko dikhane ki permission nahi hai'; end if;
-  code_ := 'SH' || upper(substr(md5(random()::text || clock_timestamp()::text || (s).uid::text), 1, 12));
-  insert into public.crm_sheets(code, kind, ids, cols, filt, n, issuer_uid, issuer_name, expires_at)
-  values (code_, kind_, ok_ids, cols_, p -> 'filt', jsonb_array_length(ok_ids), (s).uid, (s).name, now() + make_interval(days => days));
-  perform public.crm_log(s, 'export', 'item', 0, 'Sheet download for edit ' || code_ || ': ' || jsonb_array_length(ok_ids) || ' rows' || coalesce(' · filter ' || left(p ->> 'fdesc', 160), ''));
-  return jsonb_build_object('ok', true, 'code', code_, 'n', jsonb_array_length(ok_ids), 'expires_at', now() + make_interval(days => days));
-end $$;
-
-create or replace function public.crm_sheet_list(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
-declare s public.crm_ses := public.crm_session(p ->> 'token');
-begin
-  perform public.crm_need(s, 'items.edit');
-  return coalesce((select jsonb_agg(jsonb_build_object('code', code, 'kind', kind, 'n', n, 'issuer', issuer_name, 'created_at', created_at, 'expires_at', expires_at, 'uses', uses, 'last_used', last_used,
-      'revoked', revoked, 'live', (not revoked and expires_at > now()), 'filt', filt, 'cols', cols) order by created_at desc)
-    from (select * from public.crm_sheets where public.crm_is_admin(s) or public.crm_can(s, 'sheets.manage') or issuer_uid = (s).uid order by created_at desc limit 100) z), '[]'::jsonb);
-end $$;
 
 create or replace function public.crm_sheet_revoke(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
 declare s public.crm_ses := public.crm_session(p ->> 'token'); sh public.crm_sheets;
@@ -167,77 +134,6 @@ end $g$;
 -- Round 13-4: permission points (tick / untick per user) — new points + sensible role defaults
 -- Existing role settings are never overwritten (existing key wins), so any change the Admin made stays.
 -- ============================================================================
-create or replace function public.crm_perm_catalog() returns jsonb language sql immutable as $$
-select '[
- {"g":"Customers","k":"customers.view_all","l":"Sabke customers dekhe"},
- {"g":"Customers","k":"customers.create","l":"Customer jode"},
- {"g":"Customers","k":"customers.edit","l":"Customer badle"},
- {"g":"Customers","k":"customers.delete","l":"Customer hataye"},
- {"g":"Customers","k":"customers.assign","l":"Customer kisi aur ko de"},
- {"g":"Customers","k":"customers.export","l":"Customers Excel nikale"},
- {"g":"Products","k":"items.view","l":"Products / Projects dekhe"},
- {"g":"Products","k":"items.create","l":"Product / Project jode"},
- {"g":"Products","k":"items.edit","l":"Product / Project badle"},
- {"g":"Products","k":"items.delete","l":"Product / Project hataye"},
- {"g":"Products","k":"items.categories","l":"Nayi category / sub-category jode ya naam badle"},
- {"g":"Products","k":"items.cost","l":"Kharid rate aur minimum rate dekhe"},
- {"g":"Products","k":"items.to_store","l":"Online Store ko bheje"},
- {"g":"Products","k":"stock.reserve","l":"Stock reserve / hold kare (direct, online, anya)"},
- {"g":"Products","k":"stock.override","l":"Stock kam hone par bhi quotation banaye (Admin jaisa)"},
- {"g":"Quotation","k":"quotes.view_all","l":"Sabki quotation dekhe"},
- {"g":"Quotation","k":"quotes.create","l":"Quotation banaye"},
- {"g":"Quotation","k":"quotes.edit","l":"Quotation badle"},
- {"g":"Quotation","k":"quotes.delete","l":"Quotation hataye"},
- {"g":"Quotation","k":"quotes.discount_any","l":"Discount limit se upar de sake"},
- {"g":"Billing","k":"invoices.view_all","l":"Sabke bill dekhe"},
- {"g":"Billing","k":"invoices.create","l":"Bill banaye"},
- {"g":"Billing","k":"invoices.edit","l":"Bill badle"},
- {"g":"Billing","k":"invoices.delete","l":"Bill hataye"},
- {"g":"Billing","k":"payments.record","l":"Payment jode"},
- {"g":"Billing","k":"payments.delete","l":"Payment hataye"},
- {"g":"Billing","k":"purchase.manage","l":"Purchase order banaye"},
- {"g":"Billing","k":"accounts.manage","l":"Accounts: kharcha, P&L, GST, ITR report"},
- {"g":"Leads","k":"leads.view_all","l":"Sabki leads dekhe"},
- {"g":"Leads","k":"leads.create","l":"Lead jode"},
- {"g":"Leads","k":"leads.import","l":"Leads import kare"},
- {"g":"Leads","k":"leads.assign","l":"Leads kisi ko de (company leads)"},
- {"g":"Leads","k":"leads.delete","l":"Lead hataye"},
- {"g":"Leads","k":"leads.export","l":"Leads Excel nikale"},
- {"g":"Reminders","k":"reminders.view_all","l":"Sabke reminder dekhe"},
- {"g":"Reminders","k":"reminders.assign","l":"Doosron ko kaam / reminder de"},
- {"g":"Plants","k":"plants.view_all","l":"Saare plants dekhe"},
- {"g":"Plants","k":"plants.create","l":"Plant jode"},
- {"g":"Plants","k":"plants.verify","l":"Plant verify kare"},
- {"g":"Plants","k":"plants.delete","l":"Plant hataye"},
- {"g":"Commission","k":"earnings.view_all","l":"Sabka commission dekhe"},
- {"g":"Commission","k":"earnings.manage","l":"Commission jode / paid kare"},
- {"g":"Documents","k":"docs.view","l":"Documents dekhe"},
- {"g":"Documents","k":"docs.upload","l":"Document upload kare"},
- {"g":"Documents","k":"docs.folders","l":"Folder banaye / lock kare"},
- {"g":"Documents","k":"docs.delete","l":"Kisi ka bhi document hataye"},
- {"g":"Orders","k":"orders.view","l":"Store ke order + website enquiry dekhe"},
- {"g":"Orders","k":"orders.manage","l":"Order / enquiry ka status badle"},
- {"g":"Team","k":"team.stats","l":"Team ka kaam (performance) dekhe"},
- {"g":"Team","k":"users.manage","l":"Users + permission sambhale"},
- {"g":"Admin","k":"settings.manage","l":"Company settings badle"},
- {"g":"Admin","k":"activity.view","l":"Activity record dekhe"},
- {"g":"Admin","k":"reports.view","l":"Reports dekhe"},
- {"g":"Privacy","k":"privacy.see_mobile","l":"Customer ka poora mobile number dekhe"},
- {"g":"Marketing","k":"marketing.view","l":"Marketing & Grow section dekhe"},
- {"g":"Marketing","k":"marketing.manage","l":"Marketing channels / agency badle"},
- {"g":"Marketing","k":"marketing.leads","l":"Lead kahan se aayi (source report) dekhe"},
- {"g":"Dashboard & Analytics","k":"dashboard.money","l":"Dashboard par kamai, baki aur collection ke aankde dekhe"},
- {"g":"Dashboard & Analytics","k":"dashboard.team","l":"Dashboard par poori team ka kaam dekhe (warna sirf apna)"},
- {"g":"Dashboard & Analytics","k":"analytics.view","l":"Analytics menu dekhe"},
- {"g":"Dashboard & Analytics","k":"analytics.all","l":"Poori company ka analytics dekhe (warna sirf apna)"},
- {"g":"Accounts & Reports","k":"accounts.view","l":"Accounts dekhe (ledger, baki, kharcha) - sirf padhna"},
- {"g":"Accounts & Reports","k":"reports.download","l":"Reports download kare"},
- {"g":"Download / Upload","k":"sheets.download","l":"Edit ke liye sheet download kare"},
- {"g":"Download / Upload","k":"sheets.upload","l":"Edit ki hui sheet upload kare"},
- {"g":"Download / Upload","k":"sheets.manage","l":"Sabki sheet ke code dekhe aur band kare"},
- {"g":"Download / Upload","k":"items.export","l":"Inventory / stock Excel nikale"},
- {"g":"Products","k":"stock.view","l":"Stock, reserve aur expiry report dekhe"}
-]'::jsonb $$;
 
 update public.crm_roles set perms = '{"dashboard.money":true,"dashboard.team":true,"analytics.view":true,"analytics.all":true,"accounts.view":true,"reports.download":true,"sheets.download":true,"sheets.upload":true,"items.export":true,"stock.view":true}'::jsonb || coalesce(perms, '{}'::jsonb) where role = 'manager';
 update public.crm_roles set perms = '{"stock.view":true,"analytics.view":true}'::jsonb || coalesce(perms, '{}'::jsonb) where role = 'staff';
@@ -399,4 +295,34 @@ begin
             from public.crm_records r where r.kind = 'invoice' and r.deleted_at is null and r.status in ('due', 'partial') and public.crm_vis(s, r)) q where bal > 0.004 group by party_id) z;
   end if;
   return jsonb_build_object('side', side, 'rows', rows, 'total', (select coalesce(sum((x ->> 'total')::numeric), 0) from jsonb_array_elements(rows) x));
+end $$;
+
+-- ---------------------------------------------------------------- ledger (party statement or day book)
+create or replace function public.crm_ledger(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
+declare s public.crm_ses := public.crm_session(p ->> 'token'); pid bigint := nullif(p ->> 'party_id', '')::bigint; fr date := coalesce(nullif(p ->> 'from', '')::date, (date_trunc('month', public.crm_today()))::date); t date := coalesce(nullif(p ->> 'to', '')::date, public.crm_today());
+        opening numeric := 0; lines jsonb; pname text;
+begin
+  if not (public.crm_can(s, 'accounts.view') or public.crm_can(s, 'accounts.manage') or public.crm_can(s, 'invoices.view_all')) then raise exception 'Aapko is kaam ki permission nahi hai'; end if;
+  if t < fr or t - fr > 1100 then raise exception 'Sahi tareekh range chunein (max 3 saal)'; end if;
+  create temp table if not exists _lg(d date, typ text, ref text, party_id bigint, party text, note text, debit numeric, credit numeric, cash_in numeric, cash_out numeric, sk bigint) on commit drop;
+  truncate _lg;
+  insert into _lg select public.crm_rdate(r), 'Bill', r.ref, r.party_id, coalesce((select title from public.crm_records pp where pp.id = r.party_id), ''), r.status, r.amount, 0, 0, 0, r.id
+    from public.crm_records r where r.kind = 'invoice' and r.deleted_at is null and r.status <> 'cancelled' and public.crm_vis(s, r) and (pid is null or r.party_id = pid);
+  insert into _lg select public.crm_pdate(r), 'Payment mila', r.ref, r.party_id, coalesce((select title from public.crm_records pp where pp.id = r.party_id), ''), coalesce(r.data ->> 'mode', ''), 0, r.amount, r.amount, 0, r.id
+    from public.crm_records r where r.kind = 'payment' and r.deleted_at is null and public.crm_vis(s, r) and (pid is null or r.party_id = pid);
+  if public.crm_can(s, 'purchase.manage') or public.crm_can(s, 'accounts.view') or public.crm_can(s, 'accounts.manage') or public.crm_is_admin(s) then
+    insert into _lg select public.crm_rdate(r), 'Purchase', r.ref, r.party_id, coalesce((select title from public.crm_records pp where pp.id = r.party_id), ''), r.status, 0, r.amount, 0, 0, r.id
+      from public.crm_records r where r.kind = 'purchase' and r.deleted_at is null and r.status = 'received' and (pid is null or r.party_id = pid) and public.crm_vis(s, r);
+    insert into _lg select (pz ->> 'date')::date, 'Supplier ko payment', r.ref, r.party_id, coalesce((select title from public.crm_records pp where pp.id = r.party_id), ''), coalesce(pz ->> 'mode', ''), public.crm_num(pz -> 'amount'), 0, 0, public.crm_num(pz -> 'amount'), r.id
+      from public.crm_records r cross join lateral jsonb_array_elements(coalesce(r.data -> 'pays', '[]'::jsonb)) pz where r.kind = 'purchase' and r.deleted_at is null and (pid is null or r.party_id = pid) and public.crm_vis(s, r);
+    if pid is null then
+      insert into _lg select e.spent_on, 'Kharcha', e.category, null, e.vendor, e.mode, 0, 0, 0, case when e.mode = 'credit' then 0 else e.amount end, e.id from public.crm_expenses e where e.deleted_at is null;
+    end if;
+  end if;
+  select coalesce(sum(debit - credit), 0) into opening from _lg where d < fr and pid is not null;
+  select coalesce(jsonb_agg(jsonb_build_object('d', d, 'typ', typ, 'ref', ref, 'party', party, 'note', note, 'debit', debit, 'credit', credit, 'cash_in', cash_in, 'cash_out', cash_out, 'bal', bal) order by d, typ, sk), '[]'::jsonb) into lines
+    from (select z.*, opening + sum(debit - credit) over (order by d, typ, sk rows unbounded preceding) bal from _lg z where d between fr and t) y;
+  select title into pname from public.crm_records where id = pid;
+  return jsonb_build_object('from', fr, 'to', t, 'party_id', pid, 'party', pname, 'opening', opening, 'lines', lines,
+    'tot', (select jsonb_build_object('debit', coalesce(sum(debit), 0), 'credit', coalesce(sum(credit), 0), 'cash_in', coalesce(sum(cash_in), 0), 'cash_out', coalesce(sum(cash_out), 0)) from _lg where d between fr and t));
 end $$;

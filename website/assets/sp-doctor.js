@@ -10,6 +10,7 @@
 (function () {
   'use strict';
   if (window.SPDoctor) return;
+  var CS = document.currentScript, BASE = CS && CS.src ? CS.src.replace(/[^\/]*$/, '') : '';   /* sp-share.js sits next to this file and loads only when someone taps Share */
   var PHONE = String(window.SP_DOCTOR_PHONE || '9621050636').replace(/\D/g, '').slice(-10);
   var OCR_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
 
@@ -53,6 +54,7 @@
     help: ['Talk to a Sunpowers engineer', 'Sunpowers इंजीनियर से बात करें'],
     help_s: ['Free advice on call — service visit if needed.', 'कॉल पर मुफ़्त सलाह — ज़रूरत हो तो सर्विस विज़िट।'],
     again: ['Check another problem', 'दूसरी समस्या जाँचें'],
+    share: ['📤 Share this report', '📤 यह रिपोर्ट शेयर करें'], rep_t: ['Sunpowers — Solar Error Report', 'Sunpowers — सोलर एरर रिपोर्ट'], rep_f: ['Need help? Call', 'मदद चाहिए? कॉल करें'],
     see: ['What do you see? (tick all that apply)', 'आपको क्या दिख रहा है? (जो-जो सही हो, टिक करें)'],
     beta: ['Beta', 'बीटा'],
     beta_note: ['Photo check is a rough estimate (light and haze only) — the checklist below matters more.', 'फ़ोटो जाँच सिर्फ़ अंदाज़ा है (रोशनी और धुंधलापन) — नीचे की चेकलिस्ट ज़्यादा ज़रूरी है।'],
@@ -443,7 +445,7 @@
   function cta(extra) {
     return '<div class="spd-cta"><b>📞 ' + esc(t('help')) + '</b><small>' + esc(t('help_s')) + ' • 0' + PHONE + '</small><div class="r">' +
       '<a class="spd-btn s" data-spd-call href="' + tel() + '">📞 ' + esc(t('call')) + '</a><a class="spd-btn g" data-spd-wa target="_blank" rel="noopener" href="' + esc(waUrl(extra)) + '">' + esc(t('wa')) + '</a></div></div>' +
-      '<div class="spd-row"><button type="button" class="spd-btn o w" data-spd="home">↺ ' + esc(t('again')) + '</button></div>';
+      '<div class="spd-row"><button type="button" class="spd-btn p w" data-spd="share">' + esc(t('share')) + '</button></div><div class="spd-row"><button type="button" class="spd-btn o w" data-spd="home">↺ ' + esc(t('again')) + '</button></div>';
   }
   function sevTag(s) { return '<span class="spd-tag ' + s + '">' + esc(t('sev_' + s)) + '</span>'; }
   function catCard(id, label) {
@@ -525,11 +527,33 @@
     if (window.SPGate) SPGate.log('detector', 'Problems selected: ' + rows.map(function (x) { return x.en; }).join(', ').slice(0, 300));
     frame(html + '<div class="spd-warn">⚠️ ' + esc(t('never')) + '</div>' + cta('Problem: ' + rows.map(function (x) { return x.en; }).join(', ')), true);
   }
+  /* Round 32: share the result — link page (details + PDF) or the real PDF file. Built from what is on screen. */
+  function shareReport() {
+    var cards = [].slice.call(box.querySelectorAll('.spd-res')), head = [].slice.call(box.querySelectorAll('.h')).filter(function (x) { return !x.closest('.spd-res'); })[0], title = head ? head.textContent.replace(/\s+/g, ' ').trim() : t('rep_t');
+    if (!cards.length) return;
+    var rows = cards.map(function (c) {
+      var g = function (q) { var x = c.querySelector(q); return x ? x.textContent.replace(/\s+/g, ' ').trim() : ''; };
+      return { tag: g('.spd-tag'), code: g('.spd-code'), h: g('h3'), p: g('p'), steps: [].slice.call(c.querySelectorAll('li')).map(function (li) { return li.textContent.replace(/\s+/g, ' ').trim(); }) };
+    });
+    var d = new Date(), ds = d.getDate() + '-' + (d.getMonth() + 1) + '-' + d.getFullYear(), A = function (x) { return esc(x); };
+    var html = '<div style="font-family:Arial,\'Noto Sans Devanagari\',sans-serif;padding:24px;color:#14231a;width:700px"><h2 style="margin:0;color:#0b2e1f">' + A(t('rep_t')) + '</h2><div style="color:#5d6f62;font-size:12px;margin:2px 0 10px">' + ds + '</div><div style="border-top:3px solid #1e8e3e;margin-bottom:12px"></div>' +
+      '<h3 style="margin:0 0 10px;font-size:16px">' + A(title) + '</h3>' + rows.map(function (r) {
+        return '<div style="border:1px solid #d7e3d5;border-radius:8px;padding:10px 12px;margin-bottom:10px;page-break-inside:avoid">' + (r.tag ? '<b style="font-size:11px;text-transform:uppercase;color:#a33">' + A(r.tag) + '</b> ' : '') + (r.code ? '<span style="font-size:12px;color:#555">' + A(r.code) + '</span>' : '') +
+          '<div style="font-weight:800;margin:4px 0">' + A(r.h) + '</div>' + (r.p ? '<div style="font-size:13px">' + A(r.p) + '</div>' : '') + (r.steps.length ? '<ul style="margin:6px 0 0;padding-left:18px;font-size:13px">' + r.steps.map(function (x) { return '<li>' + A(x) + '</li>'; }).join('') + '</ul>' : '') + '</div>';
+      }).join('') + '<div style="font-size:12px;background:#fff6e5;border:1px solid #f0d9a3;padding:8px 10px;border-radius:6px;margin-top:6px">\u26A0\uFE0F ' + A(t('never')) + '</div><p style="font-size:13px;margin-top:14px"><b>' + A(t('rep_f')) + ' 0' + PHONE + '</b></p></div>';
+    var det = rows.slice(0, 6).map(function (r) { return [(r.tag ? r.tag + ' \u2014 ' : '') + (r.code || r.h).slice(0, 70), (r.p || r.h).slice(0, 230)]; });
+    var go = function () {
+      SPSHARE.open({ kind: 'doctor', title: title.slice(0, 120) || t('rep_t'), subtitle: t('rep_t'), name: 'Sunpowers-Error-Report-' + ds + '.pdf', html: html, details: det, phone: '', brand: 'Sunpowers', brandPhone: PHONE,
+        text: t('rep_t') + '\n' + title + '\n' + rows.slice(0, 2).map(function (r) { return '\u2022 ' + (r.h || r.code); }).join('\n') });
+    };
+    if (window.SPSHARE) return go();
+    var sc = document.createElement('script'); sc.src = BASE + 'sp-share.js?v=3'; sc.onload = go; sc.onerror = function () { try { window.print(); } catch (e) {} }; document.head.appendChild(sc);
+  }
   function onClick(e) {
     var b = e.target.closest('[data-spd]'); if (!b) { if (e.target === ov) close(); return; }
     var a = b.getAttribute('data-spd');
     if (a === 'close') close(); else if (a === 'home') home(); else if (a === 'inverter') inverter(); else if (a === 'panel') checklist(PANEL, 'panel'); else if (a === 'other') checklist(OTHER, 'other');
-    else if (a === 'find') result(); else if (a === 'advice') advice();
+    else if (a === 'find') result(); else if (a === 'advice') advice(); else if (a === 'share') { shareReport(); return; }
     var bd = box && box.querySelector('.spd-bd'); if (bd && a !== 'find' && a !== 'advice') box.scrollTop = 0; else if (box) box.scrollTop = 0;
   }
   function onKey(e) { if (!ov) return; if (e.key === 'Escape') return close(); if (e.key === 'Enter' && e.target && e.target.id === 'spdCode') { e.preventDefault(); result(); } if (e.key === 'Tab' && box) { var f = box.querySelectorAll('button,a[href],input,select'); if (!f.length) return; var first = f[0], last = f[f.length - 1]; if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); } } }

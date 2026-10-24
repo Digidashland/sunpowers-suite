@@ -1,34 +1,8 @@
 -- ============================================================================
--- SUNPOWERS — NAYA PROJECT SETUP — part 5 of 15
--- Naya (khali) Supabase project: pehle F01..F06, phir 2-UPDATE ke U01..U09.
--- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (F01 -> F06, phir U01 -> U09). Safe to re-run.
+-- SUNPOWERS — NAYA PROJECT SETUP — part 5 of 18
+-- Naya (khali) Supabase project: pehle F01..F06, phir 2-UPDATE ke U01..U12.
+-- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (F01 -> F06, phir U01 -> U12). Safe to re-run.
 -- ============================================================================
-
-create or replace function public.crm_auth_pin_valid(f jsonb, p_pin text) returns void language plpgsql immutable as $$
-begin
-  if coalesce(p_pin, '') !~ ('^\d{' || (f ->> 'pin_len') || '}$') then raise exception 'PIN % ank ka hona chahiye', f ->> 'pin_len'; end if;
-  if p_pin ~ '^(\d)\1+$' or p_pin in ('1234', '4321', '123456', '654321', '012345', '0123') then raise exception 'Itna aasaan PIN nahi — doosra PIN chunein'; end if;
-end $$;
-
-create or replace function public.crm_auth_set_q(f jsonb, p jsonb) returns void language plpgsql security definer set search_path = public, extensions as $$
-declare uid bigint := (f ->> 'uid')::bigint;
-begin
-  if coalesce(p ->> 'q1', '') = '' or coalesce(p ->> 'q2', '') = '' or p ->> 'q1' = p ->> 'q2' or coalesce(trim(p ->> 'a1'), '') = '' or coalesce(trim(p ->> 'a2'), '') = '' then
-    raise exception '2 alag security sawal aur unke jawab likhein'; end if;
-  if uid = 0 then
-    update public.crm_auth_admin set q1 = left(p ->> 'q1', 120), a1 = crypt(lower(trim(p ->> 'a1')), gen_salt('bf')), q2 = left(p ->> 'q2', 120), a2 = crypt(lower(trim(p ->> 'a2')), gen_salt('bf')), q_fail = 0, updated_at = now() where id = 1;
-  else
-    update public.crm_users set q1 = left(p ->> 'q1', 120), a1 = crypt(lower(trim(p ->> 'a1')), gen_salt('bf')), q2 = left(p ->> 'q2', 120), a2 = crypt(lower(trim(p ->> 'a2')), gen_salt('bf')), q_fail = 0 where id = uid;
-  end if;
-end $$;
-
-create or replace function public.crm_auth_store_pin(f jsonb, p_pin text) returns void language plpgsql security definer set search_path = public, extensions as $$
-declare uid bigint := (f ->> 'uid')::bigint;
-begin
-  perform public.crm_auth_pin_valid(f, p_pin);
-  if uid = 0 then update public.crm_auth_admin set pin_hash = crypt(p_pin, gen_salt('bf')), pin_fail = 0, updated_at = now() where id = 1;
-  else update public.crm_users set pin_hash = crypt(p_pin, gen_salt('bf')), pin_fail = 0 where id = uid; end if;
-end $$;
 
 -- 3) PIN login: trusted device, or new device with an OTP ticket
 create or replace function public.crm_auth_pin(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$

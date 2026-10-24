@@ -6,19 +6,39 @@
   var IST = { due: ['Baaki', 'r'], partial: ['Aadha mila', 'o'], paid: ['Poora mila', ''] };
   var PST = { open: ['Open', 'o'], received: ['Maal aa gaya', ''], cancelled: ['Cancel', 'g'] };
   var MODES = ['Cash', 'UPI', 'Bank Transfer', 'Cheque', 'Card', 'Finance / Loan', 'Other'];
-  C.billPill = function (x) { var m = x.kind === 'invoice' ? IST : x.kind === 'purchase' ? PST : QST, s = m[x.status] || [x.status, 'g']; return C.pill(s[0], s[1]); };
+  C.billPill = function (x) { if (x.kind === 'invoice' && x.data && x.data.cancelled) return C.pill('Cancelled – non refundable', 'r'); var m = x.kind === 'invoice' ? IST : x.kind === 'purchase' ? PST : QST, s = m[x.status] || [x.status, 'g']; return C.pill(s[0], s[1]); };
   var T = { quote: 'Quotation', invoice: 'Bill', purchase: 'Purchase order' };
   function snap(p) { var d = p.data || {}; return { name: p.title, mobile: p.mobile || '', email: d.email || '', address: d.address || '', city: d.city || '', district: d.district || '', state: d.state || '', country: d.country || '', pincode: d.pincode || '', gstin: d.gstin || '' }; }
   function calc(lines, disc) { var sub = 0, g = 0; lines.forEach(function (l) { var a = num(l.qty) * num(l.price); sub += a; g += a * num(l.gst) / 100; }); sub = C.r2(sub); g = C.r2(g); return { subtotal: sub, gst_total: g, discount: C.r2(disc), grand: C.r2(sub + g - num(disc)) }; }
   function lineFromItem(it, type) {
     var d = it.data || {}, l = { kind: d.type === 'project' ? 'project' : 'product', item_id: it.id, title: d.title || '', name: d.name || it.title, desc: d.desc || '', more: d.more || '', hsn: d.hsn || '', unit: d.unit || '', qty: 1, price: num(type === 'purchase' && num(d.cost_price) ? d.cost_price : d.price), gst: num(d.gst), min: num(d.min_price) };
-    if (l.kind === 'project') { l.proj_items = C.clone(d.proj_items || []); l.show_prices = !!d.show_prices; }
+    if (l.kind === 'project') { l.proj_items = C.clone(d.proj_items || []); l.show_prices = !!d.show_prices; if (d.kw) l.kw = d.kw; }
     return l;
   }
+
+  /* Template ka naam = quotation ka title, lekin customer ka naam / mobile hata kar (template me customer ki koi detail nahi jaati) */
+  function tplTitle(title, party) {
+    var t = String(title || '');
+    var toks = String(party && party.name || '').split(/\s+/).filter(function (w) { return w.length >= 4 && !/^(solar|system|plant|panel|kit|ongrid|on-grid|offgrid|hybrid|home|shop|rooftop)$/i.test(w); });
+    [party && party.name, party && party.mobile].concat(toks).forEach(function (w) {
+      w = String(w || '').trim(); if (w.length < 3) return;
+      t = t.replace(new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'ig'), ' ');
+    });
+    t = t.replace(/\b[6-9]\d{9}\b/g, ' ').replace(/\s+/g, ' ').replace(/^[\s\-–—|,:.()]+|[\s\-–—|,:.()]+$/g, '').replace(/\(\s*\)/g, '').trim();
+    return t.slice(0, 160);
+  }
+  /* kaun sa quotation Template / Project ban sakta hai: Residential/Commercial/Industrial/VFD = haan; Items only / Service = nahi (tick se badal sakte hain) */
+  var PROJ_T = ['Residential', 'Commercial', 'Industrial', 'VFD'];
+  function tplOk(d) { return PROJ_T.indexOf(d.ctype) >= 0; }
+  /* Round 37: title apne aap — type + kW (customer ka naam kabhi nahi) */
+  var TT = { 'Residential': 'Rooftop Solar — Residential', 'Commercial': 'Rooftop Solar — Commercial', 'Industrial': 'Rooftop Solar — Industrial', 'VFD': 'Solar Pump / VFD', 'Items only': 'Solar Items Supply', 'Service': 'Solar Service', 'AMC only': 'AMC / Maintenance', 'Site visit only': 'Site Visit' };
+  function autoTitle(d) { if (!d.ctype) return ''; var k = parseFloat(d.kw); return (PROJ_T.indexOf(d.ctype) >= 0 && k > 0 ? k + ' kW ' : '') + (TT[d.ctype] || d.ctype); }
+  function kwOf(s) { var m = /(\d+(?:\.\d+)?)\s*kw\b/i.exec(String(s || '')); return m ? m[1] : ''; }
 
   /* quotation ki lines → Products & Templates me naya "Template" (dobara use ke liye) */
   async function saveAsProject(x) {
     if (!x.lines.length) return C.toast('Pehle items jodein', true);
+    if (!tplOk(x)) return C.toast('Sirf project wali quotation (Residential / Commercial / Industrial / VFD) Template ban sakti hai', true);
     var t = calc(x.lines, 0), pi = [];
     x.lines.forEach(function (l) {
       if ((l.kind || 'product') === 'project' && (l.proj_items || []).length) l.proj_items.forEach(function (p) { pi.push({ item_id: p.item_id || null, title: p.title || '', name: p.name, desc: p.desc || '', qty: C.r2(num(p.qty) * (num(l.qty) || 1)), price: p.price || '' }); });
@@ -27,8 +47,9 @@
     var g = x.lines.length === 1 ? num(x.lines[0].gst) : (function () { var c = {}; x.lines.forEach(function (l) { var k = num(l.gst); c[k] = (c[k] || 0) + num(l.qty) * num(l.price); }); return +Object.keys(c).sort(function (a, b) { return c[b] - c[a]; })[0]; })();
     var projs = []; try { projs = (await C.list('item', { limit: 3000 })).filter(function (i) { return (i.data.type || 'product') === 'project' && i.status !== 'inactive'; }); } catch (e) {}
     var targetSel = projs.length ? C.f('Kahan save karein?', C.sel('target', [['', 'Naya project banayein']].concat(projs.map(function (i) { return [String(i.id), 'Update: ' + i.title]; })), ''), 'full') : '';
+    var tt = tplTitle(x.qtitle, x.party);
     var m = C.modal({ title: 'Add in Template list', body: '<p class="mute sm" style="margin-bottom:10px">Ye quotation ki saari lines ek <b>Template</b> ban jayengi — agli baar "Product / Template jodein" se ek click me.</p><form id="tpf" class="fg">' + targetSel +
-      C.f('Template ka naam *', C.inp('name', x.lines.length === 1 ? x.lines[0].name : '', 'maxlength="160" placeholder="Jaise: 3 kW On-grid Residential"'), 'full') + C.f('Category', C.inp('category', 'Residential', 'list="pcats"')) +
+      (tt.length >= 2 ? '<div class="f full"><label>Project ka title</label><div style="font-weight:700;font-size:15px">' + esc(tt) + '</div><input type="hidden" name="name" value="' + esc(tt) + '"><div class="xs mute">Quotation wala hi title — customer ka naam / detail template me nahi jaati.</div></div>' : C.f('Template ka naam *', C.inp('name', x.lines.length === 1 ? x.lines[0].name : '', 'maxlength="160" placeholder="Jaise: 3 kW On-grid Residential"'), 'full')) + C.f('System size (kW) <span class="o">(optional — title me na ho tab bhi dikhega)</span>', C.inp('kw', String(x.kw || '').trim() || kwOf(tt) || kwOf(x.lines.map(function (l) { return l.name; }).join(' ')), 'inputmode="decimal" maxlength="6" placeholder="jaise 3 ya 5.5"')) + C.f('Category', C.inp('category', 'Residential', 'list="pcats"')) +
       C.f('Kul keemat (₹, bina GST) *', C.inp('price', C.r2(t.subtotal), 'inputmode="decimal"')) + C.f('GST %', C.sel('gst', [['0', '0%'], ['5', '5%'], ['12', '12%'], ['18', '18%'], ['28', '28%']], String(g || 12))) +
       '<div class="f full"><label class="ck"><input type="checkbox" name="show_prices"> Quotation me andar wale items ka rate bhi dikhayein</label></div><div class="full xs mute">' + pi.length + ' cheezein shamil hongi: ' + esc(pi.map(function (p) { return p.name + ' × ' + p.qty; }).join(', ')) + '</div></form><datalist id="pcats"><option value="Residential"><option value="Commercial"><option value="Industrial"><option value="VFD / Pump"></datalist>',
       foot: '<button class="btn btn-o" data-close>Cancel</button><button class="btn btn-p" data-ok>' + C.ic('check') + ' Save project</button>' });
@@ -36,8 +57,8 @@
       var f = $('#tpf', m.el), o = C.form(f); if (!C.need(f, ['name', 'price'])) return;
       var ex = o.target ? projs.filter(function (i) { return String(i.id) === String(o.target); })[0] : null;
       try {
-        if (ex) { await C.save('item', ex.id, Object.assign({}, ex.data, { type: 'project', name: o.name, category: o.category, price: C.r2(o.price), gst: num(o.gst), proj_items: pi, show_prices: !!o.show_prices }), { status: ex.status || 'active' }, 'Template update ho gaya ✔'); }
-        else await C.save('item', null, { type: 'project', name: o.name, title: '', category: o.category, price: C.r2(o.price), gst: num(o.gst), unit: 'Set', proj_items: pi, show_prices: !!o.show_prices, desc: '' }, { status: 'active' }, 'Template list me save ho gaya ✔');
+        if (ex) { await C.save('item', ex.id, Object.assign({}, ex.data, { type: 'project', name: o.name, category: o.category, price: C.r2(o.price), gst: num(o.gst), proj_items: pi, show_prices: !!o.show_prices, kw: String(o.kw || '').trim() }), { status: ex.status || 'active' }, 'Template update ho gaya ✔'); }
+        else await C.save('item', null, { type: 'project', name: o.name, title: '', category: o.category, price: C.r2(o.price), gst: num(o.gst), unit: 'Set', proj_items: pi, show_prices: !!o.show_prices, kw: String(o.kw || '').trim(), desc: '' }, { status: 'active' }, 'Template list me save ho gaya ✔');
         m.close();
       } catch (e) {}
     };
@@ -50,6 +71,8 @@
     if (q.copy) { try { var src = await C.get(q.copy); d = C.clone(src.data); delete d.invoice_id; delete d.invoice_ref; delete d.pre_expire; delete d.expired_on; delete d.renewals; d.date = C.today(); d.valid_till = C.addDays(C.today(), 15); party = await C.get(src.party_id); } catch (e) {} }
     if (rec && rec.party_id) { try { party = await C.get(rec.party_id); } catch (e) { party = { id: rec.party_id, title: rec.party_name || d.party && d.party.name, data: {} }; } }
     if (!party && q.party) { try { party = await C.get(q.party); } catch (e) {} }
+    if (isNew && type === 'quote' && q.ctype && ['Residential', 'Commercial', 'Industrial', 'VFD', 'Items only', 'Service', 'AMC only', 'Site visit only'].indexOf(q.ctype) >= 0) d.ctype = q.ctype; /* Round 33: "Naya Kaam" picks the type up front */
+    if (isNew && type === 'quote' && party && !d.ctype && party.data && (party.data.cust_kind === 'product' || party.data.cust_kind === 'service')) d.ctype = party.data.cust_kind === 'service' ? 'Service' : 'Items only'; /* product / service customer: shorter flow */
     d.lines = d.lines || [];
     if (isNew && type === 'quote' && q.pre) {
       try {
@@ -70,7 +93,7 @@
     el.innerHTML = '<div class="crumb"><a href="#/' + (type === 'quote' ? 'quotes' : 'billing' + (type === 'purchase' ? '?tab=purchase' : '')) + '">' + T[type] + '</a>' + C.ic('right') + '<span>' + (isNew ? 'Nayi' : esc(rec.ref)) + '</span></div>' +
       '<div class="ph"><div><h1>' + (isNew ? (type === 'purchase' ? 'Naya purchase order' : 'Nayi quotation') : T[type] + ' badlein — ' + esc(rec.ref)) + '</h1></div></div>' +
       '<div class="grid" style="grid-template-columns:minmax(0,1fr) 340px;align-items:start" id="edg"><div class="stack">' +
-      (type === 'quote' ? '<div class="card qtcard"><div class="f"><label>Quotation ka Title * <span class="o">(list me customer ke saath dikhega)</span></label><input class="inp" data-k="qtitle" maxlength="120" value="' + esc(d.qtitle || '') + '" placeholder="Jaise: 5 kW Rooftop On-grid — Sharma ji"></div><div class="f" style="margin-top:10px"><label>Customer type * <span class="o">(bhejne se pehle zaroori — Subsidy sirf Residential me)</span></label><select class="inp" data-k="ctype"><option value="">— chunein —</option>' + C.CTYPES.map(function (t) { return '<option' + (d.ctype === t ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></div><div class="f" style="margin-top:10px"><label>Plant capacity (kW) * <span class="o">(Plant / project customer ke liye zaroori — Items only me nahi)</span></label><input class="inp" data-k="kw" inputmode="decimal" maxlength="8" value="' + esc(d.kw || '') + '" placeholder="Jaise: 5"></div></div>' : '') + '<div class="card"><div class="hd"><h3>' + (type === 'purchase' ? 'Supplier' : 'Customer') + '</h3><button class="btn btn-o btn-sm" data-act="party" id="pbtn">' + C.ic('users') + ' ' + (party ? 'Badlein' : 'Sab ' + (type === 'purchase' ? 'suppliers' : 'customers')) + '</button></div><div id="pbox"></div></div>' +
+      '<div class="card"><div class="hd"><h3>' + (type === 'purchase' ? 'Supplier' : 'Customer') + '</h3><button class="btn btn-o btn-sm" data-act="party" id="pbtn">' + C.ic('users') + ' ' + (party ? 'Badlein' : 'Sab ' + (type === 'purchase' ? 'suppliers' : 'customers')) + '</button></div><div id="pbox"></div></div>' + (type === 'quote' ? '<div class="card qtcard"><div class="f"><label>Quotation / Project ka Title * <span class="o">(apne aap bharta hai — badal sakte hain; customer ka naam na likhein)</span></label><input class="inp" data-k="qtitle" maxlength="120" value="' + esc(d.qtitle || '') + '" placeholder="Customer aur type chunne par apne aap aayega"></div><div class="f" style="margin-top:10px"><label>Customer type * <span class="o">(bhejne se pehle zaroori — Subsidy sirf Residential me)</span></label><select class="inp" data-k="ctype"><option value="">— chunein —</option>' + C.CTYPES.map(function (t) { return '<option' + (d.ctype === t ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></div><div class="f" style="margin-top:10px"><label>Plant capacity (kW) * <span class="o">(Plant / project customer ke liye zaroori — Items only me nahi)</span></label><input class="inp" data-k="kw" inputmode="decimal" maxlength="8" value="' + esc(d.kw || '') + '" placeholder="Jaise: 5"></div></div>' : '') +
       '<div class="card"><div class="hd"><h3>Items</h3><div class="row wrap"><button class="btn btn-p btn-sm" data-act="add">' + C.ic('box') + ' Product / Template jodein</button><button class="btn btn-o btn-sm" data-act="newitem">' + C.ic('plus') + ' Inventory me naya item</button></div></div><div class="doc-lines" id="lines"></div></div>' +
       '<div class="card"><div class="fg">' + C.f('Tareekh', '<input class="inp" type="date" data-k="date" value="' + esc(d.date || C.today()) + '">') +
       (type === 'quote' ? C.f('Kab tak valid', '<input class="inp" type="date" data-k="valid_till" value="' + esc(d.valid_till || '') + '">') + C.f('Bhejne ki yaad (reminder)', '<input class="inp" type="date" data-k="send_on" value="' + esc(d.send_on || '') + '"><span class="hint">Is din "Aaj ke kaam" me aayegi</span>') : '') +
@@ -78,12 +101,29 @@
       (type === 'purchase' ? C.f('Ship to / Site address <span class="o">(alag ho to)</span>', '<textarea class="inp" rows="2" data-k="ship">' + esc(d.ship || '') + '</textarea>', 'full') :
         '<div class="f full"><label class="ck"><input type="checkbox" id="shipSame"' + (shipSame ? ' checked' : '') + '> Shipping / site address billing address jaisa hi hai</label><div id="shipBox" style="margin-top:10px"' + (shipSame ? ' hidden' : '') + '>' + C.addrFields('ship_', shipInit, { defState: C.company().state || 'Uttar Pradesh' }) + '</div></div>') +
       C.f('Terms &amp; Notes', '<textarea class="inp" rows="4" data-k="notes">' + esc(d.notes || '') + '</textarea>', 'full') + '</div></div></div>' +
-      '<div class="card" style="position:sticky;top:80px"><h3 style="margin-bottom:12px">Hisab</h3><div class="totals" id="tot" style="width:100%"></div>' + (type === 'quote' && !canAny ? '<p class="hint" style="margin-top:8px">Aapki discount limit: ' + lim + '%</p>' : '') + (type === 'quote' ? '<label class="ck" style="margin-top:10px"><input type="checkbox" id="sip"' + (d.show_item_prices === false ? '' : ' checked') + '> Quotation me har item ka alag rate dikhayein</label><p class="hint">Band rakhne par customer ko sirf item, qty aur kul total dikhega.</p>' : '') + '<div class="stack" style="margin-top:14px"><button class="btn btn-p btn-block" data-act="save">' + C.ic('check') + ' Save karein</button><button class="btn btn-o btn-block" data-act="prev">' + C.ic('eye') + ' Preview</button>' + (type === 'quote' ? '<button class="btn btn-wa btn-block" data-act="savesend">' + C.ic('wa') + ' Save quotation and send</button>' : '') + (canProj ? '<button class="btn btn-o btn-block" data-act="toproj">' + C.ic('plant') + ' Add in Template list</button>' : '') + '<a class="btn btn-g btn-block" href="' + (isNew ? '#/' + (type === 'quote' ? 'quotes' : 'billing') : '#/' + type + '/' + rec.id) + '">Cancel</a></div></div></div>';
+      '<div class="card" style="position:sticky;top:80px"><h3 style="margin-bottom:12px">Hisab</h3><div class="totals" id="tot" style="width:100%"></div>' + (type === 'quote' && !canAny ? '<p class="hint" style="margin-top:8px">Aapki discount limit: ' + lim + '%</p>' : '') + (type === 'quote' ? '<label class="ck" style="margin-top:10px"><input type="checkbox" id="sip"' + (d.show_item_prices === false ? '' : ' checked') + '> Quotation me har item ka alag rate dikhayein</label><p class="hint">Band rakhne par customer ko sirf item, qty aur kul total dikhega.</p>' : '') + '<div class="stack" style="margin-top:14px"><button class="btn btn-p btn-block" data-act="save">' + C.ic('check') + ' Save karein</button><button class="btn btn-o btn-block" data-act="prev">' + C.ic('eye') + ' Preview</button>' + (type === 'quote' ? '<button class="btn btn-wa btn-block" data-act="savesend">' + C.ic('wa') + ' Save quotation and send</button>' : '') + '<a class="btn btn-g btn-block" href="' + (isNew ? '#/' + (type === 'quote' ? 'quotes' : 'billing') : '#/' + type + '/' + rec.id) + '">Cancel</a></div></div></div>';
     if (window.innerWidth <= 1000) $('#edg', el).style.gridTemplateColumns = '1fr';
-    el.classList.add('has-savebar'); el.insertAdjacentHTML('beforeend', '<div class="savebar"><span class="grow"><span class="xs" style="color:var(--on-dark-mute)">Kul</span><br><b id="sbt">₹0</b></span><button class="btn btn-o btn-sm" data-act="prev" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.3)">' + C.ic('eye') + '</button>' + (canProj ? '<button class="btn btn-o btn-sm" data-act="toproj" title="Template list me save karein" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.3)">' + C.ic('plant') + '</button>' : '') + '<button class="btn btn-s" data-act="save">' + C.ic('check') + ' Save</button></div>');
+    el.classList.add('has-savebar'); el.insertAdjacentHTML('beforeend', '<div class="savebar"><span class="grow"><span class="xs" style="color:var(--on-dark-mute)">Kul</span><br><b id="sbt">₹0</b></span><button class="btn btn-o btn-sm" data-act="prev" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.3)">' + C.ic('eye') + '</button>' + '<button class="btn btn-s" data-act="save">' + C.ic('check') + ' Save</button></div>');
+    /* Round 37: customer chunte hi type + kW + title bhar jaate hain (jo "Naya Kaam" se pehle se chuna ho wo badalta nahi) */
+    function syncQt() {
+      if (type !== 'quote') return;
+      var ct = $('[data-k=ctype]', el), kw = $('[data-k=kw]', el), ti = $('[data-k=qtitle]', el);
+      if (ct) ct.value = d.ctype || ''; if (kw) kw.value = d.kw || '';
+      if (ti && !d.title_manual && (isNew || !String(d.qtitle || '').trim())) { d.qtitle = autoTitle(d); ti.value = d.qtitle; }
+    }
+    function applyParty() {
+      if (type !== 'quote' || !party || !isNew) return;
+      var pd = party.data || {};
+      if (!d.ctype) {
+        if (pd.cust_kind === 'service') d.ctype = 'Service'; else if (pd.cust_kind === 'product') d.ctype = 'Items only';
+        else if (PROJ_T.indexOf(pd.project_type) >= 0) d.ctype = pd.project_type;
+      }
+      if (!String(d.kw || '').trim() && PROJ_T.indexOf(d.ctype) >= 0 && parseFloat(pd.kw) > 0) d.kw = String(pd.kw);
+      syncQt();
+    }
     function drawParty() {
       var pb = $('#pbtn', el); if (pb) pb.innerHTML = C.ic('users') + ' ' + (party ? 'Badlein' : 'Sab ' + (type === 'purchase' ? 'suppliers' : 'customers'));
-      if (!party && type !== 'purchase') { C.partyInline($('#pbox', el), {}, function (p) { party = p; drawParty(); C.toast(p.title + ' chun liya ✔'); }); return; }
+      if (!party && type !== 'purchase') { C.partyInline($('#pbox', el), {}, function (p) { party = p; applyParty(); drawParty(); C.toast(p.title + ' chun liya ✔'); }); return; }
       $('#pbox', el).innerHTML = party ? '<div class="li" style="padding:0;border:0"><span class="av">' + esc(C.initials(party.title)) + '</span><span class="grow"><span class="t">' + esc(party.title) + '</span><span class="m"><span>' + esc(party.mobile || '') + '</span>' + ((party.data || {}).city ? '<span>' + esc(party.data.city) + '</span>' : '') + ((party.data || {}).gstin ? '<span>GSTIN ' + esc(party.data.gstin) + '</span>' : '') + '</span></span></div>' : '<p class="mute">Pehle ' + (type === 'purchase' ? 'supplier' : 'customer') + ' chunein</p>';
       var pa = party && party.data ? C.addrText(party.data) : ''; if (pa) $('#pbox', el).insertAdjacentHTML('beforeend', '<div class="xs mute" style="margin-top:6px;white-space:pre-line"><b>Billing:</b> ' + esc(pa) + '</div>');
     }
@@ -108,16 +148,16 @@
       });
     }
     function drawLines() { $('#lines', el).innerHTML = d.lines.length ? d.lines.map(lineHtml).join('') : C.empty('box', 'Abhi koi item nahi', 'Upar "Product / Template jodein" dabayein'); drawTot(); stkHints(); }
-    drawParty(); drawLines(); C.addrBind(el);
+    drawParty(); drawLines(); C.addrBind(el); applyParty(); syncQt();
     var ss = $('#shipSame', el); if (ss) ss.addEventListener('change', function () { shipSame = ss.checked; $('#shipBox', el).hidden = shipSame; });
     el.addEventListener('input', function (e) {
-      var t = e.target, k = t.getAttribute('data-k'); if (k) { d[k] = t.value; if (k === 'discount') updTot(); return; }
+      var t = e.target, k = t.getAttribute('data-k'); if (k) { d[k] = t.value; if (k === 'discount') updTot(); if (k === 'qtitle') d.title_manual = !!String(t.value).trim(); if (k === 'kw' && type === 'quote') syncQt(); return; }
       var box = t.closest('[data-i]'); if (!box) return; var l = d.lines[+box.getAttribute('data-i')], f = t.getAttribute('data-f'), pq = t.getAttribute('data-pq');
       if (pq != null) { l.proj_items[+pq].qty = t.value; return; }
       if (!f) return; l[f] = t.type === 'checkbox' ? t.checked : t.value;
       if (f === 'qty' || f === 'price' || f === 'gst') { $('[data-amt]', box).value = C.r2(num(l.qty) * num(l.price) * (1 + num(l.gst) / 100)); updTot(); if (f === 'qty') stkHints(); }
     });
-    el.addEventListener('change', function (e) { var t = e.target; if (t.id === 'sip') d.show_item_prices = t.checked; if (t.getAttribute('data-f') === 'show_prices') d.lines[+t.closest('[data-i]').getAttribute('data-i')].show_prices = t.checked; if (t.getAttribute('data-f') === 'price') { var bx = t.closest('[data-i]'), ln = d.lines[+bx.getAttribute('data-i')], w = $('.minw', bx); if (w) w.hidden = !(ln.min && num(ln.price) < ln.min); } });
+    el.addEventListener('change', function (e) { var t = e.target; if (type === 'quote') { if (t.getAttribute('data-k') === 'ctype') { d.ctype = t.value; syncQt(); } } if (t.id === 'sip') d.show_item_prices = t.checked; if (t.getAttribute('data-f') === 'show_prices') d.lines[+t.closest('[data-i]').getAttribute('data-i')].show_prices = t.checked; if (t.getAttribute('data-f') === 'price') { var bx = t.closest('[data-i]'), ln = d.lines[+bx.getAttribute('data-i')], w = $('.minw', bx); if (w) w.hidden = !(ln.min && num(ln.price) < ln.min); } });
     el.addEventListener('click', function (e) {
       var b;
       if ((b = e.target.closest('[data-qm],[data-qp]'))) {
@@ -143,8 +183,7 @@
     }
     C.bind(el, {
       party: async function () { if (type !== 'purchase') { party = null; drawParty(); var q0 = $('#pbox [data-piq]', el); if (q0) q0.focus(); return; } var p = await C.partyPick({ type: 'supplier', title: 'Supplier chunein', prefill: { type: 'supplier' } }); if (p) { party = p; drawParty(); } },
-      toproj: function () { saveAsProject(payload()); },
-      add: async function () { var its = await C.itemPick(type === 'purchase' ? 'product' : null, true); its.forEach(function (it) { d.lines.push(lineFromItem(it, type)); }); drawLines(); },
+      add: async function () { var its = await C.itemPick(type === 'purchase' ? 'product' : null, true); its.forEach(function (it) { var ln = lineFromItem(it, type); d.lines.push(ln); if (type === 'quote' && !String(d.kw || '').trim() && parseFloat(ln.kw) > 0 && PROJ_T.indexOf(d.ctype) >= 0) d.kw = String(ln.kw); }); drawLines(); syncQt(); },
       newitem: async function () { var r = await C.itemForm(null, 'product'); if (r) { C.cache.items = null; d.lines.push(lineFromItem(r, type)); drawLines(); } },
       prev: function () { var x = payload(), t = calc(x.lines, x.discount); Object.assign(x, t); C.modal({ title: 'Preview', size: 'wide', body: '<div class="preview">' + C.billHtml({ ref: rec ? rec.ref : '(Save ke baad number)', data: x, created_at: new Date().toISOString(), title: party ? party.title : '' }, type) + '</div>' }); },
       save: function () { doSave(false); },
@@ -163,7 +202,8 @@
   /* ================================================================ view (quotation / bill / purchase) */
   function shareText(r, type) {
     var co = C.company(), d = r.data || {}, nm = (d.party || {}).name || r.title;
-    if (type === 'quote') return 'Namaste ' + nm + ' ji 🙏\n' + (co.name || '') + ' ki taraf se aapki quotation *' + r.ref + '*\nKul: *' + money(r.amount) + '*' + (d.valid_till ? '\nValid: ' + C.fd(d.valid_till) + ' tak' : '') + '\n\nKoi sawal ho to isi number par message karein.' + (co.phone ? '\n📞 ' + co.phone : '');
+    var items = (d.lines || []).slice(0, 8).map(function (l, i) { return (i + 1) + '. ' + (l.name || '') + (l.kw ? ' (' + l.kw + ' kW)' : '') + ' × ' + (l.qty || 1) + (l.unit ? ' ' + l.unit : ''); }).join('\n') + ((d.lines || []).length > 8 ? '\n… aur ' + ((d.lines || []).length - 8) + ' items' : '');
+    if (type === 'quote') return 'Namaste ' + nm + ' ji 🙏\n' + (co.name || '') + ' ki taraf se aapki quotation *' + r.ref + '*' + (d.qtitle ? '\n' + d.qtitle : '') + (items ? '\n\n' + items : '') + '\n\nKul (GST samet): *' + money(r.amount) + '*' + (d.valid_till ? '\nValid: ' + C.fd(d.valid_till) + ' tak' : '') + '\n\nKoi sawal ho to isi number par message karein.' + (co.phone ? '\n📞 ' + co.phone : '');
     if (type === 'invoice') return 'Namaste ' + nm + ' ji 🙏\nAapka bill *' + r.ref + '* — Kul ' + money(r.amount) + (num(d.balance) > 0 ? '\nBaaki: *' + money(d.balance) + '*' + (co.upi ? '\nUPI: ' + co.upi : '') : '\nPoora payment mil gaya — dhanyavaad!') + '\n' + (co.name || '');
     return 'Namaste ' + nm + ' ji, ' + (co.name || '') + ' ka purchase order *' + r.ref + '* — kul ' + money(r.amount) + '. Kripya maal bhejein.';
   }
@@ -171,16 +211,20 @@
     var r = await C.get(id), d = r.data || {}, pays = [];
     if (type === 'invoice') { pays = (await C.list('payment', { party_id: r.party_id }).catch(function () { return []; })).filter(function (p) { return String(p.data.invoice_id) === String(r.id); }); r.payments = pays.slice().reverse(); }
     var phone = (d.party || {}).mobile || r.mobile, acts = [];
-    acts.push('<button class="btn btn-wa" data-act="share">' + C.ic('wa') + ' PDF WhatsApp</button><button class="btn btn-o" data-act="print">' + C.ic('printer') + ' Print</button>');
+    acts.push('<button class="btn btn-wa" data-act="share">' + C.ic('wa') + ' Send (WhatsApp)</button><button class="btn btn-o" data-act="pdf">' + C.ic('download') + ' PDF Download</button><button class="btn btn-o" data-act="print">' + C.ic('printer') + ' Print</button>');
     if (type === 'quote') {
       if (r.status === 'expired' && C.can('quotes.edit')) acts.push('<button class="btn btn-p" data-act="renew">' + C.ic('clock') + ' Renew (nayi validity)</button>');
       if (r.status !== 'converted' && r.status !== 'expired' && C.can('quotes.edit')) acts.push('<a class="btn btn-o" href="#/quote/' + r.id + '/edit">' + C.ic('edit') + ' Badlein</a>');
       if (C.can('quotes.create')) acts.push('<a class="btn btn-o" href="#/quote/new?copy=' + r.id + '">' + C.ic('copy') + ' Copy</a>');
       if (r.status !== 'converted' && r.status !== 'expired' && C.can('invoices.create')) acts.push('<button class="btn btn-p" data-act="convert">' + C.ic('bill') + ' Bill banayein</button>');
+      if ((r.status === 'accepted' || r.status === 'converted') && PROJ_T.indexOf(d.ctype) >= 0 && C.can('items.create')) acts.push('<button class="btn btn-o" data-act="toproj">' + C.ic('plant') + ' Template banayein</button>');
       if (d.invoice_id) acts.push('<a class="btn btn-p" href="#/invoice/' + d.invoice_id + '">' + C.ic('bill') + ' Bill ' + esc(d.invoice_ref || '') + '</a>');
       if (C.can('quotes.delete') && r.status !== 'converted') acts.push('<button class="btn btn-r btn-icon" data-act="del" aria-label="Hatayein">' + C.ic('trash') + '</button>');
     } else if (type === 'invoice') {
-      if (C.can('payments.record') && r.status !== 'paid') acts.push('<button class="btn btn-p" data-act="pay">' + C.ic('rupee') + ' Payment jodein</button>');
+      if (!d.cancelled && C.can('invoices.delete')) acts.push('<button class="btn btn-o" data-act="bcancel">' + C.ic('x') + ' Bill cancel (non-refundable)</button>');
+      if (d.cancelled && C.isAdmin()) acts.push('<button class="btn btn-o" data-act="brestore">' + C.ic('check') + ' Bill dobara chalu</button>');
+      if (C.isAdmin()) acts.push('<button class="btn btn-o" data-act="brefund">' + (d.refund_ok ? 'Refund exception hatayein' : 'Refund exception (Admin)') + '</button>');
+      if (!d.cancelled && C.can('payments.record') && r.status !== 'paid') acts.push('<button class="btn btn-p" data-act="pay">' + C.ic('rupee') + ' Payment jodein</button>');
       if (C.can('invoices.edit')) acts.push('<a class="btn btn-o" href="#/invoice/' + r.id + '/edit">' + C.ic('edit') + ' Badlein</a>');
       if (d.quote_id) acts.push('<a class="btn btn-o" href="#/quote/' + d.quote_id + '">' + C.ic('quote') + ' ' + esc(d.quote_ref || 'Quotation') + '</a>');
       if (C.can('invoices.delete')) acts.push('<button class="btn btn-r btn-icon" data-act="del" aria-label="Hatayein">' + C.ic('trash') + '</button>');
@@ -192,23 +236,37 @@
       '<div class="ph"><div><h1>' + esc(r.ref) + ' ' + C.billPill(r) + '</h1>' + (type === 'quote' && d.qtitle ? '<p class="qtt">' + esc(d.qtitle) + '</p>' : '') + '<p><a href="#/customer/' + r.party_id + '" style="color:var(--leaf-d);font-weight:700">' + esc(r.party_name || r.title) + '</a> · ' + money(r.amount) + ' · ' + esc(r.owner_name || '') + '</p></div><div class="row wrap">' + acts.join('') + '</div></div>';
     if (type === 'quote' && r.status === 'expired') h += '<div class="note o" style="margin-bottom:12px">' + C.ic('clock') + ' Ye quotation ' + esc(C.fd(d.expired_on || d.valid_till)) + ' ko expire ho gayi — stock ka reserve chhod diya gaya hai. Dobara chalane ke liye <b>Renew</b> karein' + (d.renewals ? ' (pehle ' + num(d.renewals) + ' bar renew ho chuki)' : '') + '.</div>';
     if (type === 'quote' && r.status !== 'converted' && r.status !== 'expired' && C.can('quotes.edit')) h += '<div class="bar"><span class="sm b">Status:</span>' + C.chips(['draft', 'sent', 'accepted', 'rejected'].map(function (s) { return [s, QST[s][0]]; }), r.status, 'qs') + '</div>';
+    if (type === 'invoice') h += (d.cancelled ? '<div class="note r" style="margin-bottom:12px"><b>Cancelled – non refundable.</b> ' + esc(d.cancel_reason || '') + (d.cancelled_at ? ' · ' + esc(C.fd(d.cancelled_at)) : '') + ' — jama hua paisa wapas nahi hoga.</div>' : '<div class="note g" style="margin-bottom:12px">' + (d.refund_ok ? 'Is bill par Admin ne <b>refund ki ijazat</b> di hai' + (d.refund_note ? ': ' + esc(d.refund_note) : '') + '.' : 'Is bill ka bhugtan <b>non-refundable</b> hai (paisa wapas nahi hota).') + '</div>');
     if (type === 'invoice') h += '<div class="kpis">' + C.kpi('Kul bill', money(r.amount)) + C.kpi('Mila', money(d.paid || 0)) + C.kpi('Baaki', money(d.balance != null ? d.balance : r.amount), d.due_date ? 'Aakhri tareekh ' + C.fd(d.due_date) : '', num(d.balance) > 0 ? 'warn' : '') + '</div>' + (pays.length ? '<div class="list" style="margin-bottom:14px">' + pays.map(function (p) { return C.payRow(p, true); }).join('') + '</div>' : '');
-    if (type === 'quote') h += '<div id="wfq"></div>';
     h += '<div class="preview">' + C.billHtml(r, type) + '</div>';
     el.innerHTML = h;
-    if (type === 'quote' && C.wfCard) C.wfCard($('#wfq', el), { quote_id: r.id, upto: 7, title: 'Customer ka process (Apply Process tak)', onChange: function () { C.render(); } });
     var fname = (type === 'quote' ? 'Quotation-' : type === 'invoice' ? 'Bill-' : 'PO-') + String(r.ref).replace(/\//g, '-') + '.pdf';
     el.addEventListener('click', function (e) { var c = e.target.closest('[data-qs]'); if (c && c.getAttribute('data-qs') !== r.status) C.setStatus(r.id, c.getAttribute('data-qs')).then(function () { C.render(); }).catch(function () {}); });
     if (q && q.send) { C.setQuery({ send: '' }); setTimeout(function () { var b = $('[data-act=share]', el); if (b) b.click(); }, 50); }
     C.bind(el, {
-      share: async function () { await C.sharePdf(C.billHtml(r, type), fname, shareText(r, type), phone); if (type === 'quote' && r.status === 'draft' && C.can('quotes.edit')) { try { await C.call('crm_status', { id: r.id, status: 'sent' }); C.render(); } catch (e) {} } },
+      share: function () {
+        var nm = (d.party || {}).name || r.title, lines = d.lines || [], det = [['Customer', nm], [type === 'quote' ? 'Quotation no' : type === 'invoice' ? 'Bill no' : 'PO no', r.ref], ['Date', C.fd(d.date || r.created_at)]];
+        if (type === 'quote' && d.valid_till) det.push(['Valid till', C.fd(d.valid_till)]);
+        if (d.qtitle) det.push(['Subject', d.qtitle]);
+        lines.slice(0, 8).forEach(function (l, i) { det.push(['Item ' + (i + 1), (l.name || '') + (l.kw ? ' (' + l.kw + ' kW)' : '') + ' × ' + (l.qty || 1) + (l.unit ? ' ' + l.unit : '')]); });
+        if (lines.length > 8) det.push(['…', 'aur ' + (lines.length - 8) + ' items']);
+        det.push(['Total (GST samet)', money(r.amount)]);
+        if (type === 'invoice') { det.push(['Mila', money(d.paid || 0)]); det.push(['Baaki', money(d.balance != null ? d.balance : r.amount)]); }
+        return C.sharePdf(C.billHtml(r, type), fname, shareText(r, type), phone, { kind: type === 'quote' ? 'quote' : type === 'invoice' ? 'bill' : 'doc', title: (type === 'quote' ? 'Quotation ' : type === 'invoice' ? 'Bill ' : 'Purchase Order ') + r.ref, subtitle: nm + (d.qtitle ? ' · ' + d.qtitle : ''), amount: r.amount, valid_till: type === 'quote' ? d.valid_till : null, details: det, customer: nm, date: d.date || r.created_at, ref: 'rec:' + r.id,
+          onShared: function () { if (type === 'quote' && r.status === 'draft' && C.can('quotes.edit')) C.call('crm_status', { id: r.id, status: 'sent' }).then(function () { C.render(); }, function () {}); } });
+      },
       print: function () { C.printHtml(C.billHtml(r, type), r.ref); },
+      pdf: function () { C.pdfSave(C.billHtml(r, type), fname); },
       convert: async function () {
         var m = C.modal({ title: 'Quotation se Bill banayein', size: 'sm', body: '<p style="margin-bottom:12px">' + esc(r.ref) + ' — ' + money(r.amount) + '</p>' + C.f('Payment ki aakhri tareekh (optional)', '<input class="inp" type="date" id="dd" value="' + C.addDays(C.today(), 7) + '">') + '<p class="hint" style="margin-top:8px">Bill banne par stock apne aap ghat jayega.</p>', foot: '<button class="btn btn-o" data-close>Cancel</button><button class="btn btn-p" data-ok>Bill banayein</button>' });
         $('[data-ok]', m.el).onclick = async function () { try { var inv = await C.run('crm_convert', { id: r.id, due_date: $('#dd', m.el).value }, 'Bill ban gaya ✔'); m.close(); C.go('#/invoice/' + inv.id); } catch (e) {} };
       },
+      toproj: function () { saveAsProject(Object.assign({}, d, { lines: C.clone(d.lines || []), party: d.party })); },
       renew: function () { renewDlg(r).then(function (x) { if (x) C.render(); }); },
       pay: function () { C.payForm({ invoice: r }).then(function (x) { if (x) C.render(); }); },
+      bcancel: async function () { var why = await C.ask('Bill cancel (non-refundable)', 'Ye bill cancel hoga aur jama paisa wapas nahi hoga. Wajah likhein.', { min: 3, danger: true, ok: 'Cancel karein' }); if (!why) return; try { await C.run('crm_bill_cancel', { id: r.id, reason: why }, 'Bill cancel ho gaya'); C.render(); } catch (e) {} },
+      brestore: async function () { var why = await C.ask('Bill dobara chalu', 'Wajah likhein.', { min: 3, ok: 'Chalu karein' }); if (!why) return; try { await C.run('crm_bill_cancel', { id: r.id, action: 'restore', reason: why }, 'Bill chalu ho gaya'); C.render(); } catch (e) {} },
+      brefund: async function () { if (d.refund_ok) { try { await C.run('crm_bill_cancel', { id: r.id, action: 'refund_no', reason: '' }, 'Refund exception hata diya'); C.render(); } catch (e) {} return; } var why = await C.ask('Refund exception (sirf Admin)', 'Kyun is bill par refund allow kar rahe hain?', { min: 3, ok: 'Allow karein' }); if (!why) return; try { await C.run('crm_bill_cancel', { id: r.id, action: 'refund_ok', reason: why }, 'Refund exception laga diya'); C.render(); } catch (e) {} },
       recv: async function () { if (await C.confirm('Maal aa gaya? Stock badh jayega.', 'Haan')) { try { await C.setStatus(r.id, 'received'); C.render(); } catch (e) {} } },
       del: async function () { if (await C.delWithReason(r, r.ref)) C.go(type === 'quote' ? '#/quotes' : '#/billing' + (type === 'purchase' ? '?tab=purchase' : '')); },
       rshare: function (pid) { var p = pays.find(function (x) { return String(x.id) === pid; }); C.receipt(p, 'share'); },
@@ -226,7 +284,9 @@
       '<p style="font-size:14px;line-height:1.9">Received with thanks from <b>' + esc(p.title) + '</b> (' + esc(p.mobile || '') + ') the sum of <b>' + money(p.amount, 1) + '</b> (' + C.words(p.amount) + ') by <b>' + esc(p.data.mode || '') + '</b>' + (p.data.utr ? ' (Ref: ' + esc(p.data.utr) + ')' : '') + (p.data.invoice_ref ? ' against Bill <b>' + esc(p.data.invoice_ref) + '</b>' : '') + '.</p>' + (p.data.note ? '<p class="sm">' + esc(p.data.note) + '</p>' : '') +
       '<table style="margin-top:40px"><tr><td></td><td class="sm r">For <b>' + esc(co.legal || co.name || '') + '</b><br>' + (co.sign ? '<img src="' + esc(co.sign) + '" style="max-height:48px;display:inline-block"><br>' : '<br><br>') + esc(co.sign_label || 'Authorised Signatory') + '</td></tr></table>' + C.pstrip() + '</div>';
   };
-  C.receipt = function (p, mode) { var html = C.receiptHtml(p); if (mode === 'print') return C.printHtml(html, p.ref); C.sharePdf(html, 'Receipt-' + String(p.ref).replace(/\//g, '-') + '.pdf', 'Namaste ' + p.title + ' ji, aapka ' + money(p.amount) + ' ka payment mil gaya. Rasid ' + p.ref + ' — dhanyavaad 🙏', p.mobile); };
+  C.receipt = function (p, mode) { var html = C.receiptHtml(p); if (mode === 'print') return C.printHtml(html, p.ref); C.sharePdf(html, 'Receipt-' + String(p.ref).replace(/\//g, '-') + '.pdf', 'Namaste ' + p.title + ' ji, aapka ' + money(p.amount) + ' ka payment mil gaya. Rasid ' + p.ref + ' — dhanyavaad 🙏', p.mobile,
+      { kind: 'receipt', title: 'Payment Receipt ' + p.ref, subtitle: p.title, amount: p.amount, customer: p.title, date: p.due_at, ref: 'rec:' + p.id,
+        details: [['Received from', p.title], ['Receipt no', p.ref], ['Date', C.fd(p.due_at)], ['Mode', (p.data || {}).mode || ''], ['Ref / UTR', (p.data || {}).utr || ''], ['Against bill', (p.data || {}).invoice_ref || '']].filter(function (x) { return x[1]; }) }); };
   C.payForm = function (o) {
     o = o || {}; var inv = o.invoice, party = o.party;
     return new Promise(async function (res) {
@@ -267,7 +327,7 @@
     render: async function (el, params, q) {
       if (q.tab === 'projects') { if (!C.can('items.view')) throw new Error('Templates dekhne ki permission nahi hai'); return C.itemsPage(el, q, { route: '#/quotes', extra: { tab: 'projects' }, tp: 'project', tabs: function (n) { return qpTabs('projects', n); } }); }
       if (!C.canAny('quotes.create', 'quotes.view_all')) return C.go('#/quotes?tab=projects');
-      var st = q.st || '', uid = q.user || '', all = await C.list('quote', { limit: 3000, user_id: uid || null }), cnt = {};
+      var st = q.st || '', uid = q.user || '', all = (await C.list('quote', { limit: 3000, user_id: uid || null })).filter(function (x) { return !(x.data && x.data.job_only); }), cnt = {};
       var isClosed = function (x) { return x.data.closed === true; }, isItems = function (x) { return x.data.ctype === 'Items only' && ['accepted', 'converted'].indexOf(x.status) >= 0; };
       var act = all.filter(function (x) { return !isClosed(x) && !isItems(x); }), nPend = all.filter(function (x) { return x.data.bill_state === 'pending'; }).length, nItems = all.filter(isItems).length, nClosed = all.filter(isClosed).length;
       act.forEach(function (x) { cnt[x.status] = (cnt[x.status] || 0) + 1; });

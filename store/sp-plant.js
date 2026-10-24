@@ -3,7 +3,9 @@
    Config: SPPlant.init({ getToken:()=>token|null, rpc:(fn,p)=>Promise, after:()=>element (section goes right after it) }) */
 (function () {
   'use strict';
-  var P = window.SPPlant = {}, cfg = null, host = null, plants = [], cur = 0, open = false, dlOpen = false, busy = false, msg = '', loaded = false;
+  var CS = document.currentScript, BASE = CS && CS.src ? CS.src.replace(/[^\/]*$/, '') : '';
+  function withShare(cb, fail) { if (window.SPSHARE) return cb(); var e = document.createElement('script'); e.src = BASE + 'sp-share.js?v=3'; e.onload = cb; e.onerror = fail; document.head.appendChild(e); }
+  var P = window.SPPlant = {}, cfg = null, host = null, plants = [], prof = null, sec = '', cur = 0, open = false, dlOpen = false, busy = false, msg = '', loaded = false;
   var CSS = '.spp{max-width:1100px;margin:10px auto 0;padding:0 14px;font-family:inherit;color:#1c2a22;box-sizing:border-box}.spp *{box-sizing:border-box}' +
     '.spp-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f1f8f3;border:1px solid #cfe5d6;border-radius:14px;padding:8px 12px}' +
     '.spp-bar b{font-size:15px}.spp-bar .sp{flex:1}.spp-tab{border:1px solid #cfe5d6;background:#fff;border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer;color:inherit}.spp-tab.on{background:#1f8a4c;color:#fff;border-color:#1f8a4c}' +
@@ -19,7 +21,9 @@
     '.spp-steps{display:flex;flex-wrap:wrap;gap:8px}.spp-st{display:flex;align-items:center;gap:7px;border-radius:999px;padding:5px 11px 5px 6px;background:#eef1ef;color:#5d7466;font-size:13px}' +
     '.spp-st i{font-style:normal;width:22px;height:22px;border-radius:50%;background:#cfd8d2;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px}' +
     '.spp-st.d{background:#e6f6ec;color:#17613a}.spp-st.d i{background:#1f8a4c}.spp-st small{color:#6b8576;font-size:11px}' +
-    '.spp-fin{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}.spp-pill{border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px;background:#eef1ef;color:#5d7466}.spp-pill.g{background:#1f8a4c;color:#fff}';
+    '.spp-fin{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}.spp-pill{border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px;background:#eef1ef;color:#5d7466}.spp-pill.g{background:#1f8a4c;color:#fff}' +
+    '.spp-id{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}.spp-id .cid{font-size:19px;font-weight:800;letter-spacing:.03em;color:#17613a}.spp-id .st{border-radius:999px;padding:3px 11px;font-size:12px;font-weight:700;background:#fff3d6;color:#8a5a00}.spp-id .st.g{background:#e6f6ec;color:#17613a}' +
+    '.spp-li{background:#fff;border:1px solid #dbe9e0;border-radius:14px;padding:11px 14px;margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}.spp-li b{font-size:15px}.spp-li .m{flex:1;min-width:180px;color:#5d7466;font-size:13px}.spp-li .w{border-radius:999px;background:#e6f6ec;color:#17613a;padding:3px 10px;font-size:12px;font-weight:700}.spp-li .w.n{background:#eef1ef;color:#5d7466}';
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function tok() { try { return cfg && cfg.getToken && cfg.getToken(); } catch (e) { return null; } }
   function call(fn, p) { p = p || {}; p.token = tok(); return cfg.rpc(fn, p); }
@@ -32,9 +36,14 @@
     host = document.createElement('section'); host.className = 'spp'; host.id = 'sp-plant'; host.setAttribute('data-noi18n', ''); a.parentNode.insertBefore(host, a.nextSibling); return host;
   }
   function load() {
-    if (!tok()) { plants = []; loaded = false; render(); return Promise.resolve(); }
-    return call('crm_consumer_plants').then(function (r) { plants = Array.isArray(r) ? r : []; loaded = true; if (cur >= plants.length) cur = 0; render(); }, function () { loaded = true; plants = []; render(); });
+    if (!tok()) { plants = []; prof = null; loaded = false; render(); return Promise.resolve(); }
+    return call('crm_consumer_profile').then(function (r) {
+      prof = r || null; plants = (prof && prof.projects) || []; loaded = true; if (cur >= plants.length) cur = 0;
+      if (!sec || !secOk(sec)) sec = (prof && (prof.bills || []).some(function (b) { return b.state === 'pending'; })) ? 'bill' : plants.length ? 'proj' : (prof && prof.products && prof.products.length ? 'prod' : (prof && prof.services && prof.services.length ? 'serv' : (prof && prof.inquiries && prof.inquiries.length ? 'inq' : 'proj')));
+      render();
+    }, function () { loaded = true; plants = []; prof = null; render(); });
   }
+  function secOk(k) { return !!prof && ((k === 'proj') || (k === 'prod') || (k === 'serv') || (k === 'inq')); }
   function addForm() {
     return '<div class="spp-add"><input id="sppId" placeholder="Plant ID (jaise QT/26-27/0001)" autocomplete="off"><button class="spp-btn" id="sppGo" type="button">' + (busy ? 'Jaanch rahe…' : 'Jodein') + '</button></div>' + (msg ? '<div class="spp-err">' + esc(msg) + '</div>' : '') +
       '<div style="font-size:12px;color:#5d7466;margin-top:5px">Plant ID aapki confirmed quotation ka number hai. Sirf aapke mobile number se juda Plant ID hi judta hai.</div>';
@@ -45,7 +54,7 @@
     var c2 = '<div class="spp-c"><h4>🛠️ Maintenance</h4><div class="big">' + (m.next_due ? fd(m.next_due) : '—') + '</div><small>' + (m.next_due ? 'Agli maintenance due' : (p.installed ? 'Koi maintenance due nahi' : 'Install ke baad shuru hoga')) + '</small>' + (m.last_done ? '<small>Pichli: ' + fd(m.last_done) + '</small>' : '') + '</div>';
     var c3;
     if (pay.state === 'paid') c3 = '<div class="spp-c g"><h4>💳 Payment</h4><div class="big"><span class="spp-tick">✓</span>Poora bhugtan</div><small>Bill ' + esc(pay.bill) + ' · ' + money(pay.amount) + '</small></div>';
-    else if (pay.state === 'due') c3 = '<div class="spp-c w"><h4>💳 Payment</h4><div class="big">' + money(pay.balance) + '</div><small>Baaki — agli due date: ' + fd(pay.due_date) + '</small><small>Bill ' + esc(pay.bill) + '</small></div>';
+    else if (pay.state === 'due') c3 = '<div class="spp-c w"><h4>💳 Payment</h4><div class="big">' + money(pay.balance) + '</div><small>Baaki — agli due date: ' + fd(pay.due_date) + '</small><small>Bill ' + esc(pay.bill) + '</small><small>Non-refundable</small></div>';
     else c3 = '<div class="spp-c"><h4>💳 Payment</h4><div class="big" style="font-size:19px">Bill ka intezaar</div><small>Pehla bill banne par yahan dikhega</small></div>';
     var files = p.files || [];
     c4 = '<div class="spp-c"><h4>⬇️ Downloads</h4><button class="spp-btn ghost sm" id="sppDl" type="button">' + (dlOpen ? 'Band karein' : 'Documents dekhein') + '</button>';
@@ -65,22 +74,60 @@
     h += '</div><div class="spp-fin"><span class="spp-pill' + (p.finished ? ' g' : '') + '">' + (p.finished ? '✓ ' : '') + 'Finish Work</span>' + (resid ? '<span class="spp-pill' + (p.subsidy_done ? ' g' : '') + '">' + (p.subsidy_done ? '✓ ' : '') + 'Subsidy</span>' : '') + '</div></div>';
     return h;
   }
+  function warrantyBlock(p) {
+    var w = p.warranty || []; if (!w.length) return '';
+    return '<div class="spp-tl"><h4>🛡️ Warranty</h4>' + w.map(function (x) { return '<div class="spp-li"><b>' + esc(x.name) + '</b><span class="m"></span><span class="w">' + esc(x.warranty) + '</span></div>'; }).join('') + '</div>';
+  }
+  function amcBlock(p) {
+    var v = (p.maintenance && p.maintenance.visits) || []; if (!v.length) return '';
+    return '<div class="spp-tl"><h4>🛠️ AMC / Maintenance visits</h4>' + v.map(function (x) { return '<div class="spp-li"><b>Visit ' + esc(x.visit || '') + '</b><span class="m">' + esc(x.plan || '') + ' · ' + fd(x.due) + '</span><span class="w' + (x.done ? '' : ' n') + '">' + (x.done ? '✓ ' + fd(x.done_on) : 'Baaki') + '</span></div>'; }).join('') + '</div>';
+  }
+  function secProj(h) {
+    if (!plants.length) return '<div class="spp-tl"><h4>Abhi koi project nahi</h4><div style="color:#5d7466;font-size:13px">Quotation confirm hote hi aapka project yahan dikhega.</div></div>';
+    var t = '<div class="spp-bar">'; plants.forEach(function (p, i) { t += '<button class="spp-tab' + (i === cur ? ' on' : '') + '" data-i="' + i + '" type="button">' + esc(p.title || p.plant_id) + '</button>'; }); t += '</div>';
+    return t + cards(plants[cur]) + timeline(plants[cur]) + warrantyBlock(plants[cur]) + amcBlock(plants[cur]);
+  }
+  function secProd() {
+    var a = (prof && prof.products) || []; if (!a.length) return '<div class="spp-tl"><h4>Abhi koi product nahi</h4><div style="color:#5d7466;font-size:13px">Bill banne ke baad kharide hue products, bill aur warranty yahan dikhengi.</div></div>';
+    return a.map(function (x) { return '<div class="spp-li"><b>' + esc(x.name) + (x.qty ? ' × ' + esc(x.qty) : '') + '</b><span class="m">' + (x.brand ? esc(x.brand) + ' · ' : '') + 'Bill ' + esc(x.bill || '') + (x.date ? ' · ' + fd(x.date) : '') + (x.paid ? ' · ✓ Paid' : ' · Payment baaki') + '</span><span class="w' + (x.warranty ? '' : ' n') + '">' + (x.warranty ? '🛡️ ' + esc(x.warranty) : 'Warranty: —') + '</span></div>'; }).join('');
+  }
+  function secServ() {
+    var a = (prof && prof.services) || []; if (!a.length) return '<div class="spp-tl"><h4>Abhi koi service nahi</h4><div style="color:#5d7466;font-size:13px">Cleaning, AMC, repair, site visit jaisi service lene par uska status yahan dikhega.</div></div>';
+    return a.map(function (p) {
+      var done = (p.timeline || []).filter(function (s) { return s.done; }).length, tot = (p.timeline || []).length;
+      return '<div class="spp-tl"><h4>🧰 ' + esc(p.title || p.ctype) + ' <span style="font-weight:400;color:#5d7466">(' + esc(p.plant_id || '') + ')</span></h4><div class="spp-fin"><span class="spp-pill' + (p.job_status === 'Poora hua' ? ' g' : '') + '">' + esc(p.job_status || '') + '</span><span class="spp-pill">' + done + '/' + tot + ' step</span></div>' + timelineSteps(p) + amcBlock(p).replace('<div class="spp-tl">', '<div style="margin-top:8px">') + '</div>';
+    }).join('');
+  }
+  function secBills() {
+    var a = (prof && prof.bills) || []; if (!a.length) return '<div class="spp-tl"><h4>Abhi koi bill nahi</h4><div style="color:#5d7466;font-size:13px">Quotation confirm hone par bill banega aur yahan "Pending bill" ke roop me dikhega.</div></div>';
+    var ord = { pending: 0, paid: 1, cancelled: 2 }; a = a.slice().sort(function (x, y) { return (ord[x.state] - ord[y.state]) || (y.id - x.id); });
+    return a.map(function (x) {
+      var tag = x.state === 'pending' ? '<span class="w n" style="background:#fff3d6;color:#8a5a00">Pending</span>' : x.state === 'paid' ? '<span class="w">✓ Poora bhugtan</span>' : '<span class="w n" style="background:#fde8e6;color:#b3261e">Cancelled – non refundable</span>';
+      return '<div class="spp-li"><b>' + esc(x.title || x.ref) + '</b><span class="m">Bill ' + esc(x.ref || '') + (x.date ? ' · ' + fd(x.date) : '') + '<br>Kul ' + money(x.amount) + ' · Mila ' + money(x.paid) + (x.state === 'pending' ? ' · <b>Baaki ' + money(x.balance) + '</b>' + (x.due_date ? ' (due ' + fd(x.due_date) + ')' : '') : '') + (x.nonrefundable ? '<br><small>Non-refundable — jama paisa wapas nahi hota</small>' : '') + '</span>' + tag + '</div>';
+    }).join('');
+  }
+  function secInq() {
+    var a = (prof && prof.inquiries) || []; if (!a.length) return '<div class="spp-tl"><h4>Koi pending quotation nahi</h4></div>';
+    return a.map(function (x) { return '<div class="spp-li"><b>' + esc(x.title || x.ref) + '</b><span class="m">' + esc(x.ref || '') + '</span><span class="w n">' + esc(x.status) + '</span></div>'; }).join('');
+  }
+  function timelineSteps(p) {
+    return '<div class="spp-steps" style="margin-top:8px">' + (p.timeline || []).map(function (s) { return '<div class="spp-st' + (s.done ? ' d' : '') + '"><i>' + (s.done ? '✓' : s.n) + '</i><span>' + esc(s.name) + (s.done && s.at ? '<small> · ' + fd(s.at) + '</small>' : '') + '</span></div>'; }).join('') + '</div>';
+  }
   function render() {
     var h = ensureHost(); if (!h) return;
     if (!tok()) { h.innerHTML = ''; h.style.display = 'none'; return; }
     h.style.display = '';
-    var bar = '<div class="spp-bar"><b>☀️ Meri Plant</b>';
-    plants.forEach(function (p, i) { bar += '<button class="spp-tab' + (i === cur ? ' on' : '') + '" data-i="' + i + '" type="button">' + esc(p.plant_id) + '</button>'; });
-    bar += '<span class="sp"></span>' + (plants.length ? '<button class="spp-btn ghost sm" id="sppAdd" type="button">' + (open ? 'Band' : '+ Plant ID') + '</button>' : '') + '</div>';
-    var body = '';
-    if (!loaded) body = '';
-    else if (!plants.length || open) body = addForm();
-    if (plants[cur] && loaded) body += cards(plants[cur]) + timeline(plants[cur]);
-    h.innerHTML = bar + body;
+    if (!loaded || !prof) { h.innerHTML = '<div class="spp-bar"><b>☀️ Meri Profile</b></div>'; return; }
+    var cnt = { proj: plants.length, prod: (prof.products || []).length, serv: (prof.services || []).length, inq: (prof.inquiries || []).length, bill: ((prof.bills || []).filter(function (b) { return b.state === 'pending'; })).length };
+    var top = '<div class="spp-id"><span>🆔 Customer ID</span><span class="cid">' + esc(prof.cust_id || '—') + '</span><span class="st' + (prof.stage === 'customer' ? ' g' : '') + '">' + (prof.stage === 'customer' ? 'Customer' : prof.stage === 'inquiry' ? 'Pending Inquiry' : 'Naya') + '</span><span style="color:#5d7466;font-size:13px">' + esc(prof.name || '') + '</span></div>';
+    var tabs = '<div class="spp-bar">'; [['proj', '☀️ Projects'], ['prod', '📦 Products'], ['serv', '🧰 Services'], ['bill', '🧾 Pending bills'], ['inq', '📝 Quotations']].forEach(function (t) { tabs += '<button class="spp-tab' + (sec === t[0] ? ' on' : '') + '" data-sec="' + t[0] + '" type="button">' + t[1] + ' (' + cnt[t[0]] + ')</button>'; }); tabs += '</div>';
+    var body = sec === 'bill' ? secBills() : sec === 'prod' ? secProd() : sec === 'serv' ? secServ() : sec === 'inq' ? secInq() : secProj();
+    h.innerHTML = top + tabs + body;
     bind(h);
   }
   function bind(h) {
-    Array.prototype.forEach.call(h.querySelectorAll('.spp-tab'), function (b) { b.onclick = function () { cur = +b.getAttribute('data-i'); dlOpen = false; render(); }; });
+    Array.prototype.forEach.call(h.querySelectorAll('.spp-tab[data-i]'), function (b) { b.onclick = function () { cur = +b.getAttribute('data-i'); dlOpen = false; render(); }; });
+    Array.prototype.forEach.call(h.querySelectorAll('.spp-tab[data-sec]'), function (b) { b.onclick = function () { sec = b.getAttribute('data-sec'); dlOpen = false; render(); }; });
     var a = h.querySelector('#sppAdd'); if (a) a.onclick = function () { open = !open; msg = ''; render(); };
     var d = h.querySelector('#sppDl'); if (d) d.onclick = function () { dlOpen = !dlOpen; render(); };
     var go = h.querySelector('#sppGo'), inp = h.querySelector('#sppId');
@@ -95,6 +142,8 @@
     }
     if (go) go.onclick = add; if (inp) inp.onkeydown = function (e) { if (e.key === 'Enter') add(); };
     Array.prototype.forEach.call(h.querySelectorAll('[data-doc]'), function (b) { b.onclick = function () { printDoc(b.getAttribute('data-doc')); }; });
+    Array.prototype.forEach.call(h.querySelectorAll('[data-send]'), function (b) { b.onclick = function () { sendDoc(b.getAttribute('data-send')); }; });
+    Array.prototype.forEach.call(h.querySelectorAll('[data-sendf]'), function (b) { b.onclick = function () { sendFile(b.getAttribute('data-sendf')); }; });
     Array.prototype.forEach.call(h.querySelectorAll('[data-file]'), function (b) { b.onclick = function () { getFile(b.getAttribute('data-file')); }; });
   }
   function save(blob, name) {
@@ -121,6 +170,23 @@
       if (d.notes) h += '<p><small>' + esc(d.notes) + '</small></p>';
     }
     return h + '<p style="margin-top:30px"><small>Computer-generated copy · ' + esc(co.name || 'Sunpowers') + '</small></p>';
+  }
+  /* Round 32: Send (link page / real file) for plant documents and uploaded files */
+  function sendFile(id) {
+    call('crm_consumer_file', { id: id }).then(function (r) {
+      var bin = atob(r.b64), arr = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      var blob = new Blob([arr], { type: r.mime || 'application/octet-stream' });
+      withShare(function () { SPSHARE.open({ kind: 'doc', title: r.name || 'Document', name: r.name || 'file', blob: blob, details: [['File', r.name || 'file']], phone: '' }); }, function () { save(blob, r.name || 'file'); });
+    }, function (e) { msg = (e && e.message) || 'File nahi mili'; render(); });
+  }
+  function sendDoc(kind) {
+    var p = plants[cur]; if (!p) return;
+    call('crm_consumer_plant_doc', { id: p.id, kind: kind }).then(function (d) {
+      var co = d.company || {}, cu = d.customer || {}, nm = kind === 'bill' ? 'Bill' : (kind === 'maintenance' ? 'Maintenance summary' : 'Quotation');
+      var det = [[nm + ' no', d.ref || ''], ['Customer', cu.name || '']]; if (d.grand != null) det.push(['Total', '\u20B9' + Math.round(Number(d.grand) || 0).toLocaleString('en-IN')]); if (kind === 'bill' && d.balance != null) det.push(['Baaki', '\u20B9' + Math.round(Number(d.balance) || 0).toLocaleString('en-IN')]);
+      var html = docHtml(d);
+      withShare(function () { SPSHARE.open({ kind: kind === 'bill' ? 'bill' : (kind === 'maintenance' ? 'service' : 'quote'), title: nm + ' ' + (d.ref || ''), subtitle: co.name || 'Sunpowers', amount: kind === 'maintenance' ? null : d.grand, name: (nm + '-' + (d.ref || 'plant')).replace(/[^\w-]+/g, '-') + '.pdf', html: html, details: det, brand: co.name, brandPhone: co.phone, print: function () { printDoc(kind); }, phone: '' }); }, function () { printDoc(kind); });
+    }, function (e) { msg = (e && e.message) || 'Document nahi bana'; render(); });
   }
   function printDoc(kind) {
     var p = plants[cur]; if (!p) return;

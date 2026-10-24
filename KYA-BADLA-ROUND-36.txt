@@ -1,0 +1,9 @@
+ROUND 36 — Bill non-refundable + Pending Bills (abhi LIVE nahi karna)
+=====================================================================
+1. Advance ki alag receipt nahi. Process: customer -> quotation -> Confirm -> BILL. Jo paisa aaye wo bill ka payment hai; customer ko "Pending Bill" milta hai (kul, mila, baaki).
+2. Har bill par (CRM bill page + printed bill + customer app): "non-refundable — jama paisa wapas nahi hoga".
+3. CRM bill page: "Bill cancel (non-refundable)" (reason zaroori) -> "Cancelled – non refundable" pill + stamp; Payment jodein band. Admin: "Bill dobara chalu" aur "Refund exception (Admin)" (reason ke saath; tab note badal jata hai).
+4. Customer app/shop page: naya tab "Pending bills (n)" — pending upar, phir paid, phir cancelled. Pending bill ke saath Baaki + due date. Pending ho to ye tab apne aap khulta hai.
+5. Bill kabhi apne aap cancel nahi hota — customer jab chahe kaam shuru kare.
+SQL: ROUND 36 section (ROUND-34-SQL-ONLY.sql me). Redeploy: CRM + Store + Website (sp-plant.js v4).
+Dhyan: cancel sirf flag hai; reports me us bill ka baaki amount abhi bhi "baaki" dikhega jab tak aap bata nahi dete ki use report se hatana hai.

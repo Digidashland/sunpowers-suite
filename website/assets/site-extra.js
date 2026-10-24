@@ -57,8 +57,9 @@
   function applyMedia(d) {
     var m = d && d.site; if (!m || typeof m !== 'object') return;
     var vid = $('.vhero-v'), v = httpsUrl(m.video), pst = httpsUrl(m.poster);
-    if (vid && pst) vid.setAttribute('poster', pst);
-    if (vid && v) { var s = $('source', vid); if (s && s.getAttribute('src') !== v) { s.setAttribute('src', v); try { vid.load(); var pp = vid.play(); if (pp && pp.catch) pp.catch(function () {}); } catch (e) {} } }
+    var wv = (window.SPCMS && SPCMS.data && SPCMS.data() || {}).site || {};
+    if (vid && pst && !wv.poster) vid.setAttribute('poster', pst);
+    if (vid && v && !wv.video) { var s = $('source', vid); if (s && s.getAttribute('src') !== v) { s.setAttribute('src', v); try { vid.load(); var pp = vid.play(); if (pp && pp.catch) pp.catch(function () {}); } catch (e) {} } }
     var im = m.img && typeof m.img === 'object' ? m.img : {};
     $$('img[data-photo]').forEach(function (img) {
       var k = (img.getAttribute('src') || '').split('/').pop().replace(/\.[a-z]+$/i, ''), u = httpsUrl(im[k]);

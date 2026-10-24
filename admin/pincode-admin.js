@@ -1,5 +1,5 @@
 /* Sunpowers Store Admin — 📍 पिनकोड (pincode-wise availability)
-   Rules live in Supabase tables sp_pin_* (see crm/phase7-pincode.sql). The storefront asks sp_pin_check() for the
+   Rules live in Supabase tables sp_pin_* (see MASTER-UPDATE.sql, pincode part). The storefront asks sp_pin_check() for the
    customer's pincode and the server re-checks at order time. Nothing here is stored in the browser except UI state. */
 (function () {
 'use strict';

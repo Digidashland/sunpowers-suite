@@ -1,56 +1,8 @@
 -- ============================================================================
--- SUNPOWERS — NAYA PROJECT SETUP — part 3 of 15
--- Naya (khali) Supabase project: pehle F01..F06, phir 2-UPDATE ke U01..U09.
--- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (F01 -> F06, phir U01 -> U09). Safe to re-run.
+-- SUNPOWERS — NAYA PROJECT SETUP — part 3 of 18
+-- Naya (khali) Supabase project: pehle F01..F06, phir 2-UPDATE ke U01..U12.
+-- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (F01 -> F06, phir U01 -> U12). Safe to re-run.
 -- ============================================================================
-
-create or replace function public.crm_roles_get(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
-declare s public.crm_ses := public.crm_session(p ->> 'token');
-begin
-  perform public.crm_need(s, 'users.manage');
-  return jsonb_build_object('catalog', public.crm_perm_catalog(), 'roles', (select jsonb_object_agg(role, perms) from public.crm_roles));
-end $$;
-
-create or replace function public.crm_role_save(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
-declare s public.crm_ses := public.crm_session(p ->> 'token'); r text := p ->> 'role';
-begin
-  if not public.crm_is_admin(s) then raise exception 'Role permission sirf Admin badal sakta hai'; end if;
-  if r not in ('manager', 'staff', 'dealer', 'influencer') then raise exception 'Role galat hai'; end if;
-  if jsonb_typeof(p -> 'perms') <> 'object' then raise exception 'Data galat hai'; end if;
-  insert into public.crm_roles(role, perms) values (r, p -> 'perms') on conflict (role) do update set perms = excluded.perms;
-  perform public.crm_log(s, 'role_edit', 'role', null, 'Role permission badli: ' || r);
-  return jsonb_build_object('ok', true);
-end $$;
-
--- ---------------------------------------------------------------- settings
-create or replace function public.crm_settings_get(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
-declare s public.crm_ses := public.crm_session(p ->> 'token'); st public.crm_settings; ss jsonb; d jsonb;
-begin
-  select * into st from public.crm_settings where id = 1;
-  d := coalesce(st.data, '{}'::jsonb);
-  if not (d ? 'company') then
-    select data -> 'settings' into ss from public.sp_store where id = 'main';
-    d := d || jsonb_build_object('company', jsonb_build_object(
-      'name', coalesce(ss ->> 'storeName', 'Sunpowers'), 'legal', coalesce(ss ->> 'legalName', ''), 'gstin', coalesce(ss ->> 'gstin', ''),
-      'phone', coalesce(ss ->> 'phone', ''), 'email', coalesce(ss ->> 'email', ''), 'address', coalesce(ss ->> 'address', ''),
-      'website', coalesce(ss ->> 'mainSite', ''), 'store_url', case when coalesce(ss ->> 'siteUrl', '') ~* '^https?://((www\.)?sunpowers\.in|shop\.sunpowers\.in)/?$' then 'https://store.sunpowers.in' else coalesce(ss ->> 'siteUrl', '') end, 'state', 'Uttar Pradesh', 'upi', coalesce(ss #>> '{payments,upi,upiId}', '')));
-  end if;
-  if public.crm_can(s, 'settings.manage') then d := d || jsonb_build_object('secrets', coalesce(st.secrets, '{}'::jsonb) - 'resend_api_key'); end if;
-  d := d - 'auth';
-  return d;
-end $$;
-
-create or replace function public.crm_settings_save(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
-declare s public.crm_ses := public.crm_session(p ->> 'token'); d jsonb := p -> 'data';
-begin
-  perform public.crm_need(s, 'settings.manage');
-  if jsonb_typeof(d) <> 'object' or length(d::text) > 400000 then raise exception 'Data galat hai'; end if;
-  update public.crm_settings set data = (d - 'secrets' - 'auth') || jsonb_build_object('auth', coalesce(data -> 'auth', '{}'::jsonb)),
-    secrets = case when d ? 'secrets' and jsonb_typeof(d -> 'secrets') = 'object' then ((d -> 'secrets') - 'resend_api_key') || jsonb_strip_nulls(jsonb_build_object('resend_api_key', secrets -> 'resend_api_key')) else secrets end,
-    updated_at = now() where id = 1;
-  perform public.crm_log(s, 'settings', null, null, 'Company settings badli');
-  return jsonb_build_object('ok', true);
-end $$;
 
 -- ---------------------------------------------------------------- records
 create or replace function public.crm_list(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
@@ -86,7 +38,7 @@ end $$;
 create or replace function public.crm_save(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
 declare s public.crm_ses := public.crm_session(p ->> 'token'); k text := p ->> 'kind'; id_ bigint := nullif(p ->> 'id', '')::bigint;
         d jsonb := coalesce(p -> 'data', '{}'::jsonb); old public.crm_records; r public.crm_records; isnew boolean := id_ is null or id_ = 0;
-        mob text; ttl text; st text := coalesce(p ->> 'status', ''); asg bigint := nullif(p ->> 'assigned_to', '')::bigint; pid bigint := nullif(p ->> 'party_id', '')::bigint;
+        mob text; em text; ttl text; st text := coalesce(p ->> 'status', ''); asg bigint := nullif(p ->> 'assigned_to', '')::bigint; pid bigint := nullif(p ->> 'party_id', '')::bigint;
         due date := nullif(p ->> 'due_at', '')::date; amt numeric := 0; ref_ text; calc jsonb; srch text; ex public.crm_records; it public.crm_records; l jsonb;
         lim numeric; owner_ bigint; f public.crm_records; prev_status text; msg_ text;
 begin
@@ -98,6 +50,7 @@ begin
     prev_status := old.status;
   end if;
   mob := public.crm_mobile(coalesce(d ->> 'mobile', ''));
+  em := lower(left(trim(coalesce(d ->> 'email', '')), 160));
   ttl := left(trim(coalesce(d ->> 'name', d ->> 'title', '')), 200);
   owner_ := case when isnew then (s).uid else old.owner_id end;
   if not isnew and pid is null and not (p ? 'party_id') then pid := old.party_id; end if;
@@ -108,7 +61,8 @@ begin
   if k = 'party' then
     perform public.crm_need(s, case when isnew then 'customers.create' else 'customers.edit' end);
     if ttl = '' then raise exception 'Customer ka naam likhein'; end if;
-    if mob !~ '^[6-9][0-9]{9}$' then raise exception 'Sahi 10 ank ka mobile number likhein'; end if;
+    if mob !~ '^[6-9][0-9]{9}$' then raise exception 'Sahi 10 ank ka mobile number likhein (mobile zaroori hai)'; end if;
+    if em <> '' and em !~ '^[^@[:space:]]+@[^@[:space:]]+[.][^@[:space:]]+$' then raise exception 'Sahi email likhein (ya khali chhodein)'; end if;
     select * into ex from public.crm_records where kind = 'party' and deleted_at is null and mobile = mob and id <> coalesce(id_, 0) limit 1;
     if ex.id is not null then
       if public.crm_vis(s, ex) then raise exception 'Ye customer pehle se list me hai: % (#%)', ex.title, ex.id;
@@ -184,7 +138,8 @@ begin
     due := coalesce(nullif(d ->> 'date', '')::date, public.crm_today());
   elsif k = 'lead' then
     perform public.crm_need(s, 'leads.create');
-    if mob !~ '^[6-9][0-9]{9}$' then raise exception 'Sahi 10 ank ka mobile number likhein'; end if;
+    if mob !~ '^[6-9][0-9]{9}$' then raise exception 'Sahi 10 ank ka mobile number likhein (mobile zaroori hai)'; end if;
+    if em <> '' and em !~ '^[^@[:space:]]+@[^@[:space:]]+[.][^@[:space:]]+$' then raise exception 'Sahi email likhein (ya khali chhodein)'; end if;
     if ttl = '' then ttl := 'Lead ' || mob; end if;
     if (p ? 'assigned_to') and asg is distinct from (case when isnew then null else old.assigned_to end) and asg is distinct from (s).uid then perform public.crm_need(s, 'leads.assign'); end if;
     if isnew and exists (select 1 from public.crm_records where kind = 'lead' and deleted_at is null and mobile = mob and (owner_id = (s).uid or assigned_to = coalesce(asg, (s).uid))) then
@@ -211,7 +166,7 @@ begin
     if st not in ('pending', 'verified', 'rejected') then st := 'pending'; end if;
     d := d || jsonb_build_object('ref', upper(coalesce(d ->> 'ref', case when (s).ref is not null and isnew then (s).ref else '' end)));
     amt := public.crm_num(d -> 'deal_value');
-    if pid is null then select id into pid from public.crm_records where kind = 'party' and mobile = mob and deleted_at is null limit 1; end if;
+    if pid is null and mob <> '' then select id into pid from public.crm_records where kind = 'party' and mobile = mob and deleted_at is null limit 1; end if;
     if isnew then ref_ := public.crm_next_no('plant'); else ref_ := old.ref; end if;
     due := nullif(d ->> 'install', '')::date;
   elsif k = 'earning' then
@@ -242,7 +197,7 @@ begin
     perform public.crm_need(s, 'settings.manage'); mob := null;
   end if;
 
-  srch := lower(concat_ws(' ', ttl, ref_, mob, d ->> 'city', d ->> 'company', d ->> 'gstin', d ->> 'note', d ->> 'type', d ->> 'brand', d ->> 'qtitle', d ->> 'category', d ->> 'subcategory', d ->> 'sku', d ->> 'mpn', d ->> 'source'));
+  srch := lower(concat_ws(' ', ttl, ref_, mob, em, d ->> 'city', d ->> 'company', d ->> 'gstin', d ->> 'note', d ->> 'type', d ->> 'brand', d ->> 'qtitle', d ->> 'category', d ->> 'subcategory', d ->> 'sku', d ->> 'mpn', d ->> 'source'));
   if isnew then
     insert into public.crm_records(kind, ref, title, mobile, status, owner_id, assigned_to, party_id, amount, due_at, data, search, created_by)
     values (k, ref_, ttl, nullif(mob, ''), st, coalesce(owner_, 0), asg, pid, coalesce(amt, 0), due, d, srch, (s).uid) returning * into r;
@@ -464,4 +419,23 @@ begin
       'amount', r.amount, 'user', 'Admin', 'user_id', 0)
     from public.crm_records r where r.kind = 'earning' and r.deleted_at is null and r.status = 'due' and r.due_at <= dt and (allu or u = 0) and public.crm_can(s, 'earnings.manage')
   ) q), '[]'::jsonb));
+end $$;
+
+create or replace function public.crm_team_stats(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
+declare s public.crm_ses := public.crm_session(p ->> 'token'); dt date := public.crm_today(); fr date := coalesce(nullif(p ->> 'from', '')::date, public.crm_today() - 30);
+begin
+  perform public.crm_need(s, 'team.stats');
+  return coalesce((select jsonb_agg(jsonb_build_object('id', u.id, 'name', u.name, 'role', u.role, 'last_seen', u.last_seen,
+    'open', (select count(*) from public.crm_records r where r.kind = 'reminder' and r.deleted_at is null and r.status = 'open' and coalesce(r.assigned_to, r.owner_id) = u.id),
+    'overdue', (select count(*) from public.crm_records r where r.deleted_at is null and coalesce(r.assigned_to, r.owner_id) = u.id and r.due_at < dt
+                 and ((r.kind = 'reminder' and r.status = 'open') or (r.kind = 'lead' and r.status not in ('won', 'lost')))),
+    'done', (select count(*) from public.crm_records r where r.kind = 'reminder' and r.deleted_at is null and r.status = 'done' and coalesce(r.assigned_to, r.owner_id) = u.id and r.updated_at::date >= fr),
+    'late', (select count(*) from public.crm_records r where r.kind = 'reminder' and r.deleted_at is null and r.status = 'done' and coalesce(r.assigned_to, r.owner_id) = u.id and r.updated_at::date >= fr
+              and (r.data ->> 'done_at')::timestamptz::date > r.due_at),
+    'leads', (select count(*) from public.crm_records r where r.kind = 'lead' and r.deleted_at is null and coalesce(r.assigned_to, r.owner_id) = u.id),
+    'won', (select count(*) from public.crm_records r where r.kind = 'lead' and r.deleted_at is null and r.status = 'won' and coalesce(r.assigned_to, r.owner_id) = u.id),
+    'quotes', (select count(*) from public.crm_records r where r.kind = 'quote' and r.deleted_at is null and r.owner_id = u.id and r.created_at::date >= fr),
+    'sales', (select coalesce(sum(amount), 0) from public.crm_records r where r.kind = 'invoice' and r.deleted_at is null and r.owner_id = u.id and r.created_at::date >= fr),
+    'plants', (select count(*) from public.crm_records r where r.kind = 'plant' and r.deleted_at is null and r.status = 'verified' and (r.owner_id = u.id or upper(r.data ->> 'ref') = u.ref_code))
+  ) order by u.name) from public.crm_users u where u.role not in ('consumer') and u.status = 'active'), '[]'::jsonb);
 end $$;

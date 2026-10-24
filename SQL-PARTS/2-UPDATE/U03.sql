@@ -1,7 +1,7 @@
 -- ============================================================================
--- SUNPOWERS — DATABASE UPDATE — part 3 of 9
+-- SUNPOWERS — DATABASE UPDATE — part 3 of 12
 -- Purane project par update (naya ya purana, dono par chalega).
--- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (U01 -> U09). Safe to re-run.
+-- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (U01 -> U12). Safe to re-run.
 -- ============================================================================
 
 -- (2) accounts report: P&L + GST (output / input / net) + ITR summary + month-wise ----------
@@ -10,7 +10,7 @@ declare s public.crm_ses := public.crm_session(p ->> 'token'); fr date := (p ->>
   sales numeric; sdisc numeric; sgst numeric; scnt int; b2b numeric; b2c numeric; coll numeric; pur numeric; pgst numeric; pcnt int;
   ex numeric; exg numeric; rev numeric; gross numeric; net numeric; due numeric; payable numeric; cats jsonb; mon jsonb; rates jsonb;
 begin
-  perform public.crm_need(s, 'accounts.manage');
+  if not (public.crm_can(s, 'accounts.manage') or public.crm_can(s, 'accounts.view')) then raise exception 'Aapko is kaam ki permission nahi hai'; end if;
   if fr is null or t is null or t < fr or t - fr > 800 then raise exception 'Sahi tareekh range chunein (max 2 saal)'; end if;
   create temp table if not exists _inv(id bigint, d date, sub numeric, disc numeric, gst numeric, gstin text, lines jsonb) on commit drop;
   truncate _inv;
@@ -54,42 +54,15 @@ begin
 end $$;
 
 -- (3) restore (merge by id) — Admin + PIN. Settings, users, login data and history are NEVER touched. ----
-create or replace function public.crm_lines_guard() returns trigger language plpgsql as $$
-declare l jsonb;
-begin
-  if coalesce(current_setting('sp.restoring', true), '') = 'on' then return new; end if;
-  if new.kind in ('quote', 'invoice', 'purchase') and new.deleted_at is null and jsonb_typeof(new.data -> 'lines') = 'array' then
-    for l in select * from jsonb_array_elements(new.data -> 'lines') loop
-      if coalesce(l ->> 'kind', 'product') <> 'project' and coalesce(l ->> 'item_id', '') = '' then
-        raise exception 'Har item Inventory se hi chunna hoga — "%" Inventory me nahi hai. Pehle Inventory me jodein.', coalesce(nullif(l ->> 'name', ''), '?');
-      end if;
-      if coalesce(l ->> 'item_id', '') <> '' and not exists (select 1 from public.crm_records i where i.id = (l ->> 'item_id')::bigint and i.kind = 'item') then
-        raise exception '"%" Inventory me nahi mila (delete ho gaya?). Item dobara chunein.', coalesce(nullif(l ->> 'name', ''), '?');
-      end if;
-    end loop;
-  end if;
-  return new;
-end $$;
 
-create or replace function public.crm_lead_alert_trg() returns trigger
-language plpgsql security definer set search_path = public as $$
-begin
-  if coalesce(current_setting('sp.restoring', true), '') = 'on' then return new; end if;
-  begin
-    perform public.crm_alert('Naya lead: ' || coalesce(new.title, '') || ' · ' || coalesce(new.mobile, '') || ' · ' || coalesce(new.data ->> 'source', ''),
-      jsonb_build_object('event', 'lead.created', 'id', new.id, 'name', new.title, 'mobile', new.mobile, 'source', new.data ->> 'source'));
-  exception when others then null;
-  end;
-  return new;
-end $$;
 
 create or replace function public.crm_restore(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
 declare s public.crm_ses := public.crm_session(p ->> 'token'); pe text; part text := coalesce(p ->> 'part', ''); rows jsonb := coalesce(p -> 'rows', '[]'::jsonb);
-  allowed text[] := array['crm_records', 'crm_counters', 'crm_expenses', 'sp_orders', 'sp_enquiries', 'sp_store', 'crm_files'];
+  allowed text[] := array['crm_records', 'crm_counters', 'crm_expenses', 'sp_orders', 'sp_enquiries', 'sp_store', 'crm_files', 'sp_design_pay'];
   cols text; setl text; n int := 0; pk text;
 begin
   if not public.crm_is_admin(s) then raise exception 'Sirf Admin'; end if;
-  pe := public.crm_auth_pin_check(public.crm_auth_find('crm', 'admin'), p ->> 'pin');
+  pe := public.crm_auth_pin_check(public.crm_auth_find('admin', 'admin'), p ->> 'pin');
   if pe is not null then return jsonb_build_object('error', pe); end if;
   if not (part = any (allowed)) or to_regclass('public.' || part) is null then raise exception 'Ye hissa wapas nahi laya ja sakta: %', part; end if;
   if jsonb_typeof(rows) <> 'array' then raise exception 'Backup file galat hai'; end if;
@@ -114,7 +87,7 @@ begin
     execute format('insert into public.%1$I (%2$s) select %2$s from jsonb_populate_recordset(null::public.%1$I, $1) on conflict (%3$I) do update set %4$s', part, cols, pk, setl) using rows;
     get diagnostics n = row_count;
   end if;
-  if part in ('crm_records', 'crm_expenses', 'sp_orders', 'sp_enquiries', 'crm_files') and pg_get_serial_sequence('public.' || part, 'id') is not null then
+  if part in ('crm_records', 'crm_expenses', 'sp_orders', 'sp_enquiries', 'crm_files', 'sp_design_pay') and pg_get_serial_sequence('public.' || part, 'id') is not null then
     execute format('select setval(pg_get_serial_sequence(%L, ''id''), greatest((select coalesce(max(id), 1) from public.%I), 1))', 'public.' || part, part);
   end if;
   perform public.crm_log(s, 'restore', part, null, 'Backup se wapas laya: ' || part || ' (' || n || ' rows)');
@@ -134,8 +107,11 @@ select '[
  {"g":"Products","k":"items.create","l":"Product / Project jode"},
  {"g":"Products","k":"items.edit","l":"Product / Project badle"},
  {"g":"Products","k":"items.delete","l":"Product / Project hataye"},
+ {"g":"Products","k":"items.categories","l":"Nayi category / sub-category jode ya naam badle"},
  {"g":"Products","k":"items.cost","l":"Kharid rate aur minimum rate dekhe"},
  {"g":"Products","k":"items.to_store","l":"Online Store ko bheje"},
+ {"g":"Products","k":"stock.reserve","l":"Stock reserve / hold kare (direct, online, anya)"},
+ {"g":"Products","k":"stock.override","l":"Stock kam hone par bhi quotation banaye (Admin jaisa)"},
  {"g":"Quotation","k":"quotes.view_all","l":"Sabki quotation dekhe"},
  {"g":"Quotation","k":"quotes.create","l":"Quotation banaye"},
  {"g":"Quotation","k":"quotes.edit","l":"Quotation badle"},
@@ -177,17 +153,48 @@ select '[
  {"g":"Privacy","k":"privacy.see_mobile","l":"Customer ka poora mobile number dekhe"},
  {"g":"Marketing","k":"marketing.view","l":"Marketing & Grow section dekhe"},
  {"g":"Marketing","k":"marketing.manage","l":"Marketing channels / agency badle"},
- {"g":"Marketing","k":"marketing.leads","l":"Lead kahan se aayi (source report) dekhe"}
+ {"g":"Marketing","k":"marketing.leads","l":"Lead kahan se aayi (source report) dekhe"},
+ {"g":"Dashboard & Analytics","k":"dashboard.money","l":"Dashboard par kamai, baki aur collection ke aankde dekhe"},
+ {"g":"Dashboard & Analytics","k":"dashboard.team","l":"Dashboard par poori team ka kaam dekhe (warna sirf apna)"},
+ {"g":"Dashboard & Analytics","k":"analytics.view","l":"Analytics menu dekhe"},
+ {"g":"Dashboard & Analytics","k":"analytics.all","l":"Poori company ka analytics dekhe (warna sirf apna)"},
+ {"g":"Accounts & Reports","k":"accounts.view","l":"Accounts dekhe (ledger, baki, kharcha) - sirf padhna"},
+ {"g":"Accounts & Reports","k":"reports.download","l":"Reports download kare"},
+ {"g":"Download / Upload","k":"sheets.download","l":"Edit ke liye sheet download kare"},
+ {"g":"Download / Upload","k":"sheets.upload","l":"Edit ki hui sheet upload kare"},
+ {"g":"Download / Upload","k":"sheets.manage","l":"Sabki sheet ke code dekhe aur band kare"},
+ {"g":"Download / Upload","k":"items.export","l":"Inventory / stock Excel nikale"},
+ {"g":"Products","k":"stock.view","l":"Stock, reserve aur expiry report dekhe"},
+ {"g":"Customer flow","k":"flow.step.1","l":"Step 1: Add Customer — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.2","l":"Step 2: Conversation — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.3","l":"Step 3: Quotation — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.4","l":"Step 4: Site Visit — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.5","l":"Step 5: Blueprint — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.6","l":"Step 6: Confirmation — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.7","l":"Step 7: Apply Process — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.8","l":"Step 8: Hand Over Technician — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.9","l":"Step 9: Start Installation — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.10","l":"Step 10: Verification / Commissioning — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.11","l":"Step 11: Net Metering — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.12","l":"Step 12: Finish Work — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.13","l":"Step 13: Subsidy Redeem — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.14","l":"Step 14: Send Demo / Files — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.15","l":"Step 15: Loan / Finance — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.16","l":"Step 16: Suggest / Referral — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.17","l":"Step 17: AMC / Maintenance — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.18","l":"Step 18: Complaint Status — dekhe aur badle"},
+ {"g":"Customer flow","k":"flow.step.19","l":"Step 19: Leads — dekhe aur badle"},
+ {"g":"Projects","k":"projects.netmetering","l":"Projects me Net Metering step khole (customer ka)"}
 ]'::jsonb $$;
 
 -- backup now includes the expenses ledger
 create or replace function public.crm_backup(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
 declare s public.crm_ses := public.crm_session(p ->> 'token'); pe text; part text := coalesce(p ->> 'part', 'meta');
   off int := greatest(coalesce((p ->> 'offset')::int, 0), 0); lim int; r jsonb; cnt jsonb := '{}'::jsonb; t text;
-  parts text[] := array['crm_settings', 'crm_auth_admin', 'crm_roles', 'crm_users', 'crm_records', 'crm_counters', 'crm_activity', 'sp_store', 'sp_orders', 'sp_enquiries', 'crm_files', 'crm_expenses'];
+  parts text[] := array['crm_settings', 'crm_auth_admin', 'crm_roles', 'crm_users', 'crm_records', 'crm_counters', 'crm_activity', 'sp_store', 'sp_orders', 'sp_enquiries', 'crm_files', 'crm_expenses', 'sp_design_pay'];
 begin
   if not public.crm_is_admin(s) then raise exception 'Sirf Admin'; end if;
-  pe := public.crm_auth_pin_check(public.crm_auth_find('crm', 'admin'), p ->> 'pin');
+  pe := public.crm_auth_pin_check(public.crm_auth_find('admin', 'admin'), p ->> 'pin');
   if pe is not null then return jsonb_build_object('error', pe); end if;
   if part = 'meta' then
     foreach t in array parts loop
@@ -370,43 +377,6 @@ begin
 end $$;
 
 -- ---------- order: Round 8 wala order + pincode guard ---------------------------------------
-create or replace function public.sp_place_order(p_order jsonb)
-returns bigint language plpgsql security definer
-set search_path = public as $$
-declare new_id bigint; u public.crm_users; o jsonb;
-begin
-  if p_order is null or jsonb_typeof(p_order) <> 'object' then raise exception 'Invalid order'; end if;
-  if length(p_order::text) > 30000 then raise exception 'Order too large'; end if;
-
-  -- login is mandatory
-  u := public.crm_csession(p_order ->> 'token');   -- raises if not logged in / expired
-
-  if jsonb_typeof(p_order->'items') <> 'array' or jsonb_array_length(p_order->'items') = 0 then
-    raise exception 'Cart is empty';
-  end if;
-
-  -- pincode-wise availability (server-side, cannot be bypassed from the browser)
-  perform public.sp_pin_guard(p_order ->> 'pincode', p_order -> 'items');
-
-  -- identity always comes from the account, never from the browser
-  o := (p_order - 'token' - 'customer_id')
-       || jsonb_build_object(
-            'name', left(coalesce(nullif(trim(u.name), ''), trim(p_order->>'name')), 80),
-            'phone', coalesce(u.mobile, ''),
-            'customer_id', u.id::text,
-            'login_method', 'email_otp',
-            'payment_status', 'awaiting_payment');
-
-  if coalesce(trim(o->>'name'), '') = '' or coalesce(trim(o->>'phone'), '') = '' then
-    raise exception 'Naam aur mobile account mein save karein';
-  end if;
-
-  o := o || jsonb_build_object('order_no', public.crm_next_no('order'));
-  insert into public.sp_orders(data) values (o) returning id into new_id;
-  perform public.sp_notify_admin('Naya order ' || (o->>'order_no') || ' — ' || (o->>'name'),
-    '<p>Naya order aaya hai: <b>' || (o->>'order_no') || '</b></p><p>' || (o->>'name') || ' · ' || (o->>'phone') || '</p><p>Total: ₹' || (o->>'total') || ' — payment ka UTR aane par dobara notification milega. Admin panel mein dekhein.</p>');
-  return new_id;
-end $$;
 
 -- "sirf chuncho pincode" mode tabhi rakho jab uske liye koi "available" niyam bacha ho (warna product kahin bhi nahi dikhega)
 create or replace function public.sp_pin_modes_gc() returns int language plpgsql security definer set search_path = public as $$
@@ -545,4 +515,37 @@ begin
   end loop;
   perform public.sp_pin_modes_gc();
   return jsonb_build_object('added', added, 'updated', upd, 'deleted', del, 'replaced', rep, 'bad', bad, 'errors', errs);
+end $$;
+
+-- filter: {all:true} | {ids:[..]} | {product_id, scope, status, value}
+create or replace function public.sp_pin_rules_delete(p_pass text, p_f jsonb) returns jsonb
+language plpgsql security definer set search_path = public, extensions as $$
+declare n int;
+begin
+  perform public.sp_check(p_pass);
+  if p_f is null or jsonb_typeof(p_f) <> 'object' then raise exception 'Invalid filter'; end if;
+  if coalesce((p_f ->> 'all')::boolean, false) then
+    delete from public.sp_pin_rules; get diagnostics n = row_count;
+  elsif jsonb_typeof(p_f -> 'ids') = 'array' then
+    delete from public.sp_pin_rules where id in (select (jsonb_array_elements_text(p_f -> 'ids'))::bigint); get diagnostics n = row_count;
+  elsif coalesce(p_f ->> 'product_id', '') <> '' or coalesce(p_f ->> 'scope', '') <> '' or coalesce(p_f ->> 'status', '') <> '' then
+    delete from public.sp_pin_rules r
+     where (coalesce(p_f ->> 'product_id', '') = '' or r.product_id = p_f ->> 'product_id')
+       and (coalesce(p_f ->> 'scope', '') = '' or r.scope = p_f ->> 'scope')
+       and (coalesce(p_f ->> 'status', '') = '' or r.status = p_f ->> 'status');
+    get diagnostics n = row_count;
+  else
+    raise exception 'Kya delete karna hai ye batayein';
+  end if;
+  perform public.sp_pin_modes_gc();
+  return jsonb_build_object('deleted', n);
+end $$;
+
+-- areas -------------------------------------------------------------------------------------
+create or replace function public.sp_pin_area_list(p_pass text) returns jsonb
+language plpgsql stable security definer set search_path = public, extensions as $$
+begin
+  perform public.sp_check(p_pass);
+  return coalesce((select jsonb_agg(jsonb_build_object('name', name, 'label', label, 'n', coalesce(array_length(pins, 1), 0),
+      'rules', (select count(*) from public.sp_pin_rules r where r.scope = 'area' and r.value = a.name)) order by label) from public.sp_pin_areas a), '[]'::jsonb);
 end $$;

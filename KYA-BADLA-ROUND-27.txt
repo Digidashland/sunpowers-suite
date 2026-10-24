@@ -1,0 +1,97 @@
+ROUND 27 — kya naya hai (Hinglish)
+====================================
+PEHLE KARNA: Supabase staging -> SQL Editor me SQL-1-SABSE-PEHLE-CHALAYEIN.sql dobara chalayein (CRM gate + Admin ke CRM users ki list ke naye functions). Phir deploy (-Mode stage).
+
+1) CRM ka darwaza: CRM sirf Admin panel se khulta hai. Admin panel me CRM button -> list (Admin + saare CRM users) -> "Admin ke roop me CRM kholein".
+   CRM login screen par "Admin" shabd nahi; "Emergency" sirf Admin page par.
+2) Page Builder (Store + Shop): preview ab sirf wahi section dikhata hai jo aap add / edit kar rahe hain ("📄 पूरा पेज देखें" se poora page).
+   Website Builder: ✏️ dabate hi us section ka preview, section ke editor ke andar.
+3) Shop Page menu me "🏠 Home layout" — shop page ka layout kaisa dikh raha hai.
+4) Har photo / video / logo me Replace (upload YA link) aur Delete:
+   - Store App -> "App मीडिया" (poori library: replace / delete)
+   - Shop Page -> "Shop Media" (poori library: replace / delete)
+   - Website -> "Website Media" (har photo / logo / video: replace / delete) + niche library
+   - Product / slide / box / builder ki har photo: 🔄 (upload) 🔗 (link) ✕ (delete)
+   - CRM: company logo, sign, item photos me Replace.
+5) Edit / Add sirf ENGLISH me. Hindi wale alag khane hata diye. Public side par visitor jo bhasha chune (English / Hindi / Hinglish / baaki) usi me sab dikhta hai:
+   pehle built-in shabdkosh, phir automatic translation (ek baar translate hokar us device me save). Video / photo ke upar likha HTML text bhi badalta hai.
+   Photo ke ANDAR (pixel me) likha text translate nahi ho sakta — usse alag-alag bhasha ki photo lagayein.
+6) Store app ka naam "Sunpowers App".
+
+------------------------------------------------------------
+ROUND 27 (addendum) — poori suite me ek hi bhasha + voice search
+------------------------------------------------------------
+7) Bhasha (CRM, Admin, Store, Website — char jagah same engine):
+   - Har screen par bhasha-button hai (English / Hindi / Hinglish + Bangla, Punjabi, Marathi, Gujarati, Tamil, Telugu, Kannada, Malayalam, Odia, Urdu, Assamese).
+   - Jo bhasha chuni, sirf wahi dikhti hai: English me sirf English, Hindi me sirf Hindi, Hinglish me sirf Roman-Hindi, baaki bhasha me sirf wahi.
+   - Isme ye bhi aate hain: placeholders (search box ke andar ka text), tooltip / title, iframe (map) title, slider ke "Slide 1 / Next" labels, chart ke andar ke naam aur mahine (Jan, Feb ...).
+   - Shabdkosh bhara gaya: CRM me ~245, Admin me ~520, Website me ~60, Store me ~5 naye vaakya (hints, help text, settings, builder, reports).
+   - Hindi me jo English shabd beech me aate the (Admin, Store, Quotation, Download, Backup, Page Builder ...) unko Devanagari me badalne ka niyam laga; URL / code / brand naam (Facebook, Razorpay ...) jas ke tas.
+   - CRM aur Admin me sirf label / button / heading / hint translate hote hain. Customer ka data (naam, mobile, pata, notes) kabhi internet par translate hone nahi jata.
+   - Website / Store par jo text shabdkosh me nahi, wo ek baar internet se translate hokar us device me save hota hai (internet chahiye).
+8) VOICE SEARCH (mic) — har search box me:
+   - CRM ke saare 25 modules, Admin ke saare tab, Store (search / categories), Website (header search + shop search) — mic apne aap lagta hai.
+   - Chrome / Edge / Android / iPhone Safari me chalta hai. Firefox me mic nahi — wahan message dikhta hai, type karke search ho jata hai.
+   - Mic ki bhasha = jo bhasha aapne screen par chuni (Hindi me bolein to Hindi sunega).
+   - NAYA search box manually banaya to bhi mic apne aap judega: <input type="search"> ya jis input ke id / name / placeholder me search / khoj / खोज / find / filter likha ho. Zabardasti lagana ho: <input data-voice>. Mic na chahiye: data-novoice.
+   - Popup / sheet / modal ke andar ke search box me bhi (jab khulte hain tab) mic lagta hai.
+
+------------------------------------------------------------
+ROUND 27 (addendum 2) — NAYA SOLAR DESIGNER (purana blueprint poora hata diya)
+------------------------------------------------------------
+8) Project Blueprint ab naya "Sunpowers Designer" hai — Website, Store aur CRM teeno me wahi (designer.html, 15 step: customer -> location -> roof -> shadow -> obstacles -> area -> structure -> panels -> wiring -> ACDB/DCDB -> tray -> inverter -> battery -> remarks -> report).
+   Purane blueprint ka koi code nahi bacha. Backend wahi hai (Website/Store me login ke baad "Send to Sunpowers", CRM me "Save to CRM" + lead).
+9) Panel by default PORTRAIT (vertical). Landscape sirf tab jab aap Step 8 me chunein.
+10) Legs se sab auto: pehle Back leg / Front leg ki height -> Rafter (back leg se front leg tak, asli nut-bolt ke saath) -> Purlin (rafter par) -> Panel (purlin par, clamp ke saath, height nahi poochta). Tilt = back leg, rafter length aur front leg se nikalta hai.
+    Back leg 1, 2, 3 / Front leg 1, 2, 3 — har leg ki alag height (Step 7). Manual mode bhi hai (pehle jaisa).
+11) Naya structure type: "Cross / support" (Mono railing ke neeche) — legs ke beech X cross-bracing + side support.
+12) LASER LINES (2D): kuch bhi khiskate / banate waqt jab wo kisi doosre part ke saath line me aata hai to laal laser line dikhti hai aur part chipak jata hai (roof, area, panel, structure, equipment, wire ke points — sab par). Layers me "Laser guides" se on/off.
+13) 3D EDIT: 3D view me leg / rafter / purlin / panel par tap karke chunein. Left ke card "Edit structure (3D)" se: Back leg / Front leg height (+ / -), poora structure upar-neeche, poora structure Bigger / Smaller, Rafter / Purlin / Leg ka size. Har badlav par rafter, purlin, panel aur tilt apne-aap set hote hain.
+14) Real satellite: Mapbox public token (pk...) shim me default hai; config.js me MAPBOX_TOKEN se badal sakte hain. Mapbox dashboard me token ko apni website / store / CRM ke URL tak restrict karna aapko khud karna hai (mere paas Mapbox account access nahi). Bina token / internet ke blueprint grid par sab chalta hai.
+15) Bhasha: designer ke andar bhi English / Hindi / Hinglish (host page ki bhasha ke saath badalti hai) — ~730 vaakya / pattern. Canvas ke andar ka text aur PDF (drawing sheet, quotation) abhi English me hain.
+16) Voice search: location "Search address / place" box me mic.
+17) Purane saved blueprints CRM me "legacy" ki tarah khulte hain (sirf customer details); naye save naye designer ke full design ke saath.
+
+ROUND 27 (addendum 3) — Designer: Mapbox, hints, Auto design, 3D Preview, mobile
+18) Mapbox: token ab designer me hi built-in hai — token maangne wala screen / button hata diya. Agar Mapbox tiles na khulein (URL restriction etc.) to apne-aap Esri satellite dikhta hai. Map settings / custom style jaisi bekaar cheezein hata di.
+19) Har hint par ✕: dabate hi hamesha ke liye band (us device me yaad rehta hai). Wapas lane ke liye Layers me "Show closed hints again".
+20) "⚡ Auto design" button: roof ki length, width (aur chahein to height, kW limit, structure type) daliye — portrait panels + legs + rafter + purlin apne-aap. Manual wala jaisa tha waisa hi hai. 3D me khali screen par bhi wahi form hai, yani shuru se 3D me bana sakte hain.
+21) "🎬 3D Preview" button: saaf full-screen 3D (auto-rotate, From South, Top, Close).
+22) Mobile: kisi item par tap karte hi edit panel (height / length) khud khulta hai; keyboard ke upar fields rehte hain; ☰ button aur toast ab fields par nahi aate.
+
+------------------------------------------------------------
+ROUND 29 — PAID DESIGNER (Rs 49), PREPAID ORDERS, GST INVOICE, QUOTATION PDF FIX
+------------------------------------------------------------
+** SABSE PEHLE SQL: Supabase me SQL-PARTS/2-UPDATE ka U08 aur U09 (ya poori MASTER-UPDATE.sql) chalayein — naya table sp_design_pay + naye functions. **
+
+A) QUOTATION PDF (CRM)
+23) Bug mila aur theek hua: PDF banate waqt galti se bill ki jagah <style> tag utha raha tha, isliye PDF khali / adhoora aata tha. Ab bill ka asli hissa jata hai.
+24) Quotation / Bill page par naya button "PDF Download" (seedha phone/computer me save). "PDF WhatsApp" pehle jaisa.
+25) WhatsApp par PDF seedha na ja sake (computer, ya phone jo file-share na kare): PDF Supabase storage me chadh kar uska LINK banta hai aur WhatsApp text me link + poori details (quotation no., project, items, kul rakam, valid tareekh, phone) likhi aati hai. Ye har jagah lagu: Quotation, Bill, Payment receipt, Customer ledger.
+    Agar internet/storage ki wajah se link na ban paye to purana tareeka (PDF download + attach karne ka message).
+    NOTE: PDF library (html2pdf) internet se aati hai (cdnjs, na chale to jsdelivr) — offline me Print -> "Save as PDF" ka rasta khud khul jata hai.
+
+B) SAB PRODUCTS PREPAID — COD BAND
+26) Website checkout + Store checkout me Cash on Delivery / COD-advance poora hata diya (admin settings me bhi COD ke box hata diye; DB me COD "chalu" bhi ho to dikhta nahi). Sirf UPI / Google Pay / PhonePe / Paytm.
+27) Google Pay / PhonePe / Paytm ke link Admin -> Payments me daalte hi checkout par button ban jata hai (pehle se tha, ab bhi).
+28) Payment ke neeche notice: "After verification of payment & Location, Invoice will appear on your Orders details — you can download it from there." UTR / slip dalna zaruri nahi.
+29) ADMIN: har order ke card me hara button "Payment & Location genuine hain — Invoice customer ke Orders details me bhejein". Dabate hi order PAID ho jata hai, invoice number banta hai (SP/2627/0001) aur customer ke Orders details me "Download Invoice" aa jata hai.
+    (Pehle ke "Verify / Reject" buttons dabane par kuch hota nahi tha — wo click handler galat jagah tha, theek kiya.)
+30) GST: Admin -> product me naya box "GST % (Invoice ke liye — price me shamil)". Invoice me har product ka taxable value + GST alag dikhta hai. Delivery charge abhi 0% GST pe hai.
+31) Customer ka "Orders details": Store app ke Account me (pehle se) + Website par naya page orders.html ("My Orders / Invoice" button order ke baad). Invoice Print -> Save as PDF se download hota hai.
+
+C) SOLAR DESIGNER — PAID (sirf PUBLIC users: Website, Website Shop page, Store app). CRM / Admin users ko koi charge nahi.
+32) Pehle kuch der free design. Structure step (step 7) par jaate hi (ya Auto design / template dabate hi) payment popup: Rs 49 (5% GST shamil). Bina payment ke aage koi function nahi.
+33) Payment: UPI app button + Google Pay/PhonePe link (admin me daale hue) + UPI ID. Phir "Maine payment kar diya" dabayein (UTR optional). Design aage banta rahta hai.
+34) DOWNLOAD / SAVE (PDF, drawing sheet, PNG, JSON): clean file tabhi jab aap admin me "genuine" dabayein. Pehle download dabane par "verification ka intezaar" dikhta hai aur verify hote hi download apne-aap khul jata hai.
+35) EK PAYMENT = EK DESIGN. Design galat ho to clear karke dobara bana sakte hain (payment valid). Download ke baad naya design = naya Rs 49. (Server location se pehchanta hai; ek payment par max 30 download.)
+36) WATERMARK: jab tak design screen par hai, "SUNPOWERS" ki tiled watermark dikhti hai (screen aur plan par). Hataane ki koshish karo to wapas aa jati hai. Paid download me watermark NAHI.
+37) Design public user ke phone me hi rehta hai; Supabase me sirf payment record (naam, mobile, order no, amount, location, status). "Send to Sunpowers" aur "Save / Open" public me band.
+38) ADMIN -> Orders ke upar naya "Solar Designer payments" box: har payment, UTR, location (Google Map link) aur "Payment & Location genuine — Invoice bhejein" button. Invoice SPD/2627/0001 customer ke Orders details me.
+39) Fees badalna: Admin -> Payments me "Solar Designer fee" (default 49) aur "Solar Designer GST %" (default 5). Khali chhodo to 49 aur 5% hi chalta hai. (Aapne sirf Rs 49 kaha hai, isliye wahi default.)
+40) Backup/Restore me naya hissa "Designer payments".
+
+LIMITS (sach):
+- Web par screenshot / dusre phone se photo pakka rok nahi sakte — isliye watermark + blur (PrintScreen, app badalte waqt) + right-click/print band. Ye rukavat hai, pakki deewar nahi.
+- UPI link / button se payment apne-aap confirm nahi hota — aapka staff bank me dekh kar "genuine" dabata hai (ya baad me Razorpay jaisa gateway jodna padega).
+- Browser ka data saaf karne par local design chala jata hai.

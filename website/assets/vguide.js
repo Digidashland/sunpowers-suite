@@ -60,11 +60,6 @@
       .then(function (d) { clearTimeout(tm); var it = (d && d.videos && Array.isArray(d.videos.items) ? d.videos.items : []).filter(function (x) { return x && x.title; }).map(function (x) { return { title: String(x.title), url: safe(x.url) }; }).filter(function (x) { return x.url; }); try { sessionStorage.setItem('sp_wvid', JSON.stringify({ at: Date.now(), v: it })); } catch (e) {} return it; })
       .catch(function () { clearTimeout(tm); return []; });
   }
-  function itemsFor(topic, real) {
-    if (real.length) return real.map(function (x) { return { title: x.title, url: x.url, d: '' }; });
-    var l = DUMMY.filter(function (v) { return v.t.indexOf(topic) >= 0; }); if (!l.length) l = DUMMY.slice(0, 4);
-    return l.map(function (v) { return { title: X(lang() === 'hi' ? v.hi : v.en), url: v.url, d: v.d }; });
-  }
   var SEQ = 0;
   function render(el, real) {
     var topic = el.getAttribute('data-vguide') || 'home', idx = parseInt(el.getAttribute('data-k'), 10) || 0, v;

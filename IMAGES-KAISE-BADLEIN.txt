@@ -1,0 +1,16 @@
+IMAGES — placeholder (illustration) kahan-kahan lagi hain aur real photo se kaise badlein
+=======================================================================================
+1) IMAGES-LIST.csv kholein (Excel me). Har row = ek image: file-name, kaun si jagah, recommended size, aur photo-realistic AI prompt.
+   Prompt ko ChatGPT / Gemini / Midjourney me daalein, photo banayein, same file-name se save karein.
+2) File replace karne ki jagah (dono me same file rakhein):
+     website/img/...   -> Website + Shop page
+     store/img/...     -> Store App
+   Photo chhoti rakhein (WebP/JPG, product ~800px, banner ~1600px, 60-150 KB) taaki app fast rahe.
+3) Ya Admin se seedha upload: Store Admin -> Product -> Photo (Store App + Shop dono me real photo aa jati hai; placeholder hat jata hai).
+4) SQL: STORE-IMAGES-APPLY.sql (MASTER-UPDATE aur catalog ke baad) products / categories / banners me placeholder path bharti hai —
+   SIRF khali jagah; aapki apni photo ko kabhi overwrite nahi karti.
+   Agar placeholder bilkul nahi chahiye: STORE-IMAGES-REMOVE.sql chalayein (sirf '/img/' wale hatati hai).
+5) Website page banners (hero): har page ke upar default banner me ab img/hero/hero-<page>.webp dikhti hai. Admin -> Page Banner me apni
+   photo/video lagayenge to wo isko replace kar degi.
+6) Browser cache: /img/ ki files 1 ghante cache hoti hain, isliye replace karne ke baad ~1 ghante me (ya hard refresh) nayi dikhegi.
+7) Video yahan nahi hain — aap khud upload karenge.

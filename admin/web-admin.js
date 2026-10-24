@@ -3,16 +3,16 @@
    and applied live by assets/cms.js on the website. The Online Store data is never touched here. */
 (function () {
 'use strict';
-var A = null, W = null, TAB = 'wb', LASTSCOPE = '', PAGE = 'index', Q = '';
+var A = null, W = null, TAB = 'dash', LASTSCOPE = '', PAGE = 'index', Q = '';
 var $ = function (s, r) { return (r || document).querySelector(s); };
 var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
 var MAN = function () { return (window.CMS_MANIFEST && window.CMS_MANIFEST.pages) || []; };
 var DEF = function () { return window.CMS_DEFAULTS || { slides: [], menu: [], pages: [], slugs: [] }; };
-var TABS_ALL = [['wb', '🧱 Website Builder'], ['dash', '📊 डैशबोर्ड'], ['slides', '🎞️ होम हीरो स्लाइड'], ['photos', '🏷️ लोगो / फ़ोटो'], ['links', '🛒 स्टोर लिंक'], ['cards', '🃏 कार्ड लिंक / मीडिया'], ['menu', '🧭 मेन्यू'], ['pages', '📄 नए पेज'], ['site', '⭐ रेटिंग, सोशल व ऐप'], ['look', '🎨 वेबसाइट सेटिंग (रंग व ग्रीटिंग)']];
-var TABS_SHOP = [['dash', '📊 डैशबोर्ड'], ['builder', '🧱 Shop Page Builder'], ['secs', '🧩 पेज के सेक्शन व बटन'], ['texts', '📝 Shop पेज का टेक्स्ट'], ['shop', '🛍️ कार्ट सेक्शन']];
+var TABS_ALL = [['dash', '📊 डैशबोर्ड'], ['wb', '🧱 Website Builder'], ['menu', '🧭 मेन्यू (हेडर / फ़ुटर के नाम)'], ['pages', '📄 पेज व पॉलिसी'], ['photos', '🖼️ Website Media'], ['cards', '🃏 कार्ड लिंक / मीडिया'], ['links', '🛒 स्टोर लिंक'], ['site', '⭐ रेटिंग, सोशल व ऐप'], ['look', '🎨 वेबसाइट सेटिंग (रंग व ग्रीटिंग)']];
+var TABS_SHOP = [['dash', '📊 डैशबोर्ड'], ['builder', '🧱 Web Shop Page Builder'], ['texts', '📝 Shop पेज के शब्द व बटन'], ['shop', '🛍️ कार्ट सेक्शन'], ['photos', '🖼️ Shop Media']];
 var SCOPE = 'site', TABS = TABS_ALL;
-var WHINTS = {shop: 'On-Grid / Off-Grid / Hybrid / VFD वाले हर सेक्शन में स्टोर के असली प्रोडक्ट और Add to cart दिखता है। यहाँ ऊपर का नाम, कौन-से प्रोडक्ट दिखें और बटन का असली लिंक बदलें।', slides: 'होम पेज की बड़ी स्लाइड — फ़ोटो, हेडिंग और बटन। खाली छोड़ने पर पुरानी डिफ़ॉल्ट स्लाइड दिखती है।', texts: 'किसी भी पेज का टेक्स्ट बदलें। खाली छोड़ेंगे तो वेबसाइट का मूल टेक्स्ट ही रहेगा।', photos: 'फ़ोटो/लोगो का लिंक या अपलोड। हल्की (1 MB से कम) फ़ोटो रखें ताकि साइट तेज़ चले।', links: 'वेबसाइट के बटन किस स्टोर पेज पर जाएँ।', banners: 'होम को छोड़कर हर पेज के नीचे 16:9 बैनर — 1 वीडियो या अधिकतम 5 फ़ोटो + 2 बटन। खाली = डिफ़ॉल्ट Sunpowers बैनर (फ्री साइट विज़िट + WhatsApp)। छुपाने के लिए टिक करें।', cards: 'प्रोजेक्ट/ब्रांड/सर्विस कार्ड के अतिरिक्त लिंक व फ़ोटो-वीडियो। खाली = डिफ़ॉल्ट बटन; - लिखें तो बटन छुपेगा। लिंक https:// से शुरू होना चाहिए।', menu: 'ऊपर के मेन्यू के नाम और क्रम।', home: 'होम पेज के सेक्शन दिखाएँ/छुपाएँ।', pages: 'नया पेज बनाएँ — हेडिंग, टेक्स्ट और फ़ोटो जोड़ें।', site: 'रेटिंग, सोशल लिंक और संपर्क जानकारी। असली आँकड़े ही डालें।'};
+var WHINTS = {shop: 'On-Grid / Off-Grid / Hybrid / VFD वाले हर सेक्शन में स्टोर के असली प्रोडक्ट और Add to cart दिखता है। यहाँ ऊपर का नाम, कौन-से प्रोडक्ट दिखें और बटन का असली लिंक बदलें।', links: 'वेबसाइट के बटन किस स्टोर पेज पर जाएँ।', banners: 'होम को छोड़कर हर पेज के नीचे 16:9 बैनर — 1 वीडियो या अधिकतम 5 फ़ोटो + 2 बटन। खाली = डिफ़ॉल्ट Sunpowers बैनर (फ्री साइट विज़िट + WhatsApp)। छुपाने के लिए टिक करें।', cards: 'प्रोजेक्ट/ब्रांड/सर्विस कार्ड के अतिरिक्त लिंक व फ़ोटो-वीडियो। खाली = डिफ़ॉल्ट बटन; - लिखें तो बटन छुपेगा। लिंक https:// से शुरू होना चाहिए।', menu: 'ऊपर के मेन्यू के नाम और क्रम।', home: 'होम पेज के सेक्शन दिखाएँ/छुपाएँ।', pages: 'नया पेज बनाएँ — हेडिंग, टेक्स्ट और फ़ोटो जोड़ें।', site: 'रेटिंग, सोशल लिंक और संपर्क जानकारी। असली आँकड़े ही डालें।'};
 var SAVED_JSON = '';
 
 function norm(d) {
@@ -34,6 +34,9 @@ function siteBase() { var u = A.siteLink ? A.siteLink() : ''; return u ? u.repla
 /* ---------- field helpers (value is read back by collect() through data-p) ---------- */
 function val(p, d) { var v = getP(W, p); return v == null ? (d == null ? '' : d) : v; }
 function tf(p, label, o) {
+  /* Round 27: content is written in English only — the Hindi / Hinglish / other-language versions are made automatically on the public side */
+  if (/\.hi$/.test(p)) return '';
+  label = String(label).replace(/\s*\((English|अंग्रेज़ी)\)/g, '').replace(/^English\s*\(.*?\)\s*/, 'English ');
   o = o || {}; var v = val(p);
   var inner = o.area ? '<textarea class="inp" data-p="' + esc(p) + '" rows="' + (o.rows || 3) + '" placeholder="' + esc(o.ph || '') + '">' + esc(v) + '</textarea>'
     : '<input class="inp" type="text" data-p="' + esc(p) + '" value="' + esc(v) + '" placeholder="' + esc(o.ph || '') + '"' + (o.max ? ' maxlength="' + o.max + '"' : '') + '>';
@@ -47,14 +50,60 @@ function chk(p, label) { return '<label class="chk"><input type="checkbox" data-
 function imgf(p, label, fallback) {
   var v = val(p), prev = v || fallback || '';
   return '<div class="fld full"><label class="l">' + esc(label) + '</label><div class="imgf"><div class="imgprev" data-prev>' + (/^(https?:|\.\.?\/|[\w\-\/]+\.(jpe?g|png|webp|svg|gif))/i.test(prev) ? '<img src="' + esc(prev) + '" alt="" onerror="this.remove()">' : 'कोई फ़ोटो नहीं') + '</div>' +
-    '<div class="imgbtns"><span class="btn sm upl">📷 फ़ोटो अपलोड<input type="file" accept="image/*" data-up></span><button type="button" class="btn sm gray" data-clrimg>हटाएँ</button></div>' +
+    '<div class="imgbtns"><span class="btn sm upl"><b data-ul data-a="📷 फ़ोटो अपलोड" data-b="🔄 फ़ोटो बदलें (Replace)">📷 फ़ोटो अपलोड</b><input type="file" accept="image/*" data-up></span><button type="button" class="btn sm out" data-lnkf>🔗 लिंक से बदलें</button><button type="button" class="btn sm gray" data-clrimg data-del>🗑 हटाएँ (Delete)</button></div>' +
     '<input class="imgurl" type="text" data-p="' + esc(p) + '" data-img value="' + esc(v) + '" placeholder="या फ़ोटो का https:// लिंक paste करें"></div></div>';
+}
+/* ---------- PDF upload (datasheet etc.): auto-shrink to max 500 KB, then upload ---------- */
+var PDF_MAX = 500 * 1024, PDFLIB_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';
+function pdfField(p, label, h) {
+  var v = val(p);
+  return '<div class="fld full"><label class="l">' + esc(label) + '</label><div class="imgf"><div class="imgprev" data-pprev>' + (v ? '<a href="' + esc(v) + '" target="_blank" rel="noopener">📄 PDF खोलें</a>' : 'कोई PDF नहीं') + '</div>' +
+    '<div class="imgbtns"><span class="btn sm upl">📄 PDF अपलोड<input type="file" accept="application/pdf" data-pup></span><button type="button" class="btn sm gray" data-clrpdf>हटाएँ</button></div>' +
+    '<input class="imgurl" type="text" data-p="' + esc(p) + '" data-purl value="' + esc(v) + '" placeholder="या PDF का https:// लिंक paste करें"></div>' +
+    '<small class="help">PDF अपने-आप छोटी होने की कोशिश होगी; 500 KB से बड़ी रहे तो अपलोड नहीं होगी.' + (h ? ' ' + h : '') + '</small></div>';
+}
+function loadPdfLib() {
+  if (window.PDFLib) return Promise.resolve(window.PDFLib);
+  return new Promise(function (res, rej) {
+    var s = document.createElement('script'); s.src = PDFLIB_URL;
+    s.onload = function () { window.PDFLib ? res(window.PDFLib) : rej(new Error('pdf tool')); };
+    s.onerror = function () { rej(new Error('PDF टूल लोड नहीं हुआ — इंटरनेट जाँचें')); };
+    document.head.appendChild(s);
+  });
+}
+async function shrinkPdf(file) {
+  if (!/pdf$/i.test(file.type || '') && !/\.pdf$/i.test(file.name || '')) throw new Error('सिर्फ़ PDF फ़ाइल चुनें');
+  var buf = await file.arrayBuffer(), out = buf;
+  try {
+    var L = await loadPdfLib();
+    var doc = await L.PDFDocument.load(buf, { ignoreEncryption: true, updateMetadata: false });
+    var b = await doc.save({ useObjectStreams: true });
+    if (b.byteLength < out.byteLength) out = b;
+  } catch (e) { /* tool unavailable: try the original file */ }
+  if (out.byteLength > PDF_MAX) throw new Error('PDF ' + Math.round(out.byteLength / 1024) + ' KB है — 500 KB से छोटी PDF चुनें (PDF को छोटा/compress करके दोबारा अपलोड करें)');
+  return new Blob([out], { type: 'application/pdf' });
+}
+function bindPdf(m) {
+  m.addEventListener('click', function (e) { var b = e.target.closest('[data-clrpdf]'); if (b) { var box = b.closest('.imgf'); $('[data-purl]', box).value = ''; $('[data-pprev]', box).innerHTML = 'कोई PDF नहीं'; } });
+  m.addEventListener('change', async function (e) {
+    var f = e.target.closest('[data-pup]'); if (!f || !f.files[0]) return; var file = f.files[0]; f.value = '';
+    var box = f.closest('.imgf'), pv = $('[data-pprev]', box); pv.innerHTML = '<span class="spin"></span> PDF छोटी हो रही है…';
+    try {
+      var blob = await shrinkPdf(file); pv.innerHTML = '<span class="spin"></span> अपलोड हो रही है…';
+      var u = await SP.uploadImage(blob); if (!/^https?:/i.test(u)) throw new Error('अपलोड नहीं हुआ');
+      $('[data-purl]', box).value = u; pv.innerHTML = '<a href="' + esc(u) + '" target="_blank" rel="noopener">📄 PDF खोलें</a> (' + Math.round(blob.size / 1024) + ' KB)';
+      toast('✅ PDF अपलोड हो गई — अब सेव करें');
+    } catch (er) { pv.innerHTML = 'कोई PDF नहीं'; toast((er && er.message || 'PDF अपलोड नहीं हुई').slice(0, 160), true); }
+  });
+  m.addEventListener('input', function (e) { var i = e.target.closest('[data-purl]'); if (i) { var pv = $('[data-pprev]', i.closest('.imgf')); pv.innerHTML = /^https?:\/\//i.test(i.value) ? '<a href="' + esc(i.value) + '" target="_blank" rel="noopener">📄 PDF खोलें</a>' : 'कोई PDF नहीं'; } });
 }
 function collect(root) {
   $$('[data-p]', root || $('#wmain')).forEach(function (el) {
     var v = el.hasAttribute('data-bool') ? el.checked : (el.value || '').trim();
     if (el.hasAttribute('data-bool') && !v) { var cur = getP(W, el.getAttribute('data-p')); if (cur === undefined) return; }
-    setP(W, el.getAttribute('data-p'), v);
+    var pp = el.getAttribute('data-p');
+    if (/\.en$/.test(pp) && !el.hasAttribute('data-bool') && String(getP(W, pp) == null ? '' : getP(W, pp)) !== String(v)) setP(W, pp.replace(/\.en$/, '.hi'), '');
+    setP(W, pp, v);
   });
 }
 function toast(m, e) { A.toast(m, e); }
@@ -83,20 +132,28 @@ function shell() {
   A.setMode(SCOPE === 'shop' ? 'shop' : 'web');
   if (SCOPE === 'shop' && A.builder) A.builder.use(function () { if (TAB === 'builder') draw(); }, 'shop');
   A.app.innerHTML = SPHDR.bar({ title: SCOPE === 'shop' ? 'Shop Page' : 'Website Management', back: true, filter: true }) +
-    '<div class="tabs">' + TABS.map(function (t) { return '<button class="tab" data-wtab="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div><main id="wmain"></main>';
+    '<main id="wmain"></main>';
   SPHDR.bind({ back: function () { collect(); A.back(); }, filter: function () { var c = window.SPDASH && SPDASH.ctl; return { ranges: c ? c.ranges() : [], pick: function (v) { var c2 = SPDASH.ctl; if (!c2) return; if (v === 'ref') c2.refresh(); else if (v === 'csv') c2.csv(); else c2.set(v); } }; } }); SPHDR.refresh();
-  $$('.tab').forEach(function (b) { b.onclick = function () { collect(); TAB = b.getAttribute('data-wtab'); draw(); }; });
   if (window.SPI18N && SPI18N.refresh) try { SPI18N.refresh(); } catch (e) {}
   draw();
 }
 function draw() {
   var fb = document.querySelector('.hd [data-hd="filter"]'); if (fb) fb.classList.toggle('hide', TAB !== 'dash');
-  $$('.tab').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-wtab') === TAB); });
+  var ttl = document.querySelector('.hd-t span'); if (ttl) ttl.textContent = (SCOPE === 'shop' ? 'Shop Page' : 'Website Management') + ' — ' + ((TABS.filter(function (x) { return x[0] === TAB; })[0] || ['', ''])[1].replace(/^\S+\s/, ''));
   var m = $('#wmain'), old = m, n = old.cloneNode(false); old.parentNode.replaceChild(n, old); m = n;
-  try { m.innerHTML = (WHINTS[TAB] ? '<div class="note g" data-hint>💡 ' + esc(WHINTS[TAB]) + '</div>' : '') + VIEW[TAB](); } catch (e) { console.error(e); m.innerHTML = '<div class="note r">Error: ' + esc(e.message) + '</div>'; return; }
+  try { m.innerHTML = (SCOPE === 'shop' ? '<div class="via sh"><i></i>🛍️ सिर्फ़ Web Shop पेज (वेबसाइट) <small>— Store App पर असर नहीं</small></div>' : '') + (WHINTS[TAB] ? '<div class="note g" data-hint>💡 ' + esc(WHINTS[TAB]) + '</div>' : '') + VIEW[TAB](); } catch (e) { console.error(e); m.innerHTML = '<div class="note r">Error: ' + esc(e.message) + '</div>'; return; }
   bindCommon(m); if (BIND[TAB]) BIND[TAB](m);
 }
+/* Round 27: every photo / video box shows "Replace" + "Delete" once it holds a file (and plain "Upload" while it is empty) */
+function mstate(root) {
+  $$('.imgf', root).forEach(function (box) {
+    var u = $('[data-img],[data-vurl]', box), ul = $('[data-ul]', box), dl = $('[data-del]', box), lf = $('[data-lnkf]', box); if (!u || !ul) return;
+    var has = !!String(u.value || '').trim(); ul.textContent = has ? ul.getAttribute('data-b') : ul.getAttribute('data-a'); if (dl) dl.hidden = !has; if (lf) lf.hidden = !has;
+  });
+}
 function bindCommon(m) {
+  mstate(m);
+  ['click', 'input', 'change'].forEach(function (ev) { m.addEventListener(ev, function (e) { var b = e.target.closest && e.target.closest('[data-lnkf]'); if (b) { var u = $('[data-img],[data-vurl]', b.closest('.imgf')); if (u) { u.focus(); u.select(); } } setTimeout(function () { mstate(m); }, 60); setTimeout(function () { mstate(m); }, 1500); }); });
   m.addEventListener('click', async function (e) {
     var b = e.target.closest('[data-clrimg]'); if (b) { var i = $('[data-img]', b.closest('.imgf')); i.value = ''; $('[data-prev]', b.closest('.imgf')).innerHTML = 'कोई फ़ोटो नहीं'; }
   });
@@ -116,7 +173,7 @@ function mv(arr, i, d) { var j = i + d; if (j < 0 || j >= arr.length) return fal
 /* ================= 1. hero slides ================= */
 var KINDS = [['a', '🔗 वेबसाइट का पेज खोलें'], ['book', '📝 फ़ॉर्म पॉपअप खोलें'], ['shop', '🛒 ऑनलाइन स्टोर खोलें'], ['wa', '💬 WhatsApp खोलें']];
 var KHELP = { a: 'पेज का नाम, जैसे calculator.html या page.html?s=आपका-पेज', book: 'फ़ॉर्म का नाम: Site survey / Installation / shifting / Solar panel cleaning / Solar quote', shop: 'खाली = स्टोर का मुख्य पेज, या /?view=categories जैसा रास्ता, या पूरा https:// लिंक', wa: 'WhatsApp पर पहले से लिखा मैसेज' };
-VIEW.slides = function () {
+function slidesBody() {
   var S = W.slides, custom = S.length > 0;
   var h = help('वेबसाइट के सबसे ऊपर वीडियो पर जो स्लाइड घूमती हैं, उन्हें यहाँ बदलें। हर स्लाइड = हेडलाइन + छोटी लाइन + एक बटन। English और हिंदी दोनों लिखें (हिंदी खाली छोड़ी तो English दिखेगा)।');
   if (!custom) return h + '<div class="card"><h2>🎞️ अभी वेबसाइट की डिफ़ॉल्ट ' + DEF().slides.length + ' स्लाइड चल रही हैं</h2><p style="color:var(--mut);margin:8px 0">बदलना शुरू करने के लिए डिफ़ॉल्ट स्लाइड यहाँ ले आइए, फिर किसी को बदलें, हटाएँ या नई जोड़ें।</p><button class="btn" id="slSeed">✏️ स्लाइड एडिट करना शुरू करें</button></div>';
@@ -129,73 +186,89 @@ VIEW.slides = function () {
       tf('slides.' + i + '.label.en', 'बटन का नाम (English)', { max: 40 }) + tf('slides.' + i + '.label.hi', 'बटन का नाम (हिंदी)', { max: 40 }) +
       sel('slides.' + i + '.kind', 'बटन क्लिक पर क्या हो?', KINDS) + tf('slides.' + i + '.target', 'कहाँ जाए / क्या लिखा हो', { ph: '', h: KHELP[k] }) +
       '</div>' + chk('slides.' + i + '.hide', 'इस स्लाइड को छुपाएँ (डिलीट किए बिना)') + '</div>';
-  }).join('') + saveBtn();
-};
-BIND.slides = function (m) {
-  var seed = $('#slSeed'); if (seed) seed.onclick = function () { W.slides = JSON.parse(JSON.stringify(DEF().slides)); draw(); save('✅ स्लाइड एडिट के लिए तैयार — अब बदलिए और सेव करें'); };
-  var add = $('#slAdd'); if (add) add.onclick = function () { collect(); W.slides.push({ title: { en: '', hi: '' }, text: { en: '', hi: '' }, label: { en: 'Know more', hi: 'और जानें' }, kind: 'a', target: 'services.html' }); draw(); };
-  var rs = $('#slReset'); if (rs) rs.onclick = async function () { if (!(await A.ask('सारी कस्टम स्लाइड हटाकर वेबसाइट की डिफ़ॉल्ट स्लाइड पर लौटें?', 'हाँ, वापस', true))) return; W.slides = []; draw(); save('↩️ डिफ़ॉल्ट स्लाइड वापस'); };
+  }).join('');
+}
+function slRedraw() { var y = window.pageYOffset; draw(); try { window.scrollTo(0, y); } catch (x) {} }
+function bindSlides(m) {
+  var seed = $('#slSeed'); if (seed) seed.onclick = function () { collect(m); collectTexts(m); W.slides = JSON.parse(JSON.stringify(DEF().slides)); slRedraw(); };
+  var add = $('#slAdd'); if (add) add.onclick = function () { collect(m); collectTexts(m); W.slides.push({ title: { en: '', hi: '' }, text: { en: '', hi: '' }, label: { en: 'Know more', hi: 'और जानें' }, kind: 'a', target: 'services.html' }); slRedraw(); };
+  var rs = $('#slReset'); if (rs) rs.onclick = async function () { if (!(await A.ask('सारी कस्टम स्लाइड हटाकर वेबसाइट की डिफ़ॉल्ट स्लाइड पर लौटें?', 'हाँ, वापस', true))) return; collect(m); collectTexts(m); W.slides = []; slRedraw(); };
   m.addEventListener('click', async function (e) {
     var b;
-    if ((b = e.target.closest('[data-slmv]'))) { collect(); if (mv(W.slides, +b.getAttribute('data-slmv'), +b.getAttribute('data-d'))) draw(); }
-    else if ((b = e.target.closest('[data-sldel]'))) { collect(); if (await A.ask('यह स्लाइड हटाएँ?', 'हटाएँ', true)) { W.slides.splice(+b.getAttribute('data-sldel'), 1); draw(); } }
+    if ((b = e.target.closest('[data-slmv]'))) { collect(m); collectTexts(m); if (mv(W.slides, +b.getAttribute('data-slmv'), +b.getAttribute('data-d'))) slRedraw(); }
+    else if ((b = e.target.closest('[data-sldel]'))) { collect(m); collectTexts(m); if (await A.ask('यह स्लाइड हटाएँ?', 'हटाएँ', true)) { W.slides.splice(+b.getAttribute('data-sldel'), 1); slRedraw(); } }
   });
-  m.addEventListener('change', function (e) { if (e.target.matches('select[data-p$=".kind"]')) { collect(); draw(); } });
-  var sv = $('#wSave'); if (sv) sv.onclick = function () {
-    collect(); var bad = '';
-    W.slides.forEach(function (s, i) { if (s.hide) return; if (!s.title || !(s.title.en || s.title.hi)) bad = 'स्लाइड ' + (i + 1) + ' की हेडलाइन लिखें'; if (s.kind === 'a' && s.target && /^\s*(javascript|data):/i.test(s.target)) bad = 'स्लाइड ' + (i + 1) + ' का लिंक सही नहीं'; });
-    if (bad) return toast(bad, true);
-    if (!W.slides.some(function (s) { return !s.hide; })) return toast('कम से कम एक स्लाइड दिखनी चाहिए', true);
-    save('✅ स्लाइड सेव हो गईं');
-  };
-};
+}
+function slidesCheck() {
+  var bad = '';
+  W.slides.forEach(function (s, i) { if (s.hide) return; if (!s.title || !(s.title.en || s.title.hi)) bad = bad || 'स्लाइड ' + (i + 1) + ' की हेडलाइन लिखें'; if (s.kind === 'a' && s.target && /^\s*(javascript|data):/i.test(s.target)) bad = bad || 'स्लाइड ' + (i + 1) + ' का लिंक सही नहीं'; });
+  if (!bad && W.slides.length && !W.slides.some(function (s) { return !s.hide; })) bad = 'कम से कम एक स्लाइड दिखनी चाहिए';
+  return bad;
+}
 
 /* ================= 2. page text ================= */
-function pageOpts() { return MAN().map(function (p) { return '<option value="' + esc(p.id) + '"' + (p.id === PAGE ? ' selected' : '') + '>' + esc(p.file) + ' — ' + esc(p.title) + '</option>'; }).join(''); }
+function pageList() { return MAN().filter(function (p) { return SCOPE === 'shop' ? p.id === 'shop' : p.id !== 'shop'; }); }
+function pageOpts() { return pageList().map(function (p) { return '<option value="' + esc(p.id) + '"' + (p.id === PAGE ? ' selected' : '') + '>' + esc(p.file) + ' — ' + esc(p.title) + '</option>'; }).join(''); }
 VIEW.texts = function () {
-  var pg = MAN().filter(function (p) { return p.id === PAGE; })[0] || MAN()[0]; if (!pg) return '<div class="note r">cms-manifest.js नहीं मिला</div>';
+  var pl = pageList(), pg = pl.filter(function (p) { return p.id === PAGE; })[0] || pl[0]; if (!pg) return '<div class="note r">cms-manifest.js नहीं मिला</div>';
   PAGE = pg.id; var q = Q.toLowerCase();
   var rows = pg.texts.filter(function (t) { return !q || (t.en + ' ' + t.hi + ' ' + (W.text[t.k] ? W.text[t.k].en + ' ' + W.text[t.k].hi : '')).toLowerCase().indexOf(q) >= 0; });
-  return help('किसी भी पेज के शब्द बदलें। पहले पेज चुनें, फिर जिस लाइन को बदलना है उसमें लिखें। <b>English और हिंदी</b> दोनों खाने भरें। जो बदला नहीं वह वैसा ही रहेगा; "↩️" से डिफ़ॉल्ट वापस आ जाता है। (फोटो-बटन के अंदर का नाम और हेडर मेन्यू के नाम "मेन्यू" टैब से बदलें।)') +
-    '<div class="card"><div class="fg"><div class="fld"><label class="l">पेज चुनें</label><select class="inp" id="txPage">' + pageOpts() + '</select></div><div class="fld"><label class="l">खोजें</label><input class="inp" id="txQ" type="text" value="' + esc(Q) + '" placeholder="कोई शब्द लिखें…"></div></div>' +
+  return help('Shop पेज के शब्द बदलें — जिस लाइन को बदलना है उसमें लिखें। <b>सिर्फ़ English</b> में लिखें — हिंदी / Hinglish / दूसरी भाषा अपने-आप बन जाती है। जो बदला नहीं वह वैसा ही रहेगा; "↩️" से डिफ़ॉल्ट वापस आ जाता है। (फोटो-बटन के अंदर का नाम और हेडर मेन्यू के नाम "मेन्यू" टैब से बदलें।)') +
+    '<div class="card"><div class="fg"><div class="fld"><label class="l">खोजें</label><input class="inp" id="txQ" type="text" value="' + esc(Q) + '" placeholder="कोई शब्द लिखें…"></div></div>' +
     '<p style="color:var(--mut);font-size:13px;margin:6px 0">' + rows.length + ' / ' + pg.texts.length + ' लाइनें</p>' +
     rows.map(function (t) {
       var o = W.text[t.k], en = o ? o.en : t.en, hi = o ? o.hi : t.hi, mod = !!o;
       return '<div class="row" style="align-items:flex-start;gap:8px;flex-wrap:wrap;' + (mod ? 'background:#fff8e1' : '') + '"><div style="flex:1 1 100%;font-size:12px;color:var(--mut)">&lt;' + esc(t.tag) + '&gt;' + (mod ? ' <b style="color:#b26a00">• बदला हुआ</b>' : '') + ' <button class="ib" data-txr="' + esc(t.k) + '" title="डिफ़ॉल्ट वापस"' +  + '>↩️</button></div>' +
-        '<div style="flex:1 1 260px"><label class="l" style="font-size:12px">English</label><textarea class="inp" rows="2" data-tk="' + esc(t.k) + '" data-l="en" data-d="' + esc(t.en) + '">' + esc(en) + '</textarea></div>' +
-        '<div style="flex:1 1 260px"><label class="l" style="font-size:12px">हिंदी</label><textarea class="inp" rows="2" data-tk="' + esc(t.k) + '" data-l="hi" data-d="' + esc(t.hi) + '">' + esc(hi) + '</textarea></div></div>';
+        '<div style="flex:1 1 260px"><label class="l" style="font-size:12px">English</label><textarea class="inp" rows="2" data-tk="' + esc(t.k) + '" data-l="en" data-d="' + esc(t.en) + '">' + esc(en) + '</textarea></div></div>';
+
     }).join('') + saveBtn() + '</div>';
 };
 function collectTexts(m) {
   var by = {};
   $$('[data-tk]', m).forEach(function (el) { var k = el.getAttribute('data-tk'); by[k] = by[k] || {}; by[k][el.getAttribute('data-l')] = { v: el.value.trim(), d: el.getAttribute('data-d') }; });
   Object.keys(by).forEach(function (k) {
-    var o = by[k], en = o.en.v, hi = o.hi.v;
-    if ((en === o.en.d && hi === o.hi.d) || (!en && !hi)) delete W.text[k]; else W.text[k] = { en: en || o.en.d, hi: hi || o.hi.d };
+    var o = by[k], en = o.en.v, old = W.text[k], keepHi = !en || en === o.en.d || (old && old.en === en) ? (old ? old.hi : '') : '';
+    if (!en || en === o.en.d) delete W.text[k]; else W.text[k] = { en: en, hi: keepHi || '' };
   });
 }
 BIND.texts = function (m) {
-  $('#txPage').onchange = function () { collectTexts(m); PAGE = this.value; Q = ''; draw(); };
   $('#txQ').onchange = function () { collectTexts(m); Q = this.value.trim(); draw(); };
   m.addEventListener('click', function (e) { var b = e.target.closest('[data-txr]'); if (b) { collectTexts(m); delete W.text[b.getAttribute('data-txr')]; draw(); } });
   $('#wSave').onclick = function () { collectTexts(m); save('✅ टेक्स्ट सेव हो गया').then(draw); };
 };
 
 /* ================= 3. photos / logo ================= */
+/* Round 22: media is split per part - Website Media (logo, page photos, home video) and Shop Media (shop page photos only); each has its own download */
+function mediaItems() {
+  var base = siteBase(), out = [], seen = {};
+  function add(kind, name, u, ap, st) { u = String(u || '').trim(); if (!/^(https?:\/\/|\/img\/)/i.test(u) || seen[u]) return; seen[u] = 1; out.push({ kind: kind, name: name, url: u, apply: ap || function () {}, save: st }); }
+  function setW(path) { return function (nv) { if (path.length === 1) { if (nv === '') delete W[path[0]]; else W[path[0]] = nv; } else { var o = W[path[0]]; if (nv === '') delete o[path[1]]; else o[path[1]] = nv; } }; }
+  if (SCOPE !== 'shop') { add('logo', 'logo', W.img.logo, setW(['img', 'logo'])); add('video', 'home-video', W.site.video, setW(['site', 'video'])); add('poster', 'home-poster', W.site.poster, setW(['site', 'poster'])); }
+  pageList().forEach(function (p) { (p.imgs || []).forEach(function (im, i) { add('photos', p.id + '-' + (i + 1), W.img[im.k], setW(['img', im.k])); }); });
+  if (SCOPE === 'shop' && A.builder && A.builder.media) A.builder.media('shop').forEach(function (x) { add(x.kind, x.name, x.url, function (nv) { A.builder.mediaSet('shop', x.url, nv); }, function (m) { return A.saveStore(m); }); });
+  return out;
+}
 VIEW.photos = function () {
-  var pg = MAN().filter(function (p) { return p.id === PAGE; })[0] || MAN()[0], base = siteBase();
-  var logo = '<div class="card"><h2>🏷️ लोगो</h2><p style="color:var(--mut);font-size:13px;margin:4px 0">हेडर और फ़ुटर का लोगो। खाली = डिफ़ॉल्ट लोगो। (चौकोर / पारदर्शी PNG सबसे अच्छा)</p><div class="fg">' + imgf('img.logo', 'लोगो की फ़ोटो', base ? base + 'assets/logo-mark.png' : '') + '</div></div>';
-  return help('वेबसाइट की फ़ोटो बदलें — फ़ोटो अपलोड करें या https:// लिंक डालें। खाली छोड़ेंगे तो डिफ़ॉल्ट फ़ोटो रहेगी। <b>होमपेज का वीडियो</b> और टीम/प्रोजेक्ट फ़ोटो <b>Store Admin → 🌐 वेबसाइट मीडिया</b> में भी हैं और वहाँ से भी काम करते हैं।<br>ℹ️ आइकन (छोटे चित्र) कोड के हिसाब से बने हैं, उन्हें बदलने की जगह लोगो / फ़ोटो बदलें। ऐप का आइकन सिर्फ़ फ़ाइल बदलकर (ICONS गाइड) बदलता है।') + logo +
-    '<div class="card"><div class="fg"><div class="fld"><label class="l">पेज चुनें</label><select class="inp" id="phPage">' + pageOpts() + '</select></div></div>' +
-    (pg && pg.imgs.length ? pg.imgs.map(function (im, i) { return imgf('img.' + im.k, 'फ़ोटो ' + (i + 1) + (im.alt ? ' — ' + im.alt : ''), base && !/^https?:/.test(im.src) ? base + im.src : im.src); }).join('') : '<p style="color:var(--mut)">इस पेज पर बदलने लायक फ़ोटो नहीं है।</p>') + saveBtn() + '</div>';
+  var pl = pageList(), pg = pl.filter(function (p) { return p.id === PAGE; })[0] || pl[0], base = siteBase(), shop = SCOPE === 'shop';
+  if (pg) PAGE = pg.id;
+  var logo = shop ? '' : '<div class="card"><h2>🏷️ लोगो</h2><p style="color:var(--mut);font-size:13px;margin:4px 0">हेडर और फ़ुटर का लोगो। खाली = डिफ़ॉल्ट लोगो। (चौकोर / पारदर्शी PNG सबसे अच्छा)</p><div class="fg">' + imgf('img.logo', 'लोगो की फ़ोटो', base ? base + 'assets/logo-mark.png' : '') + '</div></div>';
+  var vid = shop ? '' : '<div class="card"><h2>🎬 होमपेज वीडियो</h2><p style="color:var(--mut);font-size:13px;margin:4px 0">वीडियो Cloudinary (या कहीं भी) पर अपलोड करके उसका <b>https://…mp4</b> लिंक डालें (1920×1080, 10–15 सेकंड, 6–10 MB सबसे अच्छा)। खाली = पुराना वीडियो चलेगा।</p><div class="fg">' + tf('site.video', 'होमपेज वीडियो का लिंक (.mp4)', { full: true, ph: 'https://…/video.mp4' }) + imgf('site.poster', 'वीडियो लोड होने से पहले की फ़ोटो (पोस्टर)', '') + '</div></div>';
+  var n = mediaItems().length;
+  return help((shop ? '<b>Shop पेज</b> की फ़ोटो बदलें' : '<b>वेबसाइट</b> की फ़ोटो, लोगो और होमपेज वीडियो बदलें') + ' — फ़ोटो अपलोड करें या https:// लिंक डालें। खाली छोड़ेंगे तो डिफ़ॉल्ट फ़ोटो रहेगी। ' + (shop ? 'वेबसाइट के बाकी पेज की फ़ोटो "Website Management → Website Media" में हैं।' : 'Shop पेज की फ़ोटो "Shop Page Management → Shop Media" में हैं।') + '<br>ℹ️ आइकन (छोटे चित्र) कोड के हिसाब से बने हैं, उन्हें बदला नहीं जा सकता।') + logo + vid +
+    '<div class="card">' + (shop ? '' : '<div class="fg"><div class="fld"><label class="l">पेज चुनें</label><select class="inp" id="phPage">' + pageOpts() + '</select></div></div>') +
+    (shop ? '<div id="mmLib">' + (window.SPMM ? SPMM.html(mediaItems()) : '') + '</div><p style="color:var(--mut);font-size:13px">' + (mediaItems().length ? 'ये Web Shop Page Builder के सेक्शन में लगी फ़ोटो/वीडियो हैं — यहीं से बदलें (Replace) या हटाएँ (Delete); नई जोड़ने के लिए Builder में ✏️ दबाएँ।' : 'Shop पेज की फ़ोटो/वीडियो Web Shop Page Builder के सेक्शन (✏️) से लगती हैं — अभी कोई नहीं लगी।') + '</p>' : pg && pg.imgs.length ? pg.imgs.map(function (im, i) { return imgf('img.' + im.k, 'फ़ोटो ' + (i + 1) + (im.alt ? ' — ' + im.alt : ''), base && !/^https?:/.test(im.src) ? base + im.src : im.src); }).join('') : '<p style="color:var(--mut)">इस पेज पर बदलने लायक फ़ोटो नहीं है।</p>') +
+    '<div class="bar">' + saveBtn().replace(/^<div[^>]*>|<\/div>$/g, '') + '<button class="btn out" id="mdDl">⬇️ ' + (shop ? 'Shop' : 'Website') + ' मीडिया डाउनलोड (' + n + ')</button></div></div>' + (shop ? '' : '<div class="card"><h2>🗃️ वेबसाइट की सारी फ़ोटो / वीडियो — बदलें या हटाएँ</h2><div id="mmLib">' + (window.SPMM ? SPMM.html(mediaItems()) : '') + '</div></div>');
 };
 BIND.photos = function (m) {
-  $('#phPage').onchange = function () { collect(); PAGE = this.value; draw(); };
+  var ph = $('#phPage'); if (ph) ph.onchange = function () { collect(); PAGE = this.value; draw(); };
+  var lib = $('#mmLib', m); if (lib && window.SPMM) { var li = mediaItems(); li.forEach(function (x) { x.save = x.save || function (msg) { collect(); return save(msg); }; }); SPMM.bind(lib, li, function () { draw(); }); }
+  $('#mdDl').onclick = function () { collect(); A.downloadMedia(mediaItems(), SCOPE === 'shop' ? 'sunpowers-shop-media' : 'sunpowers-website-media'); };
   $('#wSave').onclick = function () {
     collect(); var bad = false;
     Object.keys(W.img).forEach(function (k) { var v = (W.img[k] || '').trim(); if (!v) delete W.img[k]; else if (!https(v)) bad = true; else W.img[k] = v; });
-    if (bad) return toast('फ़ोटो का लिंक https:// से शुरू होना चाहिए (या फ़ोटो अपलोड करें)', true);
-    save('✅ फ़ोटो सेव हो गईं');
+    ['video', 'poster'].forEach(function (k) { var v = String(W.site[k] || '').trim(); if (!v) delete W.site[k]; else if (!https(v)) bad = true; else W.site[k] = v; });
+    if (bad) return toast('फ़ोटो / वीडियो का लिंक https:// से शुरू होना चाहिए (या फ़ोटो अपलोड करें)', true);
+    save('✅ मीडिया सेव हो गया');
   };
 };
 
@@ -225,7 +298,7 @@ function pageName(stem) { var p = DEF().pages.filter(function (x) { return x.fil
 function videoField(p, label) {
   var v = val(p);
   return '<div class="fld full"><label class="l">' + esc(label) + '</label><div class="imgf"><div class="imgprev" data-vprev>' + (v ? '<video src="' + esc(v) + '" muted playsinline controls style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain"></video>' : 'कोई वीडियो नहीं') + '</div>' +
-    '<div class="imgbtns"><span class="btn sm upl">🎬 वीडियो अपलोड<input type="file" accept="video/mp4,video/webm" data-vup></span><button type="button" class="btn sm gray" data-clrvid>हटाएँ</button></div>' +
+    '<div class="imgbtns"><span class="btn sm upl"><b data-ul data-a="🎬 वीडियो अपलोड" data-b="🔄 वीडियो बदलें (Replace)">🎬 वीडियो अपलोड</b><input type="file" accept="video/mp4,video/webm" data-vup></span><button type="button" class="btn sm out" data-lnkf>🔗 लिंक से बदलें</button><button type="button" class="btn sm gray" data-clrvid data-del>🗑 हटाएँ (Delete)</button></div>' +
     '<input class="imgurl" type="text" data-p="' + esc(p) + '" data-vurl value="' + esc(v) + '" placeholder="या वीडियो का https:// लिंक (MP4) paste करें — भारी वीडियो के लिए Cloudinary आदि का लिंक"></div>' +
     '<small class="help">बेहतर: 16:9 वीडियो, 10–15 सेकंड, 6–10 MB (MP4). अपलोड की सीमा 50 MB है; उससे बड़ा हो तो लिंक paste करें. मोबाइल पर वीडियो बिना आवाज़ के अपने आप चलता है.</small></div>';
 }
@@ -296,7 +369,7 @@ var CARD_FIELDS = { project: [['a', '"See full info" बटन का लिं�
 VIEW.cards = function () {
   var cards = DEF().cards || [], by = { project: [], brand: [], system: [], service: [] };
   cards.forEach(function (c) { (by[c.type] = by[c.type] || []).push(c); });
-  function lf(c) { return (CARD_FIELDS[c.type] || []).map(function (f) { return tf('cards.' + c.key + '.links.' + f[0], f[1], { ph: 'खाली = डिफ़ॉल्ट बटन रहेगा; - (डैश) लिखें तो बटन छुप जाएगा' + (f[2] ? ' (' + f[2] + ')' : ''), full: true }); }).join(''); }
+  function lf(c) { return (CARD_FIELDS[c.type] || []).map(function (f) { if (f[0] === 'ds') return pdfField('cards.' + c.key + '.links.ds', f[1], f[2]); return tf('cards.' + c.key + '.links.' + f[0], f[1], { ph: 'खाली = डिफ़ॉल्ट बटन रहेगा; - (डैश) लिखें तो बटन छुप जाएगा' + (f[2] ? ' (' + f[2] + ')' : ''), full: true }); }).join(''); }
   return help('<b>प्रोजेक्ट कार्ड:</b> "Ask about this project" जैसा है वैसा रहता है; दो और बटन — <b>See full info</b> और <b>See similar projects</b> — का लिंक यहाँ भरें (खाली = बटन नहीं दिखेगा). <b>ब्रांड कार्ड:</b> Technical datasheet, Residential, Commercial का लिंक. <b>सिस्टम / सर्विस कार्ड (On-Grid, Off-Grid, Hybrid…):</b> यहाँ फ़ोटो या वीडियो लगाएँ — लगाते ही कार्ड का छोटा टेक्स्ट हट जाता है और फ़ोटो/वीडियो दिखता है; "Go to Store" बटन का लिंक <b>🛒 स्टोर लिंक</b> टैब में है. बटन के नाम बदलना हो तो <b>📝 पेज का टेक्स्ट</b> टैब में बदलें.') +
     '<div class="card"><h2>🏗️ प्रोजेक्ट कार्ड</h2>' + by.project.map(function (c) { return '<div class="card" style="margin:8px 0"><b>' + esc(c.name) + '</b><div class="fg">' + lf(c) + '</div></div>'; }).join('') + '</div>' +
     '<div class="card"><h2>🏷️ ब्रांड कार्ड</h2>' + by.brand.map(function (c) { return '<div class="card" style="margin:8px 0"><b>' + esc(c.name) + '</b><div class="fg">' + lf(c) + '</div></div>'; }).join('') + '</div>' +
@@ -305,7 +378,7 @@ VIEW.cards = function () {
     }).join('') + '</div>' + saveBtn();
 };
 BIND.cards = function (m) {
-  bindVideo(m);
+  bindVideo(m); bindPdf(m);
   m.addEventListener('change', function (e) { if (e.target.matches('select[data-p$=".kind"]')) { collect(); draw(); } });
   $('#wSave').onclick = function () {
     collect(); var bad = '';
@@ -322,7 +395,15 @@ BIND.cards = function (m) {
 };
 
 /* ================= 4b. cart sections (real store products on the website) ================= */
-var STORE_SEC = null, STORE_LOADING = false;
+var STORE_SEC = null, STORE_LOADING = false, STORE_BLD = null, BLD_LOADING = false;
+/* Round 22: sections placed on website pages from Web Shop / Store App Page Builder (read-only here: move + hide only) */
+function loadBld() {
+  if (STORE_BLD || BLD_LOADING || !A) return; BLD_LOADING = true;
+  A.rpc('sp_get_store', {}).then(function (d) { STORE_BLD = (window.SPBLD && d && d.builder) ? SPBLD.norm(d.builder) : { web: {}, comps: {} }; }, function () { STORE_BLD = { web: {}, comps: {} }; })
+    .then(function () { BLD_LOADING = false; if (TAB === 'wb') { var y = window.pageYOffset; draw(); try { window.scrollTo(0, y); } catch (e) {} } });
+}
+function bpList(f) { return STORE_BLD && STORE_BLD.web && window.SPBLD ? SPBLD.webList(STORE_BLD, f, true) : []; }
+function bpOf(f, id) { var cid = String(id).slice(3); return bpList(f).filter(function (x) { return x.id === cid; })[0] || null; }
 function loadStoreSecs() {
   if (STORE_SEC || STORE_LOADING) return; STORE_LOADING = true;
   A.rpc('sp_get_store', {}).then(function (d) { STORE_SEC = ((d && d.sections) || []).filter(function (x) { return x && x.id && x.kind !== 'update'; }).map(function (x) { return { id: x.id, name: x.titleEn || x.title || x.id }; }); }, function () { STORE_SEC = []; })
@@ -517,10 +598,6 @@ function bindSecs(m, getF) {
     P.order = ordIds(f); save('✅ पेज के सेक्शन व बटन सेव हो गए');
   };
 }
-VIEW.home = function () { return help('<b>होम पेज</b> के हर सेक्शन का क्रम बदलें, छुपाएँ, हटाएँ या अपना नया सेक्शन जोड़ें — और हर बटन का नाम / लिंक बदलें। बाकी पेजों के लिए "🧩 सभी पेज" टैब खोलें।') + secsHtml('index.html', false); };
-BIND.home = function (m) { bindSecs(m, function () { return 'index.html'; }); };
-VIEW.secs = function () { return help('<b>वेबसाइट के किसी भी पेज</b> को चुनिए — उसके हर सेक्शन को ऊपर-नीचे कीजिए, छुपाइए, हटाइए, नया सेक्शन जोड़िए और हर बटन का नाम / लिंक बदलिए। सेव करते ही वेबसाइट पर लागू।') + secsHtml(SECPG, true); };
-BIND.secs = function (m) { bindSecs(m, function () { return SECPG; }); };
 
 /* ================= 7. new pages ================= */
 function slugify(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40); }
@@ -599,26 +676,35 @@ function wbPrep(f) {
 function wbOrder(f) {
   var P = wbPrep(f), ids = pgMan(f).secs.map(function (x) { return x.id; }), anchor = {}, all = ids.slice();
   P.dup.forEach(function (d) { all.push(d.id); anchor[d.id] = d.src; }); P.extra.forEach(function (x) { all.push(x.id); if (x.after) anchor[x.id] = x.after; });
+  var bpPos = {}; bpList(f).forEach(function (x) { var id = 'bp_' + x.id; all.push(id); bpPos[id] = x; });
   var out = [];
   P.order.forEach(function (i) { if (all.indexOf(i) >= 0 && out.indexOf(i) < 0) out.push(i); });
   ids.forEach(function (i) { if (out.indexOf(i) < 0) out.push(i); });
-  all.forEach(function (i) { if (out.indexOf(i) >= 0) return; var p = anchor[i] ? out.indexOf(anchor[i]) : -1; if (p >= 0) out.splice(p + 1, 0, i); else out.push(i); });
+  all.forEach(function (i) {
+    if (out.indexOf(i) >= 0) return;
+    if (bpPos[i]) { var b = bpPos[i], q = b.ref ? out.indexOf(b.ref) : -1; if (b.pos === 'top') out.unshift(i); else if (q >= 0) out.splice(b.pos === 'above' ? q : q + 1, 0, i); else out.push(i); return; }
+    var p = anchor[i] ? out.indexOf(anchor[i]) : -1; if (p >= 0) out.splice(p + 1, 0, i); else out.push(i);
+  });
   return out;
 }
 function wbItems(f) {
   var P = wbPrep(f), dup = {}, ex = {}; P.dup.forEach(function (d) { dup[d.id] = d; }); P.extra.forEach(function (x, i) { ex[x.id] = { x: x, i: i }; });
   return wbOrder(f).map(function (id) {
+    if (id.indexOf('bp_') === 0 && bpOf(f, id)) return { id: id, k: 'bp', gone: false };
     if (dup[id]) return { id: id, k: 'dup', src: dup[id].src, gone: P.del.indexOf(id) >= 0 };
     if (ex[id]) return { id: id, k: 'x', i: ex[id].i, gone: false };
     return { id: id, k: 'sec', gone: P.del.indexOf(id) >= 0 };
   });
 }
+function bpStore(f, it) { var x = bpOf(f, it.id); return !!(x && x.comp.pages.store && !x.comp.pages.shop); }
 function wbTitle(f, it) {
+  if (it.k === 'bp') { var x = bpOf(f, it.id); return (x ? x.comp.name : it.id) + (bpStore(f, it) ? ' (Store App)' : ' (Web Shop)'); }
   if (it.k === 'x') { var x = pgObj(f).extra[it.i], h = (x.blocks || []).filter(function (b) { return b.t === 'h' && (b.en || b.hi); })[0]; return h ? (h.en || h.hi) : 'नया सेक्शन'; }
   if (it.k === 'dup') return wbRec(f, it.src).label + ' (कॉपी)';
   return wbRec(f, it.id).label;
 }
 function wbType(f, it) {
+  if (it.k === 'bp') { var x = bpOf(f, it.id), tp = x && SPBLD.TYPES[x.comp.type] ? SPBLD.TYPES[x.comp.type] : {}; return (bpStore(f, it) ? '📱 Store App Page Builder का सेक्शन (वेबसाइट पर झलक — दबाने पर ऐप डाउनलोड)' : '🛍️ Web Shop Page Builder का सेक्शन') + ' · ' + (tp.icon || '') + ' ' + (tp.label || '') + (x && x.show === false ? ' · Builder में छुपा' : ''); }
   if (it.k === 'x') {
     var bl = pgObj(f).extra[it.i].blocks || [], has = function (t) { return bl.some(function (b) { return b.t === t; }); };
     if (has('slides')) return '🎞️ Slideshow'; if (has('video')) return '🎬 Video'; if (has('yt')) return '▶️ YouTube'; if (has('cards')) return '🗂️ कार्ड्स'; return '🧩 नया सेक्शन';
@@ -627,8 +713,11 @@ function wbType(f, it) {
   if (r.hero) return '🎞️ Slideshow (हीरो)'; if (r.bn) return '🎬 Banner · वीडियो / स्लाइडशो'; if (r.yt) return '▶️ YouTube'; if (r.vid) return '🎬 Video guide';
   return '📝 ' + (r.t || []).length + ' टेक्स्ट · 🖼 ' + (r.i || []).length + ' फ़ोटो · 🔘 ' + (r.b || []).length + ' बटन';
 }
-function wbFindX(P, id) { for (var i = 0; i < P.extra.length; i++) if (P.extra[i].id === id) return i; return -1; }
-function wbDyn(f, it) { return it.k === 'x' ? false : !!wbRec(f, it.k === 'dup' ? it.src : it.id).dyn; }
+/* sections that show the live Web Shop (real store products + Add to cart): in Website Builder they can only be moved / hidden — their content is edited in Web Shop Page Builder */
+var SHOPSEC = { 'index.html': ['shop-categories', 'shop-systems', 's13', 's17', 's19', 's21', 's23'], 'shop.html': ['s3'] };
+['commercial-solar', 'finance', 'hybrid-solar', 'industrial-solar', 'off-grid-solar', 'on-grid-solar', 'residential-solar', 'services', 'subsidy', 'vfd-solar'].forEach(function (p) { SHOPSEC[p + '.html'] = ['shop-here']; });
+function wbShop(f, it) { return it.k === 'bp' || it.k !== 'x' && (SHOPSEC[f] || []).indexOf(it.k === 'dup' ? it.src : it.id) >= 0; }
+function wbDyn(f, it) { return it.k === 'bp' ? true : it.k === 'x' ? false : !!wbRec(f, it.k === 'dup' ? it.src : it.id).dyn; }
 function wbHidden(f, it) { var P = pgObj(f); return it.k === 'x' ? !!P.extra[it.i].hide : P.hide.indexOf(it.id) >= 0; }
 
 function wbEditor(f, it) {
@@ -636,7 +725,7 @@ function wbEditor(f, it) {
   if (it.k === 'x') { var q = base + '.extra.' + it.i; return '<div class="wb-ed">' + chk(q + '.dark', 'गहरे (dark) बैकग्राउंड में दिखाएँ') + blocksEditor(q + '.blocks') + '</div>'; }
   var src = it.k === 'dup' ? it.src : it.id, rec = wbRec(f, src), pre = it.k === 'dup' ? it.id + '~' : '', man = wbMan(f), M = pgMan(f), h = '';
   var tdef = {}; man.texts.forEach(function (t) { tdef[t.k] = t; }); var idef = {}; man.imgs.forEach(function (t) { idef[t.k] = t; }); var bdef = {}; M.btns.forEach(function (b) { bdef[b.id] = b; });
-  if (rec.hero) h += '<div class="note g">🎞️ ऊपर की घूमती <b>स्लाइड</b> (हेडलाइन, बटन, लिंक) अलग से बदलती हैं।<div class="bar"><button class="btn sm" id="wbSlides">🎞️ हीरो स्लाइड एडिट करें</button></div></div>';
+  if (rec.hero && it.k === 'sec') h += '<div class="card" style="margin:8px 0"><h3 style="margin:0 0 6px">🎞️ हीरो स्लाइड (ऊपर की घूमती स्लाइड)</h3>' + slidesBody() + '</div>';
   if (rec.bn && it.k === 'sec') {
     var b = 'banners.' + rec.bn, kind = val(b + '.media.kind', 'images');
     h += '<div class="card" style="margin:8px 0"><h3 style="margin:0 0 6px">🎬 बैनर — वीडियो / स्लाइडशो (16:9)</h3><datalist id="bnPages">' + DEF().pages.map(function (p) { return '<option value="' + esc(p.file) + '">' + esc(p.en) + '</option>'; }).join('') + '</datalist>' +
@@ -667,30 +756,29 @@ function wbEditor(f, it) {
 }
 var WB_NEW = [['slides', '🎞️ Slideshow', ['slides']], ['video', '🎬 Video', ['video']], ['yt', '▶️ YouTube', ['yt']], ['text', '📝 हेडिंग + टेक्स्ट', ['h', 'p']], ['list', '✅ पॉइंट्स', ['h', 'list']], ['cards', '🗂️ कार्ड्स', ['h', 'cards']], ['img', '🖼️ फ़ोटो', ['img']], ['btn', '🔘 बटन', ['h', 'btn']]];
 VIEW.wb = function () {
-  WB_REV++;
+  WB_REV++; loadBld();
   var files = wbFiles(); if (!files.length) return '<div class="note r">cms-secs.js नहीं मिला</div>';
   if (files.indexOf(WB_PG) < 0) WB_PG = files[0];
   var f = WB_PG, P = wbPrep(f), items = wbItems(f), live = items.filter(function (it) { return !it.gone; }), gone = items.filter(function (it) { return it.gone; });
   var h = help('<b>पेज चुनिए</b> → उसके सारे कंपोनेंट नीचे दिखेंगे। हर कंपोनेंट में <b>✏️ बदलें</b> (शब्द, फ़ोटो, वीडियो, बटन), <b>⬆️⬇️ क्रम</b>, <b>👁 छुपाएँ</b>, <b>⧉ Duplicate</b> (तुरंत कॉपी बनती है — फिर उसे अपने हिसाब से बदलें) और <b>🗑 हटाएँ</b> है। सबसे नीचे लाइव प्रीव्यू है। बदलाव 💾 सेव करने पर ही वेबसाइट पर जाते हैं।');
   h += '<div class="card"><h2>📄 कौन-सा पेज?</h2><div class="fg"><div class="fld full"><select class="inp" id="wbPage">' + files.map(function (k) { return '<option value="' + esc(k) + '"' + (k === f ? ' selected' : '') + '>' + esc(SECS()[k].title) + ' — ' + esc(k) + '</option>'; }).join('') + '</select></div></div>' +
     (siteBase() ? '<p style="margin-top:8px"><a class="btn sm out" target="_blank" rel="noopener" href="' + esc(siteBase() + f) + '">🔗 यह पेज वेबसाइट पर खोलें</a></p>' : '') + '</div>';
+  var pvHtml = siteBase() ? '<div id="wbPv" style="margin-top:12px;padding:10px;border:1px dashed var(--line,#cbd8cf);border-radius:12px"><b>👁️ लाइव प्रीव्यू</b> <small style="font-weight:400;color:var(--mut)">(सिर्फ़ यही सेक्शन — बिना सेव किए बदलाव दिखते हैं)</small>' +
+    '<div class="bar" style="margin-top:6px"><button class="btn sm' + (WB_DEV === 'm' ? '' : ' out') + '" data-wbdev="m">📱 मोबाइल</button><button class="btn sm' + (WB_DEV === 'd' ? '' : ' out') + '" data-wbdev="d">🖥️ डेस्कटॉप</button><button class="btn sm out" id="wbPvRefresh">🔄 बदलाव प्रीव्यू में देखें</button></div>' +
+    '<div style="display:flex;justify-content:center;background:#e8efe9;border-radius:12px;padding:8px;margin-top:8px"><iframe id="wbFrame" title="Section preview" style="border:0;background:#fff;border-radius:8px;height:460px;max-width:100%;width:' + (WB_DEV === 'm' ? '390px' : '100%') + '" src="' + esc(siteBase() + f + '?spprev=1') + '"></iframe></div></div>' : '<div class="note r">वेबसाइट का लिंक set नहीं है — प्रीव्यू नहीं दिखेगा।</div>';
   h += '<div class="card"><h2>🧱 इस पेज के कंपोनेंट (' + live.length + ')</h2>' + (live.length ? live.map(function (it, n) {
     var hid = wbHidden(f, it), ed = WB_EDIT === it.id;
     return '<div class="wb-it' + (ed ? ' open' : '') + '" data-wbit="' + esc(it.id) + '"><div class="row' + (hid ? ' dim' : '') + '" style="margin:0"><div class="th" style="font-weight:800">' + (n + 1) + '</div><div class="rm"><b>' + esc(wbTitle(f, it)) + '</b> <small>#' + esc(it.id) + '</small>' +
-      (it.k !== 'sec' ? ' <span class="tag">' + (it.k === 'dup' ? 'कॉपी' : 'नया') + '</span>' : '') + (hid ? ' <span class="tag">छुपा है</span>' : '') + '<br><small>' + esc(wbType(f, it)) + '</small></div><div class="acts">' +
-      '<button class="ib" data-wbed="' + esc(it.id) + '" title="बदलें">' + (ed ? '✖️' : '✏️') + '</button>' +
+      (it.k !== 'sec' && it.k !== 'bp' ? ' <span class="tag">' + (it.k === 'dup' ? 'कॉपी' : 'नया') + '</span>' : '') + (wbShop(f, it) ? ' <span class="tag b">' + (it.k === 'bp' && bpStore(f, it) ? '📱 Store App से जुड़ा' : '🛍️ Web Shop से जुड़ा') + '</span>' : '') + (hid ? ' <span class="tag">छुपा है</span>' : '') + '<br><small>' + esc(wbType(f, it)) + '</small></div><div class="acts">' +
+      (wbShop(f, it) ? '<button class="ib" data-wbshop="' + esc(it.id) + '" title="यह Web Shop से जुड़ा है — यहाँ से edit नहीं">🛍️</button>' : '<button class="ib" data-wbed="' + esc(it.id) + '" title="बदलें">' + (ed ? '✖️' : '✏️') + '</button>') +
       '<button class="ib" data-wbmv="' + n + '" data-d="-1"' + (n === 0 ? ' disabled' : '') + ' title="ऊपर">⬆️</button><button class="ib" data-wbmv="' + n + '" data-d="1"' + (n === live.length - 1 ? ' disabled' : '') + ' title="नीचे">⬇️</button>' +
-      '<button class="ib" data-wbhd="' + esc(it.id) + '" title="' + (hid ? 'दिखाएँ' : 'छुपाएँ') + '">' + (hid ? '🙈' : '👁') + '</button>' + (wbDyn(f, it) ? '<button class="ib" disabled title="इस सेक्शन में लाइव फ़ीचर (फ़ॉर्म / प्लेयर / कार्ट आदि) है, इसकी कॉपी नहीं बन सकती — ऊपर से नया कंपोनेंट जोड़ें">⧉</button>' : '<button class="ib" data-wbdup="' + esc(it.id) + '" title="Duplicate">⧉</button>') + '<button class="ib" data-wbdel="' + esc(it.id) + '" title="हटाएँ">🗑</button></div></div>' +
-      (ed ? wbEditor(f, it) : '') + '</div>';
+      '<button class="ib" data-wbhd="' + esc(it.id) + '" title="' + (hid ? 'दिखाएँ' : 'छुपाएँ') + '">' + (hid ? '🙈' : '👁') + '</button>' + (wbDyn(f, it) ? '<button class="ib" disabled title="इस सेक्शन में लाइव फ़ीचर (फ़ॉर्म / प्लेयर / कार्ट आदि) है, इसकी कॉपी नहीं बन सकती — ऊपर से नया कंपोनेंट जोड़ें">⧉</button>' : '<button class="ib" data-wbdup="' + esc(it.id) + '" title="Duplicate">⧉</button>') + (wbShop(f, it) ? '<button class="ib" disabled title="Web Shop से जुड़ा सेक्शन यहाँ से हट नहीं सकता — छुपा सकते हैं">🗑</button>' : '<button class="ib" data-wbdel="' + esc(it.id) + '" title="हटाएँ">🗑</button>') + '</div></div>' +
+      (ed && !wbShop(f, it) ? wbEditor(f, it) + pvHtml : '') + '</div>';
   }).join('') : '<p style="color:var(--mut)">इस पेज पर कोई कंपोनेंट नहीं — नीचे से जोड़ें।</p>') +
     (gone.length ? '<details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700">🗑 हटाए हुए (' + gone.length + ') — वापस ला सकते हैं</summary>' + gone.map(function (it) { return '<div class="row dim"><div class="rm"><b>' + esc(wbTitle(f, it)) + '</b> <small>#' + esc(it.id) + '</small></div><div class="acts"><button class="btn sm out" data-wbres="' + esc(it.id) + '">↩️ वापस लाएँ</button></div></div>'; }).join('') + '</details>' : '') + '</div>';
-  h += '<div class="card"><h2>➕ नया कंपोनेंट जोड़ें</h2><div class="fg"><div class="fld full"><label class="l">कहाँ जुड़े?</label><select class="inp" id="wbAfter"><option value="">सबसे नीचे</option>' + live.map(function (it) { return '<option value="' + esc(it.id) + '">इसके बाद: ' + esc(wbTitle(f, it)) + '</option>'; }).join('') + '</select></div></div>' +
+  h += '<div class="card"><h2>➕ नया कंपोनेंट जोड़ें</h2><div class="fg"><div class="fld full"><label class="l">कहाँ जुड़े?</label><select class="inp" id="wbAfter"><option value="">सबसे नीचे</option>' + live.filter(function (it) { return it.k !== 'bp'; }).map(function (it) { return '<option value="' + esc(it.id) + '">इसके बाद: ' + esc(wbTitle(f, it)) + '</option>'; }).join('') + '</select></div></div>' +
     '<div class="bar">' + WB_NEW.map(function (t) { return '<button class="btn sm out" data-wbadd="' + t[0] + '">' + esc(t[1]) + '</button>'; }).join('') + '</div></div>';
   h += saveBtn('wbSave', 'सेव करें — वेबसाइट पर लाइव');
-  if (siteBase()) {
-    h += '<div class="card" id="wbPv"><h2>👁️ लाइव प्रीव्यू <small style="font-weight:400;color:var(--mut)">(बिना सेव किए बदलाव भी दिखते हैं)</small></h2><div class="bar"><button class="btn sm' + (WB_DEV === 'm' ? '' : ' out') + '" data-wbdev="m">📱 मोबाइल</button><button class="btn sm' + (WB_DEV === 'd' ? '' : ' out') + '" data-wbdev="d">🖥️ डेस्कटॉप</button><button class="btn sm out" id="wbPvRefresh">🔄 बदलाव प्रीव्यू में देखें</button></div>' +
-      '<div style="display:flex;justify-content:center;background:#e8efe9;border-radius:12px;padding:8px;margin-top:8px"><iframe id="wbFrame" title="Website preview" style="border:0;background:#fff;border-radius:8px;height:640px;max-width:100%;width:' + (WB_DEV === 'm' ? '390px' : '100%') + '" src="' + esc(siteBase() + f + '?spprev=1') + '"></iframe></div></div>';
-  } else h += '<div class="note r">वेबसाइट का लिंक (SITE_URL) set नहीं है — प्रीव्यू नहीं दिखेगा।</div>';
   return h;
 };
 function wbDraft() { var d = norm(wbClone(W)); ['img', 'links'].forEach(function (k) { Object.keys(d[k]).forEach(function (x) { if (!String(d[k][x] || '').trim()) delete d[k][x]; }); }); return d; }
@@ -698,6 +786,7 @@ function wbSend() {
   var fr = $('#wbFrame'); if (!fr || !fr.contentWindow || !siteBase()) return; WB_FRAME = fr;
   var org; try { org = new URL(siteBase()).origin; } catch (e) { return; }
   try { fr.contentWindow.postMessage({ sp: 'pv-data', rev: String(WB_REV), data: wbDraft() }, org); } catch (e) {}
+  try { fr.contentWindow.postMessage({ sp: 'pv-focus', sid: String(WB_EDIT || '') }, org); } catch (e) {}
 }
 var WB_MSG = false;
 function wbPush(m) { if (m) { collect(m); collectTexts(m); } wbPrep(WB_PG).order = wbOrder(WB_PG); WB_REV++; wbSend(); }
@@ -715,6 +804,7 @@ function wbDrop(P, f, id) {
 function wbValidate(f) {
   var P = wbPrep(f), bad = '';
   P.extra.forEach(function (x) { bad = bad || cleanBlocks(x.blocks); });
+  if (f === 'index.html') bad = bad || slidesCheck();
   Object.keys(P.btn).forEach(function (k) { var o = P.btn[k]; if (o.href && !/^(https?:\/\/\S+|tel:\S+|mailto:\S+|#[\w-]+|[a-z0-9\-_\/.]+\.html(\?[\w=&%\-.]*)?(#[\w-]+)?)$/i.test(o.href)) bad = bad || 'बटन का लिंक सही नहीं: ' + o.href; if (!o.hide && !(o.text && (o.text.en || o.text.hi)) && !o.href) delete P.btn[k]; });
   var imgBad = false; Object.keys(W.img).forEach(function (k) { var v = (W.img[k] || '').trim(); if (!v) delete W.img[k]; else if (!https(v)) imgBad = true; else W.img[k] = v; });
   if (imgBad) bad = bad || 'फ़ोटो का लिंक https:// से शुरू होना चाहिए (या फ़ोटो अपलोड करें)';
@@ -725,12 +815,18 @@ BIND.wb = function (m) {
   if (!WB_MSG) { WB_MSG = true; window.addEventListener('message', function (e) { var fr = $('#wbFrame'); if (fr && e.source === fr.contentWindow && e.data && e.data.sp === 'pv-ready') wbSend(); }); }
   var f = WB_PG, P = wbPrep(f);
   $('#wbPage').onchange = function () { wbPush(m); WB_PG = this.value; WB_EDIT = ''; draw(); };
-  var sl = $('#wbSlides'); if (sl) sl.onclick = function () { collect(m); collectTexts(m); TAB = 'slides'; draw(); };
+  bindSlides(m);
   var rf = $('#wbPvRefresh'); if (rf) rf.onclick = function () { wbPush(m); wbSend(); };
   m.addEventListener('change', function (e) { if (e.target.matches('select[data-p$=".kind"]')) wbRedraw(m); });
   m.addEventListener('click', async function (e) {
     var b, id, it, items;
     if ((b = e.target.closest('[data-wbdev]'))) { WB_DEV = b.getAttribute('data-wbdev'); wbRedraw(m); return; }
+    if ((b = e.target.closest('[data-wbshop]'))) {
+      var bpx = bpOf(f, b.getAttribute('data-wbshop'));
+      if (bpx && bpx.comp.pages.store && !bpx.comp.pages.shop) { await A.ask('⚠️ This section can\'t be edited from here.<br>यह <b>Store App Page Builder</b> का सेक्शन है (वेबसाइट पर सिर्फ़ झलक)। यहाँ से सिर्फ़ ऊपर-नीचे और छुपाना/दिखाना हो सकता है।<br><small>बदलने के लिए App Store Management → Store App Page Builder में जाएँ।</small>', 'ठीक है', false); return; }
+      if (await A.ask('⚠️ This section can\'t be edited from here.<br>यह सेक्शन Web Shop का असली डेटा दिखाता है — यहाँ से edit नहीं हो सकता।<br><small>यहाँ सिर्फ़ क्रम (ऊपर-नीचे) और छुपाना/दिखाना हो सकता है। बदलने के लिए <b>Web Shop Page Builder</b> में जाएँ। (अभी के बदलाव पहले 💾 सेव कर लें।)</small>', '🛍️ Web Shop Page Builder खोलें', false) && A.openShop) A.openShop();
+      return;
+    }
     if ((b = e.target.closest('[data-wbed]'))) { id = b.getAttribute('data-wbed'); collect(m); collectTexts(m); WB_EDIT = WB_EDIT === id ? '' : id; var y = window.pageYOffset; draw(); try { window.scrollTo(0, y); } catch (x) {} return; }
     if ((b = e.target.closest('[data-wbmv]'))) {
       collect(m); collectTexts(m); items = wbItems(f); var live = items.filter(function (z) { return !z.gone; }).map(function (z) { return z.id; }), n = +b.getAttribute('data-wbmv');
@@ -780,8 +876,13 @@ BIND.builder = function (m) { if (A.builder) { A.builder.reset(); A.builder.bind
 
 /* ================= entry ================= */
 window.SPWEB = {
+  /* header ☰ menu while inside Website / Shop management: ONLY this section's own tabs (no Store / other-app items) */
+  nav: function () {
+    var g = SCOPE === 'shop' ? 'Shop Page' : 'Website Management';
+    return TABS.map(function (t) { var i = t[1].indexOf(' '); return { group: g, ic: t[1].slice(0, i), l: t[1].slice(i + 1), kw: t[0], on: TAB === t[0], fn: function () { collect(); TAB = t[0]; draw(); window.scrollTo(0, 0); } }; }).concat(window.SPBK ? SPBK.items(SCOPE === 'shop' ? 'shop' : 'site') : []);
+  },
   open: async function (api) {
-    A = api; SCOPE = api.scope === 'shop' ? 'shop' : 'site'; TABS = SCOPE === 'shop' ? TABS_SHOP : TABS_ALL; if (LASTSCOPE !== SCOPE) { TAB = SCOPE === 'shop' ? 'dash' : 'wb'; LASTSCOPE = SCOPE; } if (!TABS.some(function (t) { return t[0] === TAB; })) TAB = SCOPE === 'shop' ? 'dash' : 'wb'; if (SCOPE === 'shop') { SECPG = 'shop.html'; PAGE = 'shop'; }
+    STORE_BLD = null; BLD_LOADING = false; A = api; SCOPE = api.scope === 'shop' ? 'shop' : 'site'; TABS = SCOPE === 'shop' ? TABS_SHOP : TABS_ALL; TAB = api.tab && TABS.some(function (t) { return t[0] === api.tab; }) ? api.tab : 'dash'; LASTSCOPE = SCOPE; if (SCOPE === 'shop') { SECPG = 'shop.html'; PAGE = 'shop'; } else if (PAGE === 'shop') PAGE = 'index';
     A.app.innerHTML = '<div class="empty"><span class="spin"></span> लोड हो रहा है…</div>';
     try { W = norm(await A.rpc('sp_get_web', {})); }
     catch (e) { if (/Could not find|PGRST202|schema cache/i.test(e.message)) { W = norm({}); setTimeout(function () { toast('ℹ️ Website Admin चालू करने के लिए Supabase में phase4-website-admin.sql चलाएँ (MASTER-UPDATE.sql में है)', true); }, 600); } else { A.app.innerHTML = '<div class="login"><div class="card"><h2>⚠️ लोड नहीं हुआ</h2><p>' + esc(e.message) + '</p><button class="btn" id="wRt">दोबारा कोशिश</button></div></div>'; $('#wRt').onclick = function () { window.SPWEB.open(A); }; return; } }

@@ -1,3 +1,4 @@
 User-agent: *
+Disallow: /d/
 Allow: /
 Sitemap: https://www.sunpowers.in/sitemap.xml

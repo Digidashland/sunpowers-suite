@@ -37,7 +37,7 @@
   function drawer() {
     closeAll(); var its = items(), h = '', g = '';
     its.forEach(function (it, i) { if (it.group && it.group !== g) { g = it.group; h += '<div class="hd-g">' + esc(g) + '</div>'; } h += itemHtml(it, i); });
-    (CFG.links || []).forEach(function (l) { h += '<a class="hd-i" href="' + esc(l.href) + '" target="_blank" rel="noopener"><i>' + l.ic + '</i>' + esc(l.l) + '</a>'; });
+    ((typeof CFG.links === 'function' ? CFG.links() : CFG.links) || []).forEach(function (l) { h += '<a class="hd-i" href="' + esc(l.href) + '" target="_blank" rel="noopener"><i>' + l.ic + '</i>' + esc(l.l) + '</a>'; });
     h += '<button type="button" class="hd-i" data-lo><i>🚪</i>Logout</button>';
     var ov = document.createElement('div'); ov.className = 'hd-ov'; var dr = document.createElement('div'); dr.className = 'hd-dr';
     dr.innerHTML = '<div class="hd-dh"><img src="logo-mark.png" alt=""><span>' + esc(typeof CFG.title === 'function' ? CFG.title() : 'Sunpowers Admin') + '</span><button type="button" data-x aria-label="Close">✕</button></div><div class="hd-dl">' + h + '</div>';

@@ -19,29 +19,116 @@
   C.copy = async function (t, msg) { try { await navigator.clipboard.writeText(t); C.toast(msg || 'Copy ho gaya ✔'); } catch (e) { C.ask('Copy karein', 'Neeche wala text copy karein', { value: t }); } };
 
   /* ------------------------------------------------ customer (party) form */
-  C.partyForm = function (rec, opt) {
-    opt = opt || {}; rec = rec || { data: {} }; var d = Object.assign({}, rec.data || {}), isNew = !rec.id;
+  C.SERVICE_TYPES = ['Panel cleaning', 'Maintenance / AMC', 'Repair / Error fix', 'Shifting / Re-installation', 'Audit / Inspection', 'Other service'];
+  C.PROJECT_TYPES = ['Residential', 'Commercial', 'Industrial', 'VFD'];
+  /* STEP 0 of "Add New Customer": where did he come from? (the lead path) — nothing else opens before this is chosen */
+  C.pathPick = function (cur) {
+    return new Promise(function (res) {
+      var list = (C.sourceList ? C.sourceList() : C.SOURCES), done = false;
+      var body = '<div class="note g" style="margin-bottom:10px">Pehle batayein customer <b>kahan se aaya</b>. Yahi uska Leads wala <b>path</b> banega — isse pata chalta hai lead asli (organic) hai ya nahi.</div>' +
+        '<div class="pathgrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px">' + list.map(function (x) { return '<button type="button" class="btn ' + (x === cur ? 'btn-p' : 'btn-o') + '" data-path="' + esc(x) + '">' + esc(x) + '</button>'; }).join('') + '</div>';
+      var m = C.modal({ title: 'Customer kahan se aaya?', body: body, foot: '<button class="btn btn-o" data-close>Cancel</button>', onClose: function () { if (!done) res(null); } });
+      m.el.addEventListener('click', function (e) { var b = e.target.closest('[data-path]'); if (!b) return; done = true; var v = b.getAttribute('data-path'); m.el.remove(); document.documentElement.style.overflow = ''; res(v); });
+    });
+  };
+  /* customer is created ONLY with everything the flow needs (mirrors the server rule in crm_rules_trg) */
+  C.partyForm = async function (rec, opt) {
+    opt = opt || {}; rec = rec || { data: {} };
+    var isNew = !rec.id, pre = Object.assign({}, opt.prefill || {});
+    if (isNew && !opt.onSubmit && !pre.source) { var pth = await C.pathPick(); if (!pth) return null; pre.source = pth; opt = Object.assign({}, opt, { prefill: pre }); }
+    return partyFormBody(rec, opt);
+  };
+  function partyFormBody(rec, opt) {
+    var d = Object.assign({}, rec.data || {}), isNew = !rec.id;
     if (opt.prefill) Object.assign(d, opt.prefill);
     return new Promise(function (res) {
-      var assign = C.can('customers.assign') && (C.cache.users || []).length;
-      var body = '<form class="stack" id="pf"><div class="fg">' + C.f('Naam *', C.inp('name', d.name || rec.title, 'maxlength="120" required')) + C.f('Mobile *', C.inp('mobile', d.mobile || rec.mobile, 'inputmode="tel" maxlength="16"')) +
-        C.f('Doosra mobile', C.inp('mobile2', d.mobile2, 'inputmode="tel" maxlength="16"')) + C.f('Email', C.inp('email', d.email, 'type="email"')) +
-        '</div><div class="sec-t">Billing address</div>' + C.addrFields('', d, { defState: (C.company().state || 'Uttar Pradesh') }) + '<div class="fg">' + C.f('Company / Firm', C.inp('company', d.company)) + C.f('GSTIN', C.inp('gstin', d.gstin, 'maxlength="15" style="text-transform:uppercase"')) +
-        C.f('Prakar', C.sel('type', C.PARTY_TYPES, d.type || 'customer')) + C.f('Kahan se aaya', C.sel('source', (C.sourceList ? C.sourceList() : C.SOURCES), d.source, '— chunein —')) +
-        C.f('Bijli ka bill (₹/mahina)', C.inp('bill', d.bill, 'inputmode="numeric"')) + C.f('Chahiye (kW)', C.inp('kw', d.kw, 'inputmode="decimal"')) +
-        C.f('Opening balance (₹ lena hai)', C.inp('opening', d.opening, 'inputmode="decimal"')) + (assign ? C.f('Kiske paas rahe', '<select class="inp" name="assigned_to">' + C.userOpts(rec.assigned_to, '— Main / Owner —') + '</select>') : '') +
+      var assign = C.can('customers.assign') && (C.cache.users || []).length, kind = d.cust_kind || (isNew ? '' : 'project'), seg = d.segment || (d.gstin || d.company ? 'b2b' : (isNew ? '' : 'b2c'));
+      function opts(map, cur, blank) { return (blank ? '<option value="">' + blank + '</option>' : '') + Object.keys(map).map(function (k) { return '<option value="' + k + '"' + (k === cur ? ' selected' : '') + '>' + esc(map[k]) + '</option>'; }).join(''); }
+      var req = isNew ? ' *' : '', srcs = (C.sourceList ? C.sourceList() : C.SOURCES).slice(); if (d.source && srcs.indexOf(d.source) < 0) srcs.push(d.source);
+      var body = '<form class="stack" id="pf">' +
+        (isNew ? '<div class="note g" style="margin-bottom:8px"><b>Mobile number zaroori hai</b> (email optional). Aage ka poora flow chalane ke liye <b>*</b> wali jaankari yahin bharein.</div>' : '') +
+        '<div class="fg">' + C.f('Naam *', C.inp('name', d.name || rec.title, 'maxlength="120" required')) + C.f('Mobile *', C.inp('mobile', d.mobile || rec.mobile, 'inputmode="tel" maxlength="16"')) +
+        C.f('Email <span class="o">(optional)</span>', C.inp('email', d.email, 'type="email" maxlength="160"')) + C.f('Doosra mobile / WhatsApp', C.inp('mobile2', d.mobile2, 'inputmode="tel" maxlength="16"')) + '</div>' +
+        '<div class="sec-t">Customer kaisa hai?</div><div class="fg">' + C.f('Prakar', C.sel('type', C.PARTY_TYPES, d.type || 'customer')) +
+        '<div data-show="cust">' + C.f('Path — kahan se aaya' + req, C.sel('source', srcs, d.source, '— chunein —')) + '</div>' +
+        '<div data-show="cust"><div class="fld"><label class="l">Kya kharidega' + req + '</label><select class="inp" name="cust_kind">' + opts({ project: 'Project (solar plant lagwana)', product: 'Product (sirf item / saaman)', service: 'Service (cleaning / AMC / repair)' }, kind, isNew ? '— chunein —' : '') + '</select></div></div>' +
+        '<div data-show="cust"><div class="fld"><label class="l">Customer' + req + '</label><select class="inp" name="segment">' + opts(C.SEGMENTS, seg, isNew ? '— chunein —' : '') + '</select></div></div></div>' +
+        '<div data-show="b2b"><div class="sec-t">Business ki jaankari</div><div class="fg">' + C.f('Company / Firm' + req, C.inp('company', d.company)) + C.f('GSTIN <span class="o">(optional)</span>', C.inp('gstin', d.gstin, 'maxlength="15" style="text-transform:uppercase"')) +
+        C.f('Contact person', C.inp('contact_person', d.contact_person)) + C.f('Designation', C.inp('designation', d.designation)) + '</div></div>' +
+        '<div data-show="project"><div class="sec-t">Project ki zaroorat</div><div class="fg">' + C.f('Project type' + req, C.sel('project_type', C.PROJECT_TYPES, d.project_type, '— chunein —')) + C.f('Chahiye (kW)' + req, C.inp('kw', d.kw, 'inputmode="decimal"')) + C.f('Bijli ka bill (₹/mahina)', C.inp('bill', d.bill, 'inputmode="numeric"')) + '</div></div>' +
+        '<div data-show="product"><div class="sec-t">Product ki zaroorat</div><div class="fg">' + C.f('Kaunsa product / kitna' + req, C.inp('interest', d.interest, 'maxlength="200" placeholder="Jaise: 10 panel 540W, 1 inverter"'), 'full') + '</div></div>' +
+        '<div data-show="service"><div class="sec-t">Service ki zaroorat</div><div class="fg">' + C.f('Kaunsi service' + req, C.sel('service_type', C.SERVICE_TYPES, d.service_type, '— chunein —')) + C.f('Kya dikkat / kaam', C.inp('service_note', d.service_note, 'maxlength="200"')) + '</div></div>' +
+        '<div class="sec-t" data-show="cust">Pata' + (isNew ? ' (Blueprint, Site Visit, Quotation ke liye zaroori)' : '') + '</div>' + C.addrFields('', d, { defState: (C.company().state || 'Uttar Pradesh') }) +
+        '<div class="fg">' + (assign ? C.f('Kiske paas rahe', '<select class="inp" name="assigned_to">' + C.userOpts(rec.assigned_to, '— Main / Owner —') + '</select>') : '') + C.f('Opening balance (₹ lena hai)', C.inp('opening', d.opening, 'inputmode="decimal"')) +
         C.f('Note', C.ta('note', d.note, 'rows="2"'), 'full') + '</div></form>';
-      var m = C.modal({ title: isNew ? 'Naya customer' : 'Customer badlein', body: body, foot: '<button class="btn btn-o" data-close>Cancel</button><button class="btn btn-p" data-ok>' + C.ic('check') + ' Save</button>', onClose: function () { res(null); } });
+      var m = C.modal({ title: opt.title || (isNew ? 'Conversation — naya customer' + (d.source ? ' (' + d.source + ')' : '') : 'Conversation — customer ki details'), body: body, foot: '<button class="btn btn-o" data-close>Cancel</button><button class="btn btn-p" data-ok>' + C.ic('check') + ' ' + (opt.okLabel || 'Save') + '</button>', onClose: function () { res(null); } });
       C.addrBind(m.el);
+      var pf = $('#pf', m.el);
+      function sync() {
+        var t = pf.type.value, isC = t !== 'supplier', k = pf.cust_kind.value, sg = pf.segment.value;
+        $$('[data-show]', pf).forEach(function (b) { var w = b.getAttribute('data-show'); b.hidden = !(w === 'cust' ? isC : w === 'b2b' ? (!isC || sg === 'b2b') : (isC && k === w)); });
+      }
+      ['type', 'cust_kind', 'segment'].forEach(function (n) { pf[n].addEventListener('change', sync); }); sync();
       $('[data-ok]', m.el).onclick = async function () {
-        var f = $('#pf', m.el), o = C.form(f); if (!C.need(f, ['name', 'mobile'])) return;
+        var f = pf, o = C.form(f); if (!C.need(f, ['name'])) return;
         Object.assign(o, C.addrRead(o, ''));
-        if (!C.validMob(o.mobile)) { f.mobile.classList.add('bad'); return C.toast('Sahi 10 ank ka mobile likhein', true); }
+        var mob = String(o.mobile || '').trim(), em = String(o.email || '').trim(), sup = o.type === 'supplier';
+        if (!mob || !C.validMob(mob)) { f.mobile.classList.add('bad'); f.mobile.focus(); return C.toast('Sahi 10 ank ka mobile number likhna zaroori hai', true); }
+        if (em && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { f.email.classList.add('bad'); return C.toast('Sahi email likhein ya khali chhodein', true); }
+        if (isNew && !sup) {
+          var must = ['source', 'cust_kind', 'segment', 'city', 'address'];
+          if (o.cust_kind === 'project') must.push('project_type', 'kw'); else if (o.cust_kind === 'product') must.push('interest'); else if (o.cust_kind === 'service') must.push('service_type');
+          if (o.segment === 'b2b') must.push('company');
+          if (!C.need(f, must.filter(function (n) { return f[n]; }))) return;
+          if (!/^[0-9]{6}$/.test(String(o.pincode || '').replace(/\D/g, ''))) { f.pincode.classList.add('bad'); f.pincode.focus(); return C.toast('Pincode 6 ank ka likhein', true); }
+          if (o.cust_kind === 'project' && !(parseFloat(o.kw) > 0)) { f.kw.classList.add('bad'); return C.toast('kW likhein (jaise 3)', true); }
+        }
+        if (isNew && !sup && !opt.onSubmit) { /* Round 37: same mobile = same customer, kabhi dusra record nahi */
+          var d10 = mob.replace(/\D/g, '').slice(-10), dup = null;
+          try { dup = (await C.list('party', { limit: 3000 })).filter(function (x) { return String(x.mobile || '').replace(/\D/g, '').slice(-10) === d10; })[0]; } catch (e) {}
+          if (dup) { if (await C.confirm('Ye mobile pehle se hai: ' + dup.title + '. Usi customer ko chunein? (naya nahi banega)', 'Haan, wahi chunein')) { m.el.remove(); document.documentElement.style.overflow = ''; return res(dup); } return; }
+        }
         var extra = {}; if (assign) { extra.assigned_to = o.assigned_to || null; delete o.assigned_to; }
-        o.gstin = o.gstin.toUpperCase();
-        try { var r = await C.save('party', rec.id, Object.assign({}, rec.data || {}, o), extra); m.el.remove(); document.documentElement.style.overflow = ''; res(r); } catch (e) {}
+        o.gstin = String(o.gstin || '').toUpperCase();
+        if (sup) { delete o.cust_kind; delete o.segment; }
+        else { if (o.cust_kind !== 'project') { delete o.project_type; if (o.cust_kind !== 'product' && o.cust_kind !== 'service') delete o.interest; } if (o.cust_kind !== 'service') delete o.service_type; }
+        try {
+          if (opt.onSubmit) { var rr = await opt.onSubmit(Object.assign({}, rec.data || {}, o), extra); if (rr === false) return; m.el.remove(); document.documentElement.style.overflow = ''; return res(rr || true); }
+          var r = await C.save('party', rec.id, Object.assign({}, rec.data || {}, o), extra); m.el.remove(); document.documentElement.style.overflow = ''; res(r);
+        } catch (e) {}
       };
     });
+  }
+
+  /* ------------------------------------------------ Round 38: customer ki details SIRF Conversation (customer form) me bharti hain.
+     Baaki har form me ye card dikhta hai — wahi details, padhne ke liye; "Badlein" usi ek form ko kholta hai. Koi doosra box nahi. */
+  C.detailsMissing = function (p) {
+    var d = (p && p.data) || {}, m = []; if (!p || (d.type || 'customer') === 'supplier') return m;
+    if (!String(d.address || '').trim()) m.push('Pata'); if (!String(d.city || '').trim()) m.push('Shahar'); if (!/^[0-9]{6}$/.test(String(d.pincode || ''))) m.push('Pincode');
+    if (d.cust_kind === 'project' && !(parseFloat(d.kw) > 0)) m.push('kW');
+    return m;
+  };
+  C.custCardHtml = function (p, opt) {
+    opt = opt || {}; var d = p.data || {}, miss = C.detailsMissing(p), adr = C.addrText(d) || d.city || '';
+    var need = [d.cust_kind === 'project' ? (d.project_type || 'Project') + (parseFloat(d.kw) > 0 ? ' · ' + d.kw + ' kW' : '') : d.cust_kind === 'product' ? 'Product' + (d.interest ? ' · ' + d.interest : '') : d.cust_kind === 'service' ? 'Service' + (d.service_type ? ' · ' + d.service_type : '') : ''].filter(Boolean)[0] || '';
+    return '<div class="ccard" data-ccard="' + p.id + '" style="border:1px solid var(--line,#dde3ea);border-radius:12px;padding:10px 12px;background:var(--soft,#f6f8fa)">' +
+      '<div style="min-width:0"><b style="font-size:15px">' + esc(p.title) + '</b>' + (d.cust_id ? ' <span class="xs mute" style="white-space:nowrap">' + esc(d.cust_id) + '</span>' : '') + '</div>' +
+      '<div class="sm" style="display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:4px;align-items:center"><span style="white-space:nowrap">' + C.ic('phone') + ' ' + esc(p.mobile || '—') + '</span>' + (need ? '<span>' + esc(need) + '</span>' : '') + '</div>' +
+      (adr ? '<div class="sm" style="white-space:pre-line;margin-top:4px">' + C.ic('home') + ' ' + esc(adr) + '</div>' : '') +
+      ((opt.noEdit || !C.can('customers.edit')) && !opt.pick ? '' : '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">' + (opt.noEdit || !C.can('customers.edit') ? '' : '<button type="button" class="btn btn-o btn-sm" data-cc-edit>' + C.ic('edit') + ' Badlein</button>') + (opt.pick ? '<button type="button" class="btn btn-g btn-sm" data-cc-pick>' + C.ic('users') + ' Doosra customer</button>' : '') + '</div>') +
+      (miss.length ? '<div class="note o" style="margin:8px 0 0">Details adhuri: <b>' + esc(miss.join(', ')) + '</b> — "Badlein" se bharein (sirf ek jagah, har form me apne aap aa jayegi).</div>' : '') + '</div>';
+  };
+  /* box me card (ya "Customer chunein"); onChange(party) har badlav par */
+  C.custCardMount = function (box, party, opt) {
+    opt = opt || {}; var ctl = { party: party || null };
+    function draw() {
+      box.innerHTML = ctl.party ? C.custCardHtml(ctl.party, opt) : '<button type="button" class="btn btn-o" data-cc-pick style="justify-content:flex-start;width:100%">' + C.ic('users') + ' Customer chunein *</button><div class="xs mute" style="margin-top:4px">Naya customer ho to list me "Naya" dabayein — details ek hi baar bharengi.</div>';
+    }
+    box.addEventListener('click', async function (e) {
+      if (e.target.closest('[data-cc-edit]')) { var r = await C.partyForm(ctl.party); if (r && r.id) { try { ctl.party = await C.get(r.id); } catch (x) { ctl.party = r; } draw(); opt.onChange && opt.onChange(ctl.party); } return; }
+      if (e.target.closest('[data-cc-pick]')) { var p = await C.partyPick({ title: opt.pickTitle || 'Customer chunein' }); if (p) { ctl.party = p; draw(); opt.onChange && opt.onChange(p); } }
+    });
+    draw(); return ctl;
   };
 
   /* ------------------------------------------------ pick a customer (search + quick add) */
@@ -136,7 +223,7 @@
   C.setQuery = function (patch) { var r = C.parse(), q = Object.assign({}, r.query, patch); history.replaceState(null, '', '#/' + [r.name].concat(r.params).join('/') + C.qs(q)); };
   C.openFile = async function (docId, mode) {
     var f = await C.run('crm_file_get', { id: docId }), blob = C.fromB64(f.b64, f.mime);
-    if (mode === 'share') return C.share(blob, f.name, f.name);
+    if (mode === 'share') return window.SPSHARE ? SPSHARE.open({ blob: blob, name: f.name, title: f.name, subtitle: (f.mime || 'File') + (blob.size ? ' · ' + Math.max(1, Math.round(blob.size / 1024)) + ' KB' : ''), kind: 'doc', ref: 'doc:' + docId }) : C.share(blob, f.name, f.name);
     if (mode === 'download') return C.download(blob, f.name);
     var u = URL.createObjectURL(blob), w = window.open(u, '_blank'); if (!w) C.download(blob, f.name); setTimeout(function () { URL.revokeObjectURL(u); }, 60000);
   };

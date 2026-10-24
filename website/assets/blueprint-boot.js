@@ -13,6 +13,7 @@
     SPBlueprint.mount(el, { mode: 'public', whatsapp: C.WHATSAPP || '9621050636', pdfLibUrl: 'assets/pdf-lib.min.js', targetKw: kw,
       customer: { name: me.name || '', mobile: me.mobile || '', locked: !!(me.name && me.mobile) },
       links: shop ? { store: shop, storeLabel: 'Go to store' } : {},
+      pay: { rpc: function (fn, p) { return rpc(fn, { p: Object.assign({ token: window.SPGate ? SPGate.token() : null }, p || {}) }); }, settings: function () { return window.SPCART && SPCART.load ? SPCART.load().then(function (s) { return (s && s.settings) || {}; }) : Promise.resolve({}); } },
       onSubmit: function (p) { p.from = 'website'; p.token = window.SPGate ? SPGate.token() : null; return rpc('sp_blueprint_submit', { p: p }); } });
     if (window.SPGate) SPGate.log('blueprint', 'Opened Project Blueprint (website)');
   }

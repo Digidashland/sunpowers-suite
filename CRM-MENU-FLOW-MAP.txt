@@ -1,0 +1,31 @@
+CRM KE SAB MENU — HAR EK KA FLOW SE RISHTA (Round 37 audit)
+================================================================
+Niyam: ek mobile = ek Customer ID = ek hi record. Naya kaam hamesha usi customer ke andar "Kaam" (quotation) banta hai.
+Flow: Lead(19) > Customer(1) > Baat-cheet(2) > Files(14) > Quotation(3) > Site Visit(4) > Blueprint(5) > Confirm(6) > Apply(7) > Loan(15) > Handover(8) > Install(9) > Commissioning(10) > Net meter(11) > Finish(12) > Subsidy(13) > Referral(16) > AMC(17) > Complaint(18)
+
+MENU                      KYA BANATA HAI                         FLOW SE KAISE JUDTA HAI                      CLONE ROKTHAM
+---------------------------------------------------------------------------------------------------------------------------------
+Home / Aaj ke kaam        kuch nahi banata (sirf dikhata)         flow ke kaam dikhata hai                     -
+Leads                     lead (manual, Excel, form, ad)          step 19 -> Customer list me bhejna (1)       NAYA: customer ya khuli lead ke mobile par lead nahi banti (form, Excel, manual, blueprint, marketing sab)
+Pending Inquiries         dikhata hai (stage=inquiry)             step 1/2 ke baad, bill se pehle              -
+Customers                 customer, "Naya Kaam"                   step 1 se aage poora flow; Naya Kaam=quote   mobile dedupe + purane mobile par poochta hai "wahi customer chunein?"
+Quotations & Templates    quotation, template                     step 3; customer pehle; ek customer=ek khuli quotation   pehle se
+Projects                  referral plant (dealer/influencer)      step 16 + Live tracking                      NAYA: unknown mobile ka referral plant bhi Leads me ek baar aata hai
+Billing                   bill (sirf quotation se), payment       step 12; quotation convert = ek hi bill      pehle se (Bill sirf quotation se; ek quote ka ek bill)
+Inventory/Stock           items                                   quotation ki lines yahin se                  -
+Site Visit                visit (reminder type=sitevisit)         step 4; flow se ?party= se khulti hai        NAYA: bina customer ke visit nahi banti; mobile se customer apne aap judta hai
+Project blue print        blueprint, (lead)                       step 5; ab flow se ?party= se khulta hai     NAYA: customer ho to lead nahi banta, customer se judta hai, step 5 apne aap
+Accounts                  kharcha, ledger                         customer chunta hai (naya nahi banata)       -
+Reports / Analytics       kuch nahi banata                        -                                            -
+Maintenance & AMC         AMC contract                            step 17; customer chunta hai                 pehle se
+Store Orders              customer / lead / quotation (button)    pehle mobile dhundhta hai, tab banata hai    pehle se + naya popup check
+Commission                commission entry                        step 16                                      -
+Documents & Gallery       file, folder                            step 14 (file bhejna)                        -
+Marketing & Grow          lead (campaign)                         step 19                                      NAYA: wahi lead guard
+Team / Activity / Settings / Connections / Help / Profile   staff, setting, log                              flow se bahar (customer nahi banate)   -
+
+Website / Store / Signup / Enquiry form (bahar se aane wale)
+  -> crm_inbound_lead: naya mobile = 1 lead; khuli lead = "dobara sampark" jud jaata hai; PURANA CUSTOMER = naya lead nahi,
+     customer ke page par "Dobara sampark" me dikhta hai (pehle chup-chap gayab ho jaata tha).
+
+Purana clone data saaf karne ke liye: CLONE-CLEANUP.sql (pehle STEP A se ginti dekhein, phir STEP B).

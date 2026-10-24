@@ -1,7 +1,7 @@
 -- ============================================================================
--- SUNPOWERS — NAYA PROJECT SETUP — part 1 of 15
--- Naya (khali) Supabase project: pehle F01..F06, phir 2-UPDATE ke U01..U09.
--- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (F01 -> F06, phir U01 -> U09). Safe to re-run.
+-- SUNPOWERS — NAYA PROJECT SETUP — part 1 of 18
+-- Naya (khali) Supabase project: pehle F01..F06, phir 2-UPDATE ke U01..U12.
+-- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (F01 -> F06, phir U01 -> U12). Safe to re-run.
 -- ============================================================================
 
 -- =====================================================================

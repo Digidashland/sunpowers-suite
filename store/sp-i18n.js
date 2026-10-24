@@ -11,7 +11,8 @@
   if (window.SPI18N) return;
   var LANGS = [{ code: 'en', label: 'Eng', short: 'EN' }, { code: 'hi', label: 'हिंदी', short: 'हिं' }, { code: 'hg', label: 'Hinglish', short: 'Hing' }];
   var KEY = 'sp_lang', ATTRS = ['placeholder', 'title', 'aria-label', 'alt'];
-  var SKIP = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, CODE: 1, PRE: 1, NOSCRIPT: 1, svg: 1, SVG: 1, TEMPLATE: 1, IFRAME: 1 };
+  var ATTR_ONLY = { TEXTAREA: 1, IFRAME: 1 }; /* text inside is skipped, but placeholder / title / aria-label still translate */
+  var SKIP = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, CODE: 1, PRE: 1, NOSCRIPT: 1, TEMPLATE: 1, IFRAME: 1 };
   var exact = {}, pats = [], extra = {}; // exact[norm] = {en, hi, ...}
   function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
   function clean(v) { return String(v || '').replace(/"/g, '').trim(); }
@@ -72,7 +73,7 @@
   var NUM = /(₹\s?)?[-+]?\d[\d,]*(\.\d+)?%?/g;
   function norm(s) { return String(s).replace(/\s+/g, ' ').trim(); }
   function numKey(s) { var i = 0; return s.replace(NUM, function () { return '{' + (i++) + '}'; }); }
-  function put(key, rec) { if (key && !exact[key]) exact[key] = rec; }
+  function put(key, rec) { if (!key) return; var o = exact[key]; if (!o || (o.hi === o.en && !o.hg && rec.hi !== rec.en) || (o.hg && /[\u0900-\u097F]/.test(o.hg) && rec.hg && !/[\u0900-\u097F]/.test(rec.hg))) exact[key] = rec; } /* a later real translation replaces an earlier placeholder row (Hindi same as English) */
   function add(list) {
     (list || []).forEach(function (e) {
       if (!e) return; var rec = Array.isArray(e) ? { en: e[0], hi: e[1] != null ? e[1] : e[0] } : e; if (!rec.hg) { var olds = Array.isArray(e) ? e.slice(2) : (e.src || []); for (var oi = 0; oi < olds.length; oi++) { var ov = String(olds[oi] || ''); if (ov && !/[\u0900-\u097F]/.test(ov) && norm(ov) !== norm(rec.en) && /[a-z]/i.test(ov) && ov.indexOf('{s}') < 0) { rec.hg = norm(ov); break; } } }
@@ -93,7 +94,9 @@
   function fill(tpl, vals) { return String(tpl).replace(/\{(\d|s)\}/g, function (m, k) { var v = vals.shift(); return v == null ? '' : v; }); }
   function lookup(core, l) {
     var r = exact[core]; if (r) return pick(r, l);
-    var nums = core.match(NUM); if (nums) { var k = numKey(core); r = exact[k]; if (r) { var i = 0; return pick(r, l).replace(/\{(\d)\}/g, function (m, n) { return nums[+n] != null ? nums[+n] : ''; }); } }
+    var nums = core.match(NUM); if (nums) { var k = numKey(core); r = exact[k]; if (r) { var t = pick(r, l);
+      if (!/\{\d\}/.test(t)) { /* template was saved with literal demo numbers (e.g. 9876543210): never show them — put this text's own numbers in, or don't translate */ var tn = t.match(NUM); if (tn) { if (tn.length !== nums.length) return null; var q = 0; return t.replace(NUM, function () { return nums[q++]; }); } return t; }
+      return t.replace(/\{(\d)\}/g, function (m, n) { return nums[+n] != null ? nums[+n] : ''; }); } }
     for (var j = 0; j < pats.length; j++) { var m = pats[j].re.exec(core); if (m) return fill(pick(pats[j].rec, l), m.slice(1)); }
     return null;
   }
@@ -101,10 +104,70 @@
   function tr(text, l) {
     if (OFF) return null; l = l || lang; var s = String(text); if (!/[A-Za-zऀ-ॿ]/.test(s)) return null;
     var lead = (s.match(/^\s*/) || [''])[0], tail = (s.match(/\s*$/) || [''])[0], body = norm(s);
+    if (l === 'hg' && !/[\u0900-\u097F]/.test(body) && mtSrc(body) === 'hg') return null; /* already Roman-Hindi: leave exactly as written */
     var out = lookup(body, l);
     if (out == null) { var m = EDGE.exec(body); if (m && m[2] && (m[1] || m[3])) { var o2 = lookup(m[2], l); if (o2 != null) out = m[1] + o2 + m[3]; } }
+    if (out == null) { var mm = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b(.*)$/.exec(body); if (mm && l !== 'en') { var mo3 = lookup(mm[1], l); if (mo3 != null) out = mo3 + mm[2]; } }
+    if (out == null && /\s[—•·|]\s/.test(body)) { var segs = body.split(/(\s[—•·|]\s)/), sc = 0; for (var si = 0; si < segs.length; si += 2) { var sv = norm(segs[si]), so = lookup(sv, l); if (so == null) { var sm = EDGE.exec(sv); if (sm && sm[2] && (sm[1] || sm[3])) { var so2 = lookup(sm[2], l); if (so2 != null) so = sm[1] + so2 + sm[3]; } } if (so != null) { segs[si] = so; sc++; } } if (sc) out = segs.join(''); } /* "Shop Page — डैशबोर्ड": each part on its own */
     if (out == null && l === 'hg' && /[\u0900-\u097F]/.test(body)) out = xlit(body);
+    if (out == null) { var mo2 = mt(body, l); if (mo2 != null) out = mo2; }
+    if (l === 'hi') { var base = out == null ? body : out; if (/[\u0900-\u097F]/.test(base) && /[A-Za-z]{3,}/.test(base)) { var g = gloss(base); if (g !== base) out = g; } }
     return out == null ? null : lead + out + tail;
+  }
+  /* Round 27: Hindi mode — common English words that sit inside Hindi sentences are written in Devanagari too (brand / technical codes like GST, PIN, OTP, kW stay) */
+  var GLOSS = { admin: 'एडमिन', store: 'स्टोर', online: 'ऑनलाइन', quotation: 'कोटेशन', quotations: 'कोटेशन', settings: 'सेटिंग्स', excel: 'एक्सेल', download: 'डाउनलोड', share: 'शेयर', accountant: 'अकाउंटेंट', billing: 'बिलिंग', activity: 'एक्टिविटी', record: 'रिकॉर्ड', key: 'की', keys: 'कीज़', email: 'ईमेल', marketing: 'मार्केटिंग', won: 'वॉन', maintenance: 'मेंटेनेंस', audit: 'ऑडिट', documents: 'डॉक्यूमेंट्स', gallery: 'गैलरी', inventory: 'इन्वेंटरी', login: 'लॉगिन', backup: 'बैकअप', password: 'पासवर्ड', resend: 'रीसेंड', tally: 'टैली', telegram: 'टेलीग्राम', slack: 'स्लैक', webhook: 'वेबहुक', whatsapp: 'व्हाट्सऐप', google: 'गूगल', facebook: 'फ़ेसबुक', instagram: 'इंस्टाग्राम', youtube: 'यूट्यूब', linkedin: 'लिंक्डइन', meta: 'मेटा', supabase: 'सुपाबेस', order: 'ऑर्डर', orders: 'ऑर्डर', customer: 'कस्टमर', customers: 'कस्टमर', lead: 'लीड', leads: 'लीड्स', plan: 'प्लान', price: 'प्राइस', cash: 'कैश', zip: 'ज़िप', data: 'डेटा', fy: 'वित्त वर्ष', ca: 'CA', stock: 'स्टॉक', item: 'आइटम', items: 'आइटम', product: 'प्रोडक्ट', products: 'प्रोडक्ट्स', templates: 'टेम्पलेट्स', project: 'प्रोजेक्ट', projects: 'प्रोजेक्ट', step: 'स्टेप', access: 'एक्सेस', team: 'टीम', growth: 'ग्रोथ', security: 'सिक्योरिटी', primary: 'प्राइमरी', backup: 'बैकअप', status: 'स्टेटस', report: 'रिपोर्ट', filter: 'फ़िल्टर', category: 'कैटेगरी', user: 'यूज़र', date: 'तारीख़', panel: 'पैनल', tab: 'टैब', pin: 'PIN', otp: 'OTP', api: 'API', gst: 'GST', itr: 'ITR', sms: 'SMS', url: 'URL', pdf: 'PDF', upi: 'UPI', kw: 'kW', kwh: 'kWh', sunpowers: 'सनपावर्स', active: 'सक्रिय', draft: 'ड्राफ़्ट', new: 'नया', sent: 'भेजा', lost: 'हारी', paid: 'चुकाया', unpaid: 'बाक़ी', done: 'हो गया', solar: 'सोलर', panel: 'पैनल', rooftop: 'रूफ़टॉप', mono: 'मोनो', pending: 'पेंडिंग', accepted: 'स्वीकार', rejected: 'अस्वीकार', cancelled: 'रद्द', delivered: 'डिलीवर', shipped: 'भेजा गया', confirmed: 'कन्फ़र्म', emoji: 'इमोजी', theme: 'थीम', english: 'अंग्रेज़ी', maps: 'मैप्स', merchant: 'मर्चेंट', image: 'फ़ोटो', sticky: 'स्टिकी', ticker: 'टिकर', requirement: 'ज़रूरत', delivery: 'डिलीवरी', link: 'लिंक', business: 'बिज़नेस', pay: 'पे', phonepe: 'फ़ोनपे', paytm: 'पेटीएम', analytics: 'एनालिटिक्स', master: 'मास्टर', review: 'रिव्यू', reviews: 'रिव्यू', feed: 'फ़ीड', csv: 'CSV', cod: 'COD', section: 'सेक्शन', video: 'वीडियो', photo: 'फ़ोटो', banner: 'बैनर', page: 'पेज', pages: 'पेज', builder: 'बिल्डर', media: 'मीडिया', management: 'मैनेजमेंट', website: 'वेबसाइट', shop: 'शॉप', app: 'ऐप', web: 'वेब', crm: 'CRM', paypal: 'पेपाल', razorpay: 'Razorpay', hybrid: 'हाइब्रिड', commercial: 'कमर्शियल', industrial: 'इंडस्ट्रियल', residential: 'रेज़िडेंशियल', installation: 'इंस्टॉलेशन', roof: 'छत', ground: 'ज़मीन', cleaning: 'सफ़ाई', or: 'या' };
+  var GLRE = /\b[A-Za-z]{2,}\b/g;
+  var GPH = [[/On-Grid/gi, 'ऑन-ग्रिड'], [/Off-Grid/gi, 'ऑफ-ग्रिड'], [/Enterprises/g, 'एंटरप्राइज़ेज़'], [/\bCentre\b/g, 'सेंटर'], [/\bWhatsApp\b/g, 'व्हाट्सऐप'], [/Google Maps/g, 'गूगल मैप्स']];
+  function gloss(t) { if (window.SP_NOGLOSS) return t; for (var gi = 0; gi < GPH.length; gi++) t = t.replace(GPH[gi][0], GPH[gi][1]); return t.replace(GLRE, function (w, off) { var g = GLOSS[w.toLowerCase()]; if (!g) return w; var pc = off > 0 ? t.charAt(off - 1) : ' ', nc = t.charAt(off + w.length) || ' '; if (/[-_.\/:@#=?&%\\|]/.test(pc) || /[-_.\/:@#=?&%\\]/.test(nc)) return w; if (/[A-Za-z0-9]/.test(pc) || /[A-Za-z0-9]/.test(nc)) return w; return g; }); }
+
+
+  /* ---------------- Round 27: auto-convert English content into the chosen language ----------------
+     Admin screens save content in English only. For the public (website / store) every English text that the
+     built-in dictionary does not know is machine-translated once, cached on the device and shown from the cache next time.
+     Hinglish = Hindi translation written in Roman letters. Private screens (CRM, admin) set window.SP_MT = "ui": only labels / buttons / headings are translated, customer data never leaves the device. */
+  var MT_ON = window.SP_MT !== false, MT_UI = window.SP_MT === 'ui', CTX = null, MTK = 'sp_mt_v1', MTC = {}, MTQ = {}, MTF = {}, MTN = 0, mtTimer = 0, mtBusy = 0;
+  try { MTC = JSON.parse(store(MTK) || '{}') || {}; } catch (e) { MTC = {}; }
+  function mtSave() { try { var ks = Object.keys(MTC); if (ks.length > 1500) { ks.slice(0, ks.length - 1200).forEach(function (k) { delete MTC[k]; }); } store(MTK, JSON.stringify(MTC)); } catch (e) {} }
+  var HGW = /\b(hai|hain|hoon|ho|kya|kaise|kaun|kyun|kyon|aap|aapka|aapki|aapke|apna|apni|apne|hum|hamare|hamari|hamara|humare|mein|me|ka|ki|ke|ko|se|par|aur|nahi|nahin|karein|karen|kare|kijiye|karo|karna|milta|milti|milte|lagne|lagta|wala|wali|wale|sabhi|dekhein|dekhen|dekhe|chahiye|bhi|toh|to|tak|liye|saath|bharosa|abhi|jaankari|madad)\b/i;
+  var UI_SEL = 'button,label,th,h1,h2,h3,h4,h5,h6,legend,summary,option,nav,.hint,.note,.sec-t,.l,.help,.tag,.pill,.btn,.side,.hd,.hd-i,.hd-dl,.toast,.tst,.spv-toast,.md-h,.ttl,.title,.sub,.mute,.empty,.hero-card,.auth,[role=tab],[role=menuitem]' + (window.SP_UI_SEL ? ',' + window.SP_UI_SEL : '');
+  function uiOk(el) { try { if (!el) return true; if (el.nodeType === 3) el = el.parentNode; if (el.closest(window.SP_UI_ALLOW ? '[data-nomt],.cust' : 'td,[data-nomt],.cust,.nm')) return false; return !!el.closest(UI_SEL); } catch (e) { return false; } }
+  function mtOk(s) {
+    if (s.length < 2 || s.length > 600 || !/[A-Za-zऀ-ॿ]{2}/.test(s)) return false;
+    if (/^(https?:|www\.|[\w.+-]+@[\w-]+\.)/i.test(s) || (!/\s/.test(s) && /[\/:@#_]/.test(s))) return false;
+    return true;
+  }
+  /* what language is this text written in?  dev = Hindi (Devanagari) · mix = Devanagari + English words · hg = Roman-Hindi (Hinglish) · en = English */
+  function mtSrc(s) {
+    if (/[ऀ-ॿ]/.test(s)) return /[A-Za-z]{3,}/.test(s.replace(/\b(kW|kWh|kVA|MW|GST|PIN|OTP|UPI|COD|PDF|WhatsApp|Sunpowers|MPPT|PWM|VFD|DC|AC)\b/g, '')) ? 'mix' : 'dev';
+    if ((s.match(new RegExp(HGW.source, 'gi')) || []).length >= 2 || /\b(hai|hain|karein|nahi|kya|aapka|hamare|bharosa|milta|dekhein)\b/i.test(s)) return 'hg';
+    return 'en';
+  }
+  /* "one language only" rule: English mode shows only English, Hindi only Hindi, Hinglish only Hinglish, any other language only itself */
+  function mtNeed(src, l) { return l === 'en' ? src !== 'en' : l === 'hi' ? src !== 'dev' : l === 'hg' ? src === 'en' : true; }
+  function mtTarget(l) { return l === 'hg' ? 'hi' : l; }
+  function mt(text, l) {
+    l = l || lang; if (!MT_ON || OFF) return null;
+    if (MT_UI && !uiOk(CTX)) return null; /* private screens (CRM / admin): only labels, buttons, headings and hints are machine-translated — never customer data */
+    var s = norm(text); if (!mtOk(s) || !mtNeed(mtSrc(s), l)) return null;
+    var tl = mtTarget(l), k = tl + '|' + s, v = MTC[k];
+    if (v) return l === 'hg' ? xlit(v) : v;
+    if (!MTF[k] && !MTQ[k]) { MTQ[k] = 1; clearTimeout(mtTimer); mtTimer = setTimeout(mtRun, 250); }
+    return null;
+  }
+  function mtFetch(s, tl) {
+    var g = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=' + encodeURIComponent(tl) + '&dt=t&q=' + encodeURIComponent(s);
+    return fetch(g).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) { var o = (j && j[0] || []).map(function (x) { return x && x[0] || ''; }).join(''); if (!o) throw 0; return o; })
+      .catch(function () { return fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(s) + '&langpair=Autodetect|' + encodeURIComponent(tl)).then(function (r) { return r.json(); }).then(function (j) { var o = j && j.responseData && j.responseData.translatedText; if (!o || /MYMEMORY|QUERY LENGTH/i.test(o)) throw 0; return o; }); });
+  }
+  function mtRun() {
+    var keys = Object.keys(MTQ).slice(0, 30); if (!keys.length) return;
+    keys.forEach(function (k) { delete MTQ[k]; });
+    var left = keys.length, changed = 0;
+    function done() { if (--left > 0) return; mtBusy = 0; if (changed) { mtSave(); busy = true; try { walk(document.body); title(); } finally { busy = false; } try { document.dispatchEvent(new CustomEvent('sp-lang', { detail: { lang: lang, mt: true } })); } catch (e) {} } if (Object.keys(MTQ).length) mtTimer = setTimeout(mtRun, 150); }
+    keys.forEach(function (k) {
+      var i = k.indexOf('|'), tl = k.slice(0, i), s = k.slice(i + 1);
+      mtFetch(s, tl).then(function (o) { MTC[k] = String(o).trim(); changed++; }, function () { MTF[k] = 1; }).then(done);
+    });
   }
 
   /* ---------------- DOM ---------------- */
@@ -114,7 +177,7 @@
     var st = TXT.get(n), v = n.nodeValue;
     if (st && v === st.out) { /* hamara hi likha hua */ }
     else st = { src: v, out: v };
-    var r = tr(st.src); st.out = r == null ? st.src : r; TXT.set(n, st);
+    CTX = n; var r = tr(st.src); CTX = null; st.out = r == null ? st.src : r; TXT.set(n, st);
     if (n.nodeValue !== st.out) n.nodeValue = st.out;
   }
   function doAttrs(el) {
@@ -122,7 +185,7 @@
     ATTRS.forEach(function (a) {
       if (!el.hasAttribute(a)) return; var v = el.getAttribute(a), st = m[a];
       if (!(st && v === st.out)) st = { src: v, out: v };
-      var r = tr(st.src); st.out = r == null ? st.src : r; m[a] = st; if (v !== st.out) el.setAttribute(a, st.out);
+      CTX = el; var r = tr(st.src); CTX = null; st.out = r == null ? st.src : r; m[a] = st; if (v !== st.out) el.setAttribute(a, st.out);
     });
     if (el.tagName === 'INPUT' && /^(button|submit|reset)$/i.test(el.type) && el.value) { var st2 = m.value; if (!(st2 && el.value === st2.out)) st2 = { src: el.value, out: el.value }; var r2 = tr(st2.src); st2.out = r2 == null ? st2.src : r2; m.value = st2; if (el.value !== st2.out) el.value = st2.out; }
     ATT.set(el, m);
@@ -131,9 +194,10 @@
     if (!root) return;
     if (root.nodeType === 3) { if (!skip(root.parentNode)) doText(root); return; }
     if (root.nodeType !== 1 && root.nodeType !== 9 && root.nodeType !== 11) return;
+    if (root.nodeType === 1 && ATTR_ONLY[root.nodeName] && !root.hasAttribute('data-noi18n')) { doAttrs(root); return; } /* a textarea's own text is the visitor's / default value — only its placeholder / title are translated */
     if (root.nodeType === 1 && skip(root)) return;
     if (root.nodeType === 1) doAttrs(root);
-    var w = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, { acceptNode: function (n) { if (n.nodeType === 1) return SKIP[n.nodeName] || n.hasAttribute('data-noi18n') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT; return NodeFilter.FILTER_ACCEPT; } }), n;
+    var w = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, { acceptNode: function (n) { if (n.nodeType === 1 && ATTR_ONLY[n.nodeName] && !n.hasAttribute('data-noi18n')) doAttrs(n); if (n.nodeType === 1) return SKIP[n.nodeName] || n.hasAttribute('data-noi18n') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT; return NodeFilter.FILTER_ACCEPT; } }), n;
     while ((n = w.nextNode())) { if (n.nodeType === 3) { if (n.nodeValue && /\S/.test(n.nodeValue) && !(n.parentNode && n.parentNode.isContentEditable)) doText(n); } else doAttrs(n); }
   }
   function title() { var t = document.querySelector('title'); if (t && t.firstChild) walk(t.firstChild); }
@@ -144,7 +208,7 @@
         var m = list[i];
         if (m.type === 'childList') { for (var j = 0; j < m.addedNodes.length; j++) { var an = m.addedNodes[j]; walk(an); if (an.nodeType === 1 && (an.hasAttribute('data-sp-lang') || an.querySelector('[data-sp-lang]'))) paintButtons(); } }
         else if (m.type === 'characterData') { if (!skip(m.target.parentNode)) doText(m.target); }
-        else if (m.type === 'attributes') { if (!skip(m.target)) doAttrs(m.target); }
+        else if (m.type === 'attributes') { if (ATTR_ONLY[m.target.nodeName] ? !m.target.hasAttribute('data-noi18n') : !skip(m.target)) doAttrs(m.target); }
       }
     } finally { busy = false; }
   });
@@ -173,7 +237,7 @@
     Array.prototype.forEach.call(document.querySelectorAll('[data-sp-lang]'), function (b) {
       b.setAttribute('data-noi18n', ''); var lbl = b.getAttribute('data-sp-lang') === 'short' ? cur.short : cur.label; if (b.getAttribute('data-l') === cur.code + lbl) return; b.setAttribute('data-l', cur.code + lbl);
       b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg><span>' + lbl + '</span><span aria-hidden="true" style="font-size:10px">▾</span>';
-      b.setAttribute('aria-label', 'Language: ' + (NAMES[cur.code] || cur.label)); b.setAttribute('aria-haspopup', 'menu'); b.setAttribute('lang', cur.code === 'hg' ? 'en' : cur.code);
+      b.setAttribute('aria-label', (cur.code === 'hi' ? 'भाषा' : cur.code === 'hg' ? 'Bhasha' : 'Language') + ': ' + (NAMES[cur.code] || cur.label)); b.setAttribute('aria-haspopup', 'menu'); b.setAttribute('lang', cur.code === 'hg' ? 'en' : cur.code);
     });
   }
   function closeMenu() { var m = document.getElementById('sp-lm'); if (m) m.remove(); document.removeEventListener('click', outside, true); document.removeEventListener('keydown', onKey, true); }
@@ -197,7 +261,7 @@
   }
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-sp-lang]'); if (b && !b._spb) { e.preventDefault(); menu(b); } });
 
-  window.SPI18N = { menu: menu, xlit: xlit, get lang() { return lang; }, get off() { return OFF; }, LANGS: LANGS, add: add, addLang: addLang, set: set, t: function (s) { var r = tr(s); return r == null ? s : r; }, tr: tr, walk: walk, button: button, _exact: exact };
+  window.SPI18N = { menu: menu, xlit: xlit, get lang() { return lang; }, get off() { return OFF; }, LANGS: LANGS, add: add, addLang: addLang, set: set, t: function (s) { var r = tr(s); return r == null ? s : r; }, tr: tr, mt: mt, walk: walk, button: button, _exact: exact };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
   setTimeout(function () { document.documentElement.classList.remove('i18n-wait'); }, 1500);
 })();

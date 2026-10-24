@@ -37,6 +37,7 @@
     var s = document.createElement('script'); s.src = G.cfg.authUrl || 'assets/auth.js'; s.onload = cb; s.onerror = bad; document.head.appendChild(s);
   }
   function loginBox(done) {
+    if (G.cfg && G.cfg.loginUi) return G.cfg.loginUi(done); /* the Store App has its own quick "Create ID with PIN" login */
     if (!document.getElementById('spgCss')) { var st = document.createElement('style'); st.id = 'spgCss'; st.textContent = CSS; document.head.appendChild(st); }
     var ov = document.createElement('div'); ov.className = 'spg-ov'; ov.setAttribute('data-noi18n', '');
     ov.innerHTML = '<div class="spg-box" role="dialog" aria-modal="true"><button type="button" class="spg-x" aria-label="' + t('close') + '">×</button><p class="spg-h">' + t('title') + '</p><p class="spg-s">' + t('sub') + '</p><div id="spgBox"></div></div>';

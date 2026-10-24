@@ -283,3 +283,27 @@ SACHAI (Round 19)
  • Order ka price abhi browser se aata hai (Store ka purana design) — Razorpay jaisa auto payment / server-side price check baad ka kaam.
  • Checkout me payment: COD (advance %) aur UPI + UTR manual verify. Dusri regional languages me checkout ke labels English dikhenge (English + Hindi pura).
  • Sab tests mock Supabase par chale; asli Supabase par ek test order zaroor dekh lein.
+
+
+================================================================
+ROUND-21 + 22 BADLAV (Customer flow, Leads = ek darwaza, Add New Customer, safai)
+================================================================
+STEP A — Database: LIVE project par pehle backup, phir MASTER-LIVE-UPDATE.sql (zip ke saath alag se di gayi file) poori chalayein. Dobara chalana safe.
+         Naya khali project: MASTER-FRESH.sql. Ye round purane 6 bekaar server functions bhi hata deta hai (crm_register, crm_reset, crm_questions ...).
+STEP B — Files replace -> GitHub push -> Vercel redeploy (CRM, Admin, Store, Website). SQL ke turant baad PR merge karein.
+STEP C — Check: CRM -> Leads (har lead par "Path"), Customers -> "Add New Customer" (pehle path, phir poori jaankari), ek Project, ek Product, ek Service customer banakar flow dekhein.
+NAYA KYA HAI
+ • Mobile number har jagah zaroori, email optional; sirf email se lead/customer nahi banta. Bulk upload me sirf mobile.
+ • Leads sab kuch ka pehla darwaza: website, store, ad channel, walk-in, Excel — har lead par path apne aap.
+ • Customer 3 tarah ka: Project (poora 19-step flow), Product (chhota flow, warranty manufacturer ki), Service (cleaning/AMC/repair — chhota flow).
+ • Customer banane se pehle flow ke liye zaroori jaankari (pata, shahar, pincode, B2C/B2B, kind aur kind ki jaankari) — server bhi rokta hai.
+ • Store order: poori jaankari ho to seedha Product customer, warna Lead.
+SAFAI (Round 22)
+ • Home ka "Jaldi karein" card, Customer page ka doosra "Payment jodein", Inventory ka "Maintenance" tab, Marketing channel ka API-key box (keys Connections me) hata diye — kaam wahi, ek hi raasta.
+ • Bekaar files/code hata diye: purani SQL source copies (crm/*.sql, store/*.sql), store ka sp-look-ui.js, admin ka sp-track.js, 4 purane README, kuch unused functions.
+ • SQL me purane duplicate function-versions hata kar file chhoti ki (MASTER-FRESH 520 KB se 478 KB) — final database bilkul wahi.
+ • store/core.js, sp-track.js, xlsx-lite.js ki copies ek jaisi kar di gayi.
+SACHAI (Round 21-22)
+ • Purane customers ko edit karne se nahi roka jata; unka path "Purana / Unknown" dikhta hai.
+ • Blueprint, Site Visit aur Step 4 survey alag cheezein hain (public tool / visit / field survey) — milayi nahi gayi. Reports, Analytics, Accounts bhi alag kaam karte hain.
+ • Sab tests local Postgres + mock Supabase par chale; asli staging par SQL ke baad ek baar flow dekh lein.

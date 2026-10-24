@@ -1,0 +1,20 @@
+ROUND 33 — CRM: Admin logout, naam, Customer Flow
+==================================================
+SQL: koi naya nahi. Sirf CRM redeploy.
+
+1) Admin panel se CRM me gaye Admin ka logout (ya login expire) ab seedha ADMIN page par jata hai. Baaki CRM users ka logout CRM login par hi.
+2) "Maintenance & Audit" -> "Maintenance & AMC" (menu, home, hints). Purane saved items ka andar ka naam nahi badla.
+
+3) CUSTOMER FLOW PATTI (sirf customer ke flow ke andar)
+   - Customer list -> customer -> Quotation / Site Visit / Blueprint / Billing / Maintenance / Documents kholein: upar patti rehti hai (customer ka naam, type, kaam chuno, saare steps).
+   - Side menu se seedha kisi page par jaayein: patti NAHI dikhti (jaise sirf Blueprint banwane wale customer).
+   - Patti me step dabane par us step ka page khulta hai (patti wahi rehti hai); jo step manual hain unka popup khulta hai.
+   - Jo steps is kaam me lagu nahi (jaise Product kaam me Site Visit / Installation) wo HALKE GREY dikhte hain. Dabane par samjhata hai aur "Naya Project kaam shuru karein" deta hai (customer wahi, details dobara nahi bharni).
+   - Patti ke "✕" se patti band hoti hai (page wahi rehta hai).
+4) KAAM (JOB) MODEL — customer ek, har kharidari alag kaam (quotation = kaam)
+   - Customer page par naya button "➕ Naya Kaam shuru karein": Project (Residential/Commercial/Industrial/VFD), Product ya Service chuno -> nayi quotation us type ke saath khulti hai.
+   - Naya tab "Kaam / History": har kaam ki quotation no., type, state (Draft / Bheji / Chal raha / Poora hua), items, amount, tareekh, Flow / Quotation / Bill ke button. Purana kaam kabhi nahi badalta.
+   - Customer ke upar ek se zyada type ke pill (jaise Project + Product).
+5) CUSTOMER LIST: customer kabhi list se nahi hatta. Har row me kaam ka status ("Kaam chal raha" / "Kaam poora hua" / "Quotation") aur naye filter chips. Project/Product/Service filter ab saare kaam dekhta hai.
+
+Abhi nahi hua (agle round ke liye): "Under AMC / Warranty" ka alag status; kaam poora hone par AMC reminder apne aap banana; steps ko seedha "type badal kar" khulna.

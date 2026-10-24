@@ -1,11 +1,11 @@
 -- ============================================================================
--- SUNPOWERS — NAYA PROJECT SETUP — part 6 of 15
--- Naya (khali) Supabase project: pehle F01..F06, phir 2-UPDATE ke U01..U09.
--- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (F01 -> F06, phir U01 -> U09). Safe to re-run.
+-- SUNPOWERS — NAYA PROJECT SETUP — part 6 of 18
+-- Naya (khali) Supabase project: pehle F01..F06, phir 2-UPDATE ke U01..U12.
+-- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (F01 -> F06, phir U01 -> U12). Safe to re-run.
 -- ============================================================================
 
 do $$ begin
-  grant execute on function public.crm_register(jsonb), public.crm_login(jsonb), public.crm_logout(jsonb), public.crm_me(jsonb), public.crm_questions(jsonb), public.crm_reset(jsonb),
+  grant execute on function public.crm_login(jsonb), public.crm_logout(jsonb), public.crm_me(jsonb),
     public.crm_password(jsonb), public.crm_users_list(jsonb), public.crm_user_save(jsonb), public.crm_user_delete(jsonb), public.crm_roles_get(jsonb), public.crm_role_save(jsonb),
     public.crm_settings_get(jsonb), public.crm_settings_save(jsonb), public.crm_list(jsonb), public.crm_get(jsonb), public.crm_save(jsonb), public.crm_status(jsonb),
     public.crm_convert(jsonb), public.crm_delete(jsonb), public.crm_assign(jsonb), public.crm_lead_import(jsonb), public.crm_file_put(jsonb), public.crm_file_get(jsonb),

@@ -1,341 +1,8 @@
 -- ============================================================================
--- SUNPOWERS — DATABASE UPDATE — part 7 of 9
+-- SUNPOWERS — DATABASE UPDATE — part 7 of 12
 -- Purane project par update (naya ya purana, dono par chalega).
--- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (U01 -> U09). Safe to re-run.
+-- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (U01 -> U12). Safe to re-run.
 -- ============================================================================
-
--- ---- ROUND 13: changed core CRM functions (full redefinitions; safe to re-run) ----
-CREATE OR REPLACE FUNCTION public.crm_save(p jsonb)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-declare s public.crm_ses := public.crm_session(p ->> 'token'); k text := p ->> 'kind'; id_ bigint := nullif(p ->> 'id', '')::bigint;
-        d jsonb := coalesce(p -> 'data', '{}'::jsonb); old public.crm_records; r public.crm_records; isnew boolean := id_ is null or id_ = 0;
-        mob text; ttl text; st text := coalesce(p ->> 'status', ''); asg bigint := nullif(p ->> 'assigned_to', '')::bigint; pid bigint := nullif(p ->> 'party_id', '')::bigint;
-        due date := nullif(p ->> 'due_at', '')::date; amt numeric := 0; ref_ text; calc jsonb; srch text; ex public.crm_records; it public.crm_records; l jsonb;
-        lim numeric; owner_ bigint; f public.crm_records; prev_status text; msg_ text;
-begin
-  if k not in ('party', 'item', 'quote', 'invoice', 'payment', 'purchase', 'lead', 'reminder', 'plant', 'earning', 'folder', 'doc', 'note', 'notice') then raise exception 'Galat record'; end if;
-  if jsonb_typeof(d) <> 'object' or length(d::text) > 200000 then raise exception 'Data bahut bada ya galat hai'; end if;
-  if not isnew then
-    select * into old from public.crm_records where id = id_ and kind = k;
-    if not public.crm_vis(s, old) then raise exception 'Record nahi mila'; end if;
-    prev_status := old.status;
-  end if;
-  mob := public.crm_mobile(coalesce(d ->> 'mobile', ''));
-  ttl := left(trim(coalesce(d ->> 'name', d ->> 'title', '')), 200);
-  owner_ := case when isnew then (s).uid else old.owner_id end;
-  if not isnew and pid is null and not (p ? 'party_id') then pid := old.party_id; end if;
-  if not isnew and not (p ? 'assigned_to') then asg := old.assigned_to; end if;
-  if not isnew and not (p ? 'due_at') then due := old.due_at; end if;
-
-  -- ---------------- per kind rules
-  if k = 'party' then
-    perform public.crm_need(s, case when isnew then 'customers.create' else 'customers.edit' end);
-    if ttl = '' then raise exception 'Customer ka naam likhein'; end if;
-    if mob !~ '^[6-9][0-9]{9}$' then raise exception 'Sahi 10 ank ka mobile number likhein'; end if;
-    select * into ex from public.crm_records where kind = 'party' and deleted_at is null and mobile = mob and id <> coalesce(id_, 0) limit 1;
-    if ex.id is not null then
-      if public.crm_vis(s, ex) then raise exception 'Ye customer pehle se list me hai: % (#%)', ex.title, ex.id;
-      else raise exception 'Ye customer pehle se % ke paas hai — Admin se transfer karwayein', coalesce(public.crm_uname(ex.owner_id), 'kisi aur'); end if;
-    end if;
-    if (p ? 'assigned_to') and asg is distinct from (case when isnew then null else old.assigned_to end) then perform public.crm_need(s, 'customers.assign'); end if;
-    pid := null; st := coalesce(nullif(st, ''), case when isnew then 'active' else old.status end);
-  elsif k = 'item' then
-    perform public.crm_need(s, case when isnew then 'items.create' else 'items.edit' end);
-    if ttl = '' then raise exception 'Item ka naam likhein'; end if;
-    amt := public.crm_num(d -> 'price'); mob := null; pid := null;
-    if not public.crm_can(s, 'items.cost') and not isnew then d := d || jsonb_build_object('cost_price', old.data -> 'cost_price', 'min_price', old.data -> 'min_price'); end if;
-    -- online store status: only the review flow can publish
-    if not isnew then d := jsonb_set(d, '{store}', coalesce(old.data -> 'store', '{}'::jsonb) || (coalesce(d -> 'store', '{}'::jsonb) - 'status' - 'store_id' - 'reviewed_at')); end if;
-    if isnew then d := jsonb_set(d, '{store}', (coalesce(d -> 'store', '{}'::jsonb) - 'store_id' - 'reviewed_at') || '{"status":"none"}'::jsonb); end if;
-    d := public.crm_item_prep(isnew, case when isnew then null else old.data end, d);   -- Round 13: auto SKU (immutable), project line SKUs
-    st := coalesce(nullif(st, ''), 'active');
-  elsif k in ('quote', 'invoice', 'purchase') then
-    perform public.crm_need(s, case when k = 'purchase' then 'purchase.manage' when isnew then k || 's.create' else k || 's.edit' end);
-    if pid is null then raise exception 'Customer / party chunein'; end if;
-    select * into ex from public.crm_records where id = pid and kind = 'party';
-    if not public.crm_vis(s, ex) then raise exception 'Customer nahi mila'; end if;
-    if jsonb_typeof(d -> 'lines') <> 'array' or jsonb_array_length(d -> 'lines') = 0 then raise exception 'Kam se kam 1 item jodein'; end if;
-    if k = 'invoice' and isnew and coalesce(d ->> 'quote_id', '') = '' then raise exception 'Bill sirf quotation se banta hai — pehle quotation banayein'; end if;
-    calc := public.crm_doc_calc(d);
-    if k = 'quote' and not public.crm_can(s, 'quotes.discount_any') then
-      for l in select * from jsonb_array_elements(d -> 'lines') loop
-        if coalesce(l ->> 'kind', 'product') <> 'project' and coalesce(l ->> 'item_id', '') <> '' then
-          select * into it from public.crm_records where id = (l ->> 'item_id')::bigint and kind = 'item';
-          if it.id is not null and public.crm_num(it.data -> 'min_price') > 0 and public.crm_num(l -> 'price') < public.crm_num(it.data -> 'min_price') then
-            raise exception '"%" ka rate minimum rate se kam hai — Admin se permission lein', it.title; end if;
-        end if;
-      end loop;
-      select public.crm_num(meta -> 'max_discount_pct') into lim from public.crm_users where id = (s).uid;
-      if (s).uid <> 0 and public.crm_num(calc -> 'discount') > 0 and public.crm_num(calc -> 'discount') > coalesce(lim, 0) * (public.crm_num(calc -> 'subtotal') + public.crm_num(calc -> 'gst_total')) / 100 + 0.009 then
-        raise exception 'Discount aapki limit (% %%) se zyada hai', coalesce(lim, 0); end if;
-    end if;
-    if k = 'quote' then
-      d := d || jsonb_build_object('qtitle', left(trim(coalesce(d ->> 'qtitle', case when isnew then '' else old.data ->> 'qtitle' end, '')), 120));
-      if isnew and length(d ->> 'qtitle') < 2 then raise exception 'Quotation ka Title zaroori hai (jaise: 5 kW Rooftop - Sharma ji)'; end if;
-      if coalesce(d ->> 'valid_till', '') !~ '^\d{4}-\d{2}-\d{2}$' then
-        d := d || jsonb_build_object('valid_till', case when isnew or (old.data ->> 'valid_till') is null then (public.crm_today() + 15)::text else old.data ->> 'valid_till' end); end if;
-    end if;
-    d := d || calc; amt := public.crm_num(calc -> 'grand'); ttl := coalesce(ex.title, ''); mob := ex.mobile;
-    if isnew then ref_ := public.crm_next_no(k); else ref_ := old.ref; end if;
-    st := coalesce(nullif(st, ''), case when isnew then case k when 'quote' then 'draft' when 'invoice' then 'due' else 'open' end else old.status end);
-    if k = 'quote' and coalesce(d ->> 'send_on', '') ~ '^\d{4}-\d{2}-\d{2}$' then due := (d ->> 'send_on')::date; end if;
-    if k = 'quote' then
-      if st = 'expired' and (isnew or old.status <> 'expired') then raise exception 'Expired apne aap hota hai — Renew button use karein'; end if;
-      if not isnew and old.status = 'expired' then raise exception 'Expired quotation ko pehle Renew karein'; end if;
-      if st in ('draft', 'sent', 'accepted') and not public.crm_can(s, 'stock.override') then
-        msg_ := public.crm_quote_shortage(d -> 'lines', case when isnew then null else id_ end);
-        if msg_ is not null then raise exception 'Stock kam hai (20%% online ke liye surakshit): %', msg_; end if;
-      end if;
-    end if;
-    if k = 'invoice' then
-      due := coalesce(nullif(d ->> 'due_date', '')::date, due);
-      if not isnew then d := d || jsonb_build_object('paid', old.data -> 'paid', 'balance', old.data -> 'balance'); end if;
-    end if;
-    if k = 'purchase' and not isnew and old.status = 'received' then raise exception 'Received purchase badla nahi ja sakta'; end if;
-  elsif k = 'payment' then
-    perform public.crm_need(s, 'payments.record');
-    amt := public.crm_num(d -> 'amount'); if amt <= 0 then raise exception 'Amount likhein'; end if;
-    if coalesce(d ->> 'invoice_id', '') <> '' then
-      select * into ex from public.crm_records where id = (d ->> 'invoice_id')::bigint and kind = 'invoice';
-      if not public.crm_vis(s, ex) then raise exception 'Bill nahi mila'; end if;
-      pid := ex.party_id;
-    end if;
-    if pid is null then raise exception 'Customer chunein'; end if;
-    select * into f from public.crm_records where id = pid and kind = 'party';
-    if not public.crm_vis(s, f) then raise exception 'Customer nahi mila'; end if;
-    ttl := f.title; mob := f.mobile; ref_ := case when isnew then public.crm_next_no('payment') else old.ref end; st := 'ok';
-    due := coalesce(nullif(d ->> 'date', '')::date, public.crm_today());
-  elsif k = 'lead' then
-    perform public.crm_need(s, 'leads.create');
-    if mob !~ '^[6-9][0-9]{9}$' then raise exception 'Sahi 10 ank ka mobile number likhein'; end if;
-    if ttl = '' then ttl := 'Lead ' || mob; end if;
-    if (p ? 'assigned_to') and asg is distinct from (case when isnew then null else old.assigned_to end) and asg is distinct from (s).uid then perform public.crm_need(s, 'leads.assign'); end if;
-    if isnew and exists (select 1 from public.crm_records where kind = 'lead' and deleted_at is null and mobile = mob and (owner_id = (s).uid or assigned_to = coalesce(asg, (s).uid))) then
-      raise exception 'Ye lead pehle se aapki list me hai'; end if;
-    st := coalesce(nullif(st, ''), case when isnew then 'new' else old.status end);
-    if st not in ('new', 'contacted', 'visit', 'quote', 'won', 'lost') then st := 'new'; end if;
-    if d ? 'followup' then due := nullif(d ->> 'followup', '')::date; end if;
-  elsif k = 'reminder' then
-    if ttl = '' then ttl := coalesce(nullif(d ->> 'type', ''), 'Reminder'); end if;
-    if asg is null and isnew then asg := (s).uid; end if;
-    if asg is distinct from (s).uid and (isnew or asg is distinct from old.assigned_to) then perform public.crm_need(s, 'reminders.assign'); end if;
-    if not isnew and old.owner_id <> (s).uid and coalesce(old.assigned_to, -1) <> (s).uid and not public.crm_can(s, 'reminders.assign') then raise exception 'Ye reminder aapka nahi hai'; end if;
-    if due is null then raise exception 'Tareekh chunein'; end if;
-    st := coalesce(nullif(st, ''), case when isnew then 'open' else old.status end);
-    if st = 'done' and (isnew or old.status <> 'done') then d := d || jsonb_build_object('done_at', now()); end if;
-    if st = 'open' then d := d - 'done_at'; end if;
-    mob := nullif(mob, '');
-  elsif k = 'plant' then
-    perform public.crm_need(s, 'plants.create');
-    if ttl = '' then raise exception 'Customer ka naam likhein'; end if;
-    if mob !~ '^[6-9][0-9]{9}$' then raise exception 'Customer ka sahi mobile number zaroori hai'; end if;
-    if not isnew and old.status <> 'pending' and not public.crm_can(s, 'plants.verify') then raise exception 'Verified plant sirf Admin badal sakta hai'; end if;
-    st := case when public.crm_can(s, 'plants.verify') then coalesce(nullif(st, ''), case when isnew then 'verified' else old.status end) else 'pending' end;
-    if st not in ('pending', 'verified', 'rejected') then st := 'pending'; end if;
-    d := d || jsonb_build_object('ref', upper(coalesce(d ->> 'ref', case when (s).ref is not null and isnew then (s).ref else '' end)));
-    amt := public.crm_num(d -> 'deal_value');
-    if pid is null then select id into pid from public.crm_records where kind = 'party' and mobile = mob and deleted_at is null limit 1; end if;
-    if isnew then ref_ := public.crm_next_no('plant'); else ref_ := old.ref; end if;
-    due := nullif(d ->> 'install', '')::date;
-  elsif k = 'earning' then
-    perform public.crm_need(s, 'earnings.manage');
-    amt := public.crm_num(d -> 'amount'); if amt <= 0 and not isnew then amt := old.amount; end if; if amt <= 0 then raise exception 'Amount likhein'; end if;
-    if isnew then owner_ := nullif(p ->> 'owner_id', '')::bigint; if owner_ is null or not exists (select 1 from public.crm_users where id = owner_) then raise exception 'User chunein'; end if; end if;
-    st := coalesce(nullif(st, ''), case when isnew then 'due' else old.status end);
-    if st not in ('due', 'paid') then st := 'due'; end if;
-    if st = 'paid' and (isnew or old.status <> 'paid') then d := d || jsonb_build_object('paid_on', public.crm_today()); end if;
-    if ttl = '' then ttl := 'Commission'; end if;
-    due := coalesce(nullif(d ->> 'pay_on', '')::date, due);
-  elsif k = 'folder' then
-    perform public.crm_need(s, 'docs.folders');
-    if ttl = '' then raise exception 'Folder ka naam likhein'; end if;
-    if coalesce(d ->> 'parent_id', '') <> '' and not public.crm_folder_ok(s, (d ->> 'parent_id')::bigint) then raise exception 'Folder nahi mila'; end if;
-    if not isnew and (d ->> 'parent_id') = id_::text then raise exception 'Folder khud ke andar nahi ja sakta'; end if;
-    mob := null;
-  elsif k = 'doc' then
-    if isnew then raise exception 'Document upload button se jodein'; end if;
-    if old.owner_id <> (s).uid and not public.crm_can(s, 'docs.folders') then raise exception 'Ye document aapka nahi hai'; end if;
-    d := old.data || (d - 'file_id' - 'size' - 'mime');
-    if coalesce(d ->> 'folder_id', '') <> '' and not public.crm_folder_ok(s, (d ->> 'folder_id')::bigint) then raise exception 'Folder nahi mila'; end if;
-    ttl := coalesce(nullif(ttl, ''), old.title); mob := null;
-  elsif k = 'note' then
-    if not isnew and old.owner_id <> (s).uid then raise exception 'Ye note aapka nahi hai'; end if;
-    mob := null;
-  elsif k = 'notice' then
-    perform public.crm_need(s, 'settings.manage'); mob := null;
-  end if;
-
-  srch := lower(concat_ws(' ', ttl, ref_, mob, d ->> 'city', d ->> 'company', d ->> 'gstin', d ->> 'note', d ->> 'type', d ->> 'brand', d ->> 'qtitle', d ->> 'category', d ->> 'subcategory', d ->> 'sku', d ->> 'mpn', d ->> 'source'));
-  if isnew then
-    insert into public.crm_records(kind, ref, title, mobile, status, owner_id, assigned_to, party_id, amount, due_at, data, search, created_by)
-    values (k, ref_, ttl, nullif(mob, ''), st, coalesce(owner_, 0), asg, pid, coalesce(amt, 0), due, d, srch, (s).uid) returning * into r;
-  else
-    update public.crm_records set ref = coalesce(ref_, ref), title = ttl, mobile = nullif(mob, ''), status = st, assigned_to = asg, party_id = pid,
-      amount = coalesce(amt, 0), due_at = due, data = d, search = srch, updated_at = now() where id = id_ returning * into r;
-  end if;
-
-  -- ---------------- side effects
-  if k = 'payment' and coalesce(d ->> 'invoice_id', '') <> '' then perform public.crm_inv_recalc((d ->> 'invoice_id')::bigint); end if;
-  if k = 'payment' and not isnew and coalesce(old.data ->> 'invoice_id', '') <> '' and old.data ->> 'invoice_id' <> coalesce(d ->> 'invoice_id', '') then perform public.crm_inv_recalc((old.data ->> 'invoice_id')::bigint); end if;
-  if k = 'invoice' then perform public.crm_inv_recalc(r.id); select * into r from public.crm_records where id = r.id; end if;
-  if k = 'plant' and (isnew or prev_status is distinct from r.status) then perform public.crm_commission(r.id, s); end if;
-  if k = 'purchase' and r.status = 'received' and (isnew or prev_status <> 'received') then perform public.crm_stock(r.data, 1); end if;
-
-  perform public.crm_log(s, case when isnew then 'create' else 'edit' end, k, r.id,
-    case k when 'party' then 'Customer: ' when 'item' then 'Item: ' when 'quote' then 'Quotation ' || coalesce(r.ref, '') || ': ' when 'invoice' then 'Bill ' || coalesce(r.ref, '') || ': '
-      when 'payment' then 'Payment ₹' || r.amount || ': ' when 'lead' then 'Lead: ' when 'reminder' then 'Reminder: ' when 'plant' then 'Plant: ' when 'earning' then 'Commission ₹' || r.amount || ': '
-      when 'folder' then 'Folder: ' when 'doc' then 'Document: ' else '' end || r.title || case when r.status <> '' then ' [' || r.status || ']' else '' end);
-  return public.crm_row(s, r);
-end $function$
-;
-
-CREATE OR REPLACE FUNCTION public.crm_status(p jsonb)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-declare s public.crm_ses := public.crm_session(p ->> 'token'); r public.crm_records; st text := p ->> 'status'; d jsonb;
-begin
-  select * into r from public.crm_records where id = (p ->> 'id')::bigint;
-  if not public.crm_vis(s, r) then raise exception 'Record nahi mila'; end if;
-  d := jsonb_build_object('token', p ->> 'token', 'kind', r.kind, 'id', r.id, 'status', st, 'data', r.data || coalesce(p -> 'patch', '{}'::jsonb));
-  if r.kind in ('quote', 'invoice', 'purchase') then
-    if r.kind = 'quote' and st not in ('draft', 'sent', 'accepted', 'rejected') then raise exception 'Galat status'; end if;
-    if r.kind = 'quote' and r.status = 'expired' then raise exception 'Expired quotation ko pehle Renew karein'; end if;
-    if r.kind = 'quote' and r.status = 'converted' then raise exception 'Bill ban chuka hai'; end if;
-    if r.kind = 'quote' and st in ('draft', 'sent', 'accepted') and r.status = 'rejected' and not public.crm_can(s, 'stock.override') then
-      perform public.crm_need(s, 'quotes.edit');
-      if public.crm_quote_shortage(r.data -> 'lines', r.id) is not null then raise exception 'Stock kam hai — is quotation ko dobara active nahi kar sakte'; end if;
-    end if;
-    if r.kind = 'purchase' and st not in ('open', 'received', 'cancelled') then raise exception 'Galat status'; end if;
-    if r.kind = 'invoice' then raise exception 'Bill ka status payment se apne aap badalta hai'; end if;
-    perform public.crm_need(s, case r.kind when 'purchase' then 'purchase.manage' else 'quotes.edit' end);
-    update public.crm_records set status = st, data = d -> 'data', updated_at = now() where id = r.id;
-    if r.kind = 'purchase' and st = 'received' and r.status <> 'received' then perform public.crm_stock(r.data, 1); end if;
-    perform public.crm_log(s, 'status', r.kind, r.id, coalesce(r.ref, '') || ' → ' || st);
-    select * into r from public.crm_records where id = r.id; return public.crm_row(s, r);
-  end if;
-  if r.kind = 'plant' and st in ('verified', 'rejected') then perform public.crm_need(s, 'plants.verify'); end if;
-  return public.crm_save(d || jsonb_build_object('party_id', r.party_id, 'assigned_to', r.assigned_to, 'due_at', r.due_at));
-end $function$
-;
-
-CREATE OR REPLACE FUNCTION public.crm_convert(p jsonb)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-declare s public.crm_ses := public.crm_session(p ->> 'token'); q public.crm_records; inv jsonb;
-begin
-  perform public.crm_need(s, 'invoices.create');
-  select * into q from public.crm_records where id = (p ->> 'id')::bigint and kind = 'quote';
-  if not public.crm_vis(s, q) then raise exception 'Quotation nahi mili'; end if;
-  if q.status = 'converted' then raise exception 'Is quotation ka bill pehle ban chuka hai'; end if;
-  if q.status = 'expired' then raise exception 'Quotation expire ho chuki hai — pehle Renew karein'; end if;
-  inv := public.crm_save(jsonb_build_object('token', p ->> 'token', 'kind', 'invoice', 'party_id', q.party_id,
-    'data', (q.data - 'send_on' - 'valid_till') || jsonb_build_object('quote_id', q.id, 'quote_ref', q.ref, 'date', public.crm_today(), 'due_date', coalesce(p ->> 'due_date', ''))));
-  update public.crm_records set status = 'converted', data = data || jsonb_build_object('invoice_id', inv ->> 'id', 'invoice_ref', inv ->> 'ref'), updated_at = now() where id = q.id;
-  perform public.crm_stock(q.data, -1);
-  return inv;
-end $function$
-;
-
-CREATE OR REPLACE FUNCTION public.crm_list(p jsonb)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-declare s public.crm_ses := public.crm_session(p ->> 'token'); k text := p ->> 'kind'; lim int := least(greatest(coalesce((p ->> 'limit')::int, 500), 1), 3000);
-        q text := lower(trim(coalesce(p ->> 'q', ''))); st text := nullif(p ->> 'status', ''); pid bigint := nullif(p ->> 'party_id', '')::bigint;
-        mine boolean := coalesce((p ->> 'mine')::boolean, false); fid text := p ->> 'folder_id'; fr date := nullif(p ->> 'from', '')::date; t date := nullif(p ->> 'to', '')::date;
-        uidf bigint := nullif(p ->> 'user_id', '')::bigint;
-begin
-  if k is null or k !~ '^[a-z_]{2,20}$' then raise exception 'Galat list'; end if;
-  if k = 'quote' then perform public.crm_quote_expire_daily(); end if;
-  return coalesce((select jsonb_agg(public.crm_row(s, r) order by r.id desc) from (
-    select * from public.crm_records r where r.kind = k and r.deleted_at is null
-      and (st is null or r.status = st) and (pid is null or r.party_id = pid)
-      and (q = '' or r.search like '%' || q || '%')
-      and (not mine or r.owner_id = (s).uid or r.assigned_to = (s).uid)
-      and (uidf is null or r.owner_id = uidf or r.assigned_to = uidf)
-      and (fid is null or (coalesce(r.data ->> 'folder_id', r.data ->> 'parent_id', '') = fid and coalesce(r.data ->> 'attach_kind', '') = ''))
-      and (fr is null or coalesce(r.due_at, (r.created_at at time zone 'Asia/Kolkata')::date) >= fr)
-      and (t is null or coalesce(r.due_at, (r.created_at at time zone 'Asia/Kolkata')::date) <= t)
-      and public.crm_vis(s, r)
-    order by r.id desc limit lim) r), '[]'::jsonb);
-end $function$
-;
-
-CREATE OR REPLACE FUNCTION public.crm_get(p jsonb)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-declare s public.crm_ses := public.crm_session(p ->> 'token'); r public.crm_records;
-begin
-  perform public.crm_quote_expire_daily();
-  select * into r from public.crm_records where id = (p ->> 'id')::bigint;
-  if not public.crm_vis(s, r) then raise exception 'Record nahi mila'; end if;
-  return public.crm_row(s, r);
-end $function$
-;
-
-
--- ============================================================================
--- ROUND 15 (database) — visits/clicks tracking, Admin analytics, colour themes + greeting banner. Safe to re-run.
--- ============================================================================
--- ============================================================================
--- PHASE 9 (Round 15): Visit / click tracking + Admin analytics + Look (colour theme) & Greeting settings
--- Run ONCE in Supabase SQL Editor (already included in MASTER-UPDATE.sql). Safe to re-run.
---   1) sp_events            : every page view / button click / cart / order event (website and store)
---   2) sp_track()           : public, write-only, batch insert (no personal data is stored)
---   3) sp_admin_analytics() : ONE call that returns everything the Admin dashboards draw
---   4) sp_get_cfg() / sp_save_cfg() / crm_cfg_save() : colour theme per panel + greeting banner
--- ============================================================================
-
-create table if not exists public.sp_events (
-  id    bigserial primary key,
-  ts    timestamptz not null default now(),
-  site  text not null check (site in ('website','store')),
-  kind  text not null check (kind in ('view','click','cart','search','checkout','enquiry','order')),
-  page  text not null default '',
-  label text not null default '',
-  sid   text not null default '',
-  src   text not null default '',
-  dev   text not null default '',
-  val   numeric not null default 0
-);
-create index if not exists sp_events_ts on public.sp_events (ts);
-create index if not exists sp_events_site_ts on public.sp_events (site, ts);
-create index if not exists sp_events_kind_ts on public.sp_events (kind, ts);
-alter table public.sp_events enable row level security;
-do $$ begin revoke all on public.sp_events from anon, authenticated; exception when others then null; end $$;
-
--- Public, write-only. Up to 25 events per call. Nothing personal is stored (random visitor id only).
-create or replace function public.sp_track(p jsonb) returns int language plpgsql security definer set search_path = public as $$
-declare e jsonb; n int := 0; k text; s text;
-begin
-  if p is null or jsonb_typeof(p -> 'events') <> 'array' then return 0; end if;
-  for e in select * from jsonb_array_elements(p -> 'events') limit 25 loop
-    s := lower(coalesce(e ->> 'site', '')); k := lower(coalesce(e ->> 'kind', ''));
-    if s in ('website','store') and k in ('view','click','cart','search','checkout','enquiry','order') then
-      insert into public.sp_events(site, kind, page, label, sid, src, dev, val)
-      values (s, k, left(coalesce(e ->> 'page', ''), 120), left(coalesce(e ->> 'label', ''), 80), left(coalesce(e ->> 'sid', ''), 40),
-              left(lower(coalesce(e ->> 'src', '')), 30), left(lower(coalesce(e ->> 'dev', '')), 10),
-              case when (e ->> 'val') ~ '^[0-9]{1,9}(\.[0-9]{1,2})?$' then (e ->> 'val')::numeric else 0 end);
-      n := n + 1;
-    end if;
-  end loop;
-  return n;
-end $$;
 
 -- One call = everything for the dashboards.  p_days: 1..365   (compared with the previous equal period)
 create or replace function public.sp_admin_analytics(p_pass text, p_days int default 30) returns jsonb language plpgsql security definer set search_path = public as $$
@@ -480,9 +147,10 @@ exception when undefined_object then null; end $$;
 
 -- ---------- 13-step customer workflow (names) -------------------------------------------------
 create or replace function public.crm_wf_names() returns text[] language sql immutable as $$
-  select array['Customer Connect','Starting Conversation','Quotation','Site Visit','Blueprint','Confirmation','Apply Process','Hand Over Technician','Start Installation','Commissioning','Net Metering','Finish Work','Subsidy Redeem'] $$;
+  select array['Add Customer','Conversation','Quotation','Site Visit','Blueprint','Confirmation','Apply Process','Hand Over Technician','Start Installation',
+               'Verification / Commissioning','Net Metering','Finish Work','Subsidy Redeem','Send Demo / Files','Loan / Finance','Suggest / Referral','AMC / Maintenance','Complaint Status','Leads'] $$;
 
-create or replace function public.crm_ctypes() returns text[] language sql immutable as $$ select array['Residential','Commercial','Industrial','VFD','Items only'] $$;
+create or replace function public.crm_ctypes() returns text[] language sql immutable as $$ select array['Residential','Commercial','Industrial','VFD','Items only','Service'] $$;
 
 create or replace function public.crm_iso_now() returns text language sql stable as $$
   select to_char(now() at time zone 'Asia/Kolkata', 'YYYY-MM-DD"T"HH24:MI:SS"+05:30"') $$;
@@ -491,3 +159,295 @@ create or replace function public.crm_iso_now() returns text language sql stable
 create or replace function public.crm_wf_mark(d jsonb, n int, by text, at_ text default null, auto boolean default true) returns jsonb language sql stable as $$
   select case when coalesce(d -> 'wf', '{}'::jsonb) ? n::text then d
     else d || jsonb_build_object('wf', coalesce(d -> 'wf', '{}'::jsonb) || jsonb_build_object(n::text, jsonb_build_object('at', coalesce(at_, public.crm_iso_now()), 'by', coalesce(by, ''), 'auto', auto))) end $$;
+
+-- ---------- rules enforced on every write (cannot be bypassed from the browser) ---------------------
+create or replace function public.crm_rules_trg() returns trigger language plpgsql security definer set search_path = public as $$
+declare pt public.crm_records; ex public.crm_records; miss text[] := '{}'; nm text; d jsonb; bypass boolean := coalesce(current_setting('sp.wf', true), '') = '1'; ct text;
+        seg text; ck text; gs text;
+begin
+  if new.deleted_at is not null then return new; end if;
+  d := coalesce(new.data, '{}'::jsonb);
+
+  if new.kind = 'lead' then
+    nm := trim(coalesce(d ->> 'name', new.title, ''));
+    if TG_OP = 'INSERT' or new.mobile is distinct from old.mobile then
+      if coalesce(new.mobile, '') !~ '^[6-9][0-9]{9}$' then raise exception 'Lead ke liye sahi 10 ank ka mobile zaroori hai (sirf email se lead nahi banti)'; end if;
+    end if;
+    -- every lead carries its path (where it came from); forms / ads / store fill it themselves, a manual lead without one is "Manual entry"
+    if coalesce(trim(d ->> 'source'), '') = '' then d := d || jsonb_build_object('source', 'Manual entry'); new.data := d; end if;
+    -- forms / signups / ads (inbound): name AND mobile are mandatory.  Manual add / Excel / contacts import: mobile alone is enough.
+    if coalesce(d ->> 'intake', '') = 'inbound' and (nm = '' or nm ~* '^lead [0-9]') then raise exception 'Form / signup / ad se aayi lead me naam aur mobile dono zaroori hain'; end if;
+    return new;
+  end if;
+
+  -- Customer: kind (project / product / service), segment (b2c / b2b), GSTIN shape, B2B needs a firm name.
+  if new.kind = 'party' then
+    seg := coalesce(d ->> 'segment', ''); ck := coalesce(d ->> 'cust_kind', ''); gs := upper(trim(coalesce(d ->> 'gstin', '')));
+    if seg <> '' and seg not in ('b2c', 'b2b') then raise exception 'Customer ka segment galat hai (B2C ya B2B)'; end if;
+    if ck <> '' and ck not in ('project', 'product', 'service') then raise exception 'Customer ka prakar galat hai (Project, Product ya Service)'; end if;
+    if gs <> '' and (TG_OP = 'INSERT' or gs is distinct from upper(trim(coalesce(old.data ->> 'gstin', '')))) and gs !~ '^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$' then
+      raise exception 'GSTIN sahi nahi hai (15 akshar, jaise 09ABCDE1234F1Z5)'; end if;
+    if seg = 'b2b' and coalesce(trim(d ->> 'company'), '') = '' and (TG_OP = 'INSERT' or coalesce(old.data ->> 'segment', '') <> 'b2b' or coalesce(trim(old.data ->> 'company'), '') <> '') then
+      raise exception 'B2B customer ka Company / Firm ka naam likhein'; end if;
+    -- a customer never moves down:  project  >  service  >  product
+    if TG_OP = 'UPDATE' and coalesce(old.data ->> 'cust_kind', '') <> '' and
+       (case ck when 'project' then 3 when 'service' then 2 when 'product' then 1 else 0 end) < (case old.data ->> 'cust_kind' when 'project' then 3 when 'service' then 2 when 'product' then 1 else 0 end) then
+      d := d || jsonb_build_object('cust_kind', old.data ->> 'cust_kind'); new.data := d; ck := old.data ->> 'cust_kind'; end if;
+    -- a NEW customer must carry everything the flow needs (path, address, kind and what he buys), so the flow never breaks later
+    if TG_OP = 'INSERT' and coalesce(d ->> 'type', 'customer') <> 'supplier' then
+      if coalesce(trim(d ->> 'source'), '') = '' then miss := miss || 'Path (kahan se aaya)'::text; end if;
+      if coalesce(trim(d ->> 'address'), '') = '' then miss := miss || 'Pata'::text; end if;
+      if coalesce(trim(d ->> 'city'), '') = '' then miss := miss || 'Shahar'::text; end if;
+      if coalesce(d ->> 'pincode', '') !~ '^[0-9]{6}$' then miss := miss || 'Pincode (6 ank)'::text; end if;
+      if seg = '' then miss := miss || 'B2C / B2B'::text; end if;
+      if ck = '' then miss := miss || 'Kya kharidega (Project / Product / Service)'::text;
+      elsif ck = 'project' then
+        if coalesce(d ->> 'project_type', '') not in ('Residential', 'Commercial', 'Industrial', 'VFD') then miss := miss || 'Project type (Residential / Commercial / Industrial / VFD)'::text; end if;
+        if public.crm_num(d -> 'kw') <= 0 then miss := miss || 'Kitne kW chahiye'::text; end if;
+      elsif ck = 'product' then
+        if coalesce(trim(d ->> 'interest'), '') = '' then miss := miss || 'Kaunsa product / kitna'::text; end if;
+      elsif ck = 'service' then
+        if coalesce(trim(d ->> 'service_type'), '') = '' then miss := miss || 'Kaunsi service chahiye'::text; end if;
+      end if;
+      if array_length(miss, 1) > 0 then raise exception 'Customer add karne se pehle ye bharna zaroori hai: %', array_to_string(miss, ', '); end if;
+    end if;
+    return new;
+  end if;
+
+  if new.kind = 'quote' then
+    ct := coalesce(d ->> 'ctype', '');
+    if ct <> '' and not (ct = any (public.crm_ctypes())) then raise exception 'Customer type galat hai'; end if;
+    -- one customer = one open quotation (edit it); a new plant gets a new number only after the old one is confirmed
+    if (TG_OP = 'INSERT' or new.party_id is distinct from old.party_id) and new.party_id is not null then
+      select * into ex from public.crm_records where kind = 'quote' and deleted_at is null and party_id = new.party_id and id <> coalesce(new.id, 0) and status in ('draft', 'sent', 'rejected', 'expired') order by id desc limit 1;
+      if ex.id is not null then raise exception 'Is customer ki quotation % pehle se hai — usi ko edit karein. Naya plant tabhi, jab ye confirm ho jaye.', coalesce(ex.ref, '#' || ex.id); end if;
+    end if;
+    -- mandatory customer details before the quotation is sent / confirmed
+    if new.status in ('sent', 'accepted') and (TG_OP = 'INSERT' or old.status is distinct from new.status or coalesce(old.data ->> 'ctype', '') <> ct or coalesce(old.data ->> 'kw', '') <> coalesce(d ->> 'kw', '')) then
+      select * into pt from public.crm_records where id = new.party_id and kind = 'party';
+      if coalesce(trim(pt.title), '') = '' then miss := miss || 'Naam'::text; end if;
+      if coalesce(pt.mobile, '') !~ '^[6-9][0-9]{9}$' then miss := miss || 'Mobile'::text; end if;
+      if coalesce(trim(pt.data ->> 'address'), '') = '' then miss := miss || 'Pata'::text; end if;
+      if coalesce(trim(pt.data ->> 'city'), '') = '' then miss := miss || 'Shahar'::text; end if;
+      if ct = '' then miss := miss || 'Customer type (Residential / Commercial / Industrial / VFD / Items only)'::text; end if;
+      if ct in ('Residential', 'Commercial', 'Industrial', 'VFD') and public.crm_num(d -> 'kw') <= 0 then miss := miss || 'Plant capacity (kW)'::text; end if;
+      if coalesce(pt.data ->> 'segment', '') = 'b2b' and coalesce(trim(pt.data ->> 'company'), '') = '' then miss := miss || 'Company / Firm ka naam (B2B)'::text; end if;
+      if array_length(miss, 1) > 0 then raise exception 'Quotation bhejne se pehle ye bharna zaroori hai: %', array_to_string(miss, ', '); end if;
+    end if;
+    -- workflow: only the server writes it
+    if TG_OP = 'UPDATE' and not bypass then
+      d := d - 'wf' - 'closed' - 'bill_state' - 'old_project';
+      d := d || jsonb_build_object('wf', coalesce(old.data -> 'wf', '{}'::jsonb));
+      if old.data ? 'closed' then d := d || jsonb_build_object('closed', old.data -> 'closed'); end if;
+      if old.data ? 'bill_state' then d := d || jsonb_build_object('bill_state', old.data -> 'bill_state'); end if;
+      if old.data ? 'old_project' then d := d || jsonb_build_object('old_project', old.data -> 'old_project'); end if;
+    elsif TG_OP = 'INSERT' and not bypass then
+      d := d - 'wf' - 'closed' - 'bill_state' - 'old_project';
+    end if;
+    if TG_OP = 'INSERT' then
+      select * into pt from public.crm_records where id = new.party_id and kind = 'party';
+      d := public.crm_wf_mark(d, 1, 'Customer', to_char(coalesce(pt.created_at, now()) at time zone 'Asia/Kolkata', 'YYYY-MM-DD"T"HH24:MI:SS"+05:30"'));
+      d := public.crm_wf_mark(d, 2, 'Customer', to_char(coalesce(pt.created_at, now()) at time zone 'Asia/Kolkata', 'YYYY-MM-DD"T"HH24:MI:SS"+05:30"'));
+    end if;
+    if new.status in ('sent', 'accepted', 'converted') then d := public.crm_wf_mark(d, 3, 'Quotation'); end if;
+    if new.status in ('accepted', 'converted') then d := public.crm_wf_mark(d, 6, 'Confirmation'); end if;
+    new.data := d;
+    -- a project quotation makes the customer a project customer for life (stays even if the quotation is later rejected)
+    if ct in ('Residential', 'Commercial', 'Industrial', 'VFD') and new.party_id is not null then
+      update public.crm_records set data = data || jsonb_build_object('cust_kind', 'project'), updated_at = now()
+        where id = new.party_id and kind = 'party' and coalesce(data ->> 'cust_kind', '') <> 'project';
+    elsif ct = 'Service' and new.party_id is not null then
+      update public.crm_records set data = data || jsonb_build_object('cust_kind', 'service'), updated_at = now()
+        where id = new.party_id and kind = 'party' and coalesce(data ->> 'cust_kind', '') in ('', 'product');
+    end if;
+    return new;
+  end if;
+
+  -- automatic steps: a finished Site Visit ticks "Site Visit"; an AMC / maintenance plan ticks "AMC / Maintenance"
+  if new.kind = 'reminder' and new.party_id is not null then
+    if d ->> 'type' = 'sitevisit' and d ->> 'visit_status' = 'done' then perform public.crm_wf_auto_p(new.party_id, 4, 'Site Visit (system)'); end if;
+    if d ->> 'maint' = 'true' then perform public.crm_wf_auto_p(new.party_id, 17, 'Maintenance plan (system)'); end if;
+    return new;
+  end if;
+
+  -- a document shared with the customer's plant ticks "Send Demo / Files"
+  if new.kind = 'doc' and TG_OP = 'INSERT' and coalesce(d ->> 'shared_quote', '') ~ '^[0-9]+$' then
+    perform public.crm_wf_auto_q((d ->> 'shared_quote')::bigint, 14, 'File bheji (system)');
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists crm_rules on public.crm_records;
+create trigger crm_rules before insert or update on public.crm_records for each row execute function public.crm_rules_trg();
+
+-- ---------- bill balance → quote flags (pending ribbon / list leaves at zero / Finish Work) ---------------
+create or replace function public.crm_inv_recalc(p_inv bigint) returns void language plpgsql security definer set search_path = public as $$
+declare paid numeric; tot numeric; qid bigint; bal numeric;
+begin
+  select coalesce(sum(amount), 0) into paid from public.crm_records where kind = 'payment' and deleted_at is null and (data ->> 'invoice_id') = p_inv::text;
+  select amount into tot from public.crm_records where id = p_inv;
+  bal := greatest(tot - paid, 0);
+  update public.crm_records set data = data || jsonb_build_object('paid', paid, 'balance', bal),
+    status = case when tot - paid <= 0.009 then 'paid' when paid > 0 then 'partial' else 'due' end, updated_at = now()
+  where id = p_inv and kind = 'invoice';
+  select nullif(data ->> 'quote_id', '')::bigint into qid from public.crm_records where id = p_inv and kind = 'invoice';
+  if qid is not null then
+    perform set_config('sp.wf', '1', true);
+    update public.crm_records q set data = case when bal <= 0.009 then
+        public.crm_wf_mark(q.data || jsonb_build_object('closed', true, 'bill_state', 'closed'), 12, 'Bill balance zero')
+      else (q.data || jsonb_build_object('closed', false, 'bill_state', 'pending')) #- '{wf,12}' end, updated_at = now()
+    where q.id = qid and q.kind = 'quote';
+    perform set_config('sp.wf', '', true);
+  end if;
+end $$;
+
+-- one-time: flag the quotes that were already billed
+do $$ begin
+  perform set_config('sp.wf', '1', true);
+  update public.crm_records q set data = q.data || jsonb_build_object('bill_state', case when i.status = 'paid' then 'closed' else 'pending' end, 'closed', i.status = 'paid')
+  from public.crm_records i where q.kind = 'quote' and q.deleted_at is null and i.kind = 'invoice' and i.id = nullif(q.data ->> 'invoice_id', '')::bigint and not (q.data ? 'bill_state');
+  perform set_config('sp.wf', '', true);
+end $$;
+
+-- ---------- who may see / change which step ------------------------------------------------------------------
+-- crm_settings.data.wf = { "perm": { "4": { "view": [uid..], "edit": [uid..] } }, "allow_old": false }
+-- default: Admin and Manager see and change every step; others see only date+time until Admin authorises them.
+create or replace function public.crm_wf_can(s public.crm_ses, n int, mode text) returns boolean language plpgsql stable security definer set search_path = public as $$
+declare cfg jsonb; arr jsonb;
+begin
+  if public.crm_is_admin(s) then return true; end if;
+  if (s).role = 'manager' then return true; end if;
+  select data -> 'wf' -> 'perm' -> n::text into cfg from public.crm_settings where id = 1;
+  arr := coalesce(cfg -> mode, '[]'::jsonb);
+  if mode = 'view' then arr := arr || coalesce(cfg -> 'edit', '[]'::jsonb); end if;
+  return arr @> to_jsonb((s).uid) or arr @> to_jsonb((s).uid::text);
+end $$;
+
+create or replace function public.crm_wf_steps(s public.crm_ses, q public.crm_records) returns jsonb language plpgsql stable security definer set search_path = public as $$
+declare names text[] := public.crm_wf_names(); out jsonb := '[]'::jsonb; n int; w jsonb := coalesce(q.data -> 'wf', '{}'::jsonb); st jsonb; v boolean; e boolean;
+        priv boolean := public.crm_is_admin(s) or (s).role = 'manager'; pat text; auto boolean;
+begin
+  foreach n in array public.crm_wf_flow_of(q) loop
+    auto := public.crm_wf_is_auto(n);
+    if n = 19 then
+      select to_char(created_at at time zone 'Asia/Kolkata', 'YYYY-MM-DD"T"HH24:MI:SS"+05:30"') into pat from public.crm_records where id = q.party_id;
+      out := out || jsonb_build_array(jsonb_build_object('n', 19, 'name', names[19], 'done', true, 'at', pat, 'auto', true, 'manual', false, 'skip', false, 'locked', false, 'can_edit', false,
+        'note', 'Path (kahan se aaya): ' || coalesce(nullif((select data ->> 'source' from public.crm_records where id = q.party_id), ''), 'Purana / Unknown')));
+      continue;
+    end if;
+    st := w -> n::text; v := public.crm_wf_can(s, n, 'view'); e := public.crm_wf_can(s, n, 'edit');
+    out := out || jsonb_build_array(jsonb_build_object('n', n, 'name', names[n], 'done', st is not null, 'at', st ->> 'at',
+      'auto', coalesce((st ->> 'auto')::boolean, false), 'manual', not auto, 'skip', coalesce((st ->> 'skip')::boolean, false), 'can_skip', public.crm_wf_can_skip(n),
+      'locked', not v, 'can_edit', e and not auto and (n <> 13 or priv),
+      'by', case when v then st ->> 'by' end, 'note', case when v then st ->> 'note' end, 'info', case when v then coalesce(st -> 'info', '{}'::jsonb) end));
+  end loop;
+  return out;
+end $$;
+
+-- the workflow of one quotation (or the latest quotation of a customer)
+create or replace function public.crm_wf_get(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
+declare s public.crm_ses := public.crm_session(p ->> 'token'); q public.crm_records; pt public.crm_records; qid bigint := nullif(p ->> 'id', '')::bigint; pid bigint := nullif(p ->> 'party_id', '')::bigint; plants jsonb; fk text;
+begin
+  if qid is null and pid is not null then
+    select * into pt from public.crm_records where id = pid and kind = 'party';
+    if pt.id is null or not public.crm_vis(s, pt) then raise exception 'Customer nahi mila'; end if;
+    select * into q from public.crm_records where kind = 'quote' and deleted_at is null and party_id = pid order by id desc limit 1;
+    select coalesce(jsonb_agg(jsonb_build_object('id', x.id, 'ref', x.ref, 'title', coalesce(x.data ->> 'qtitle', x.title), 'ctype', x.data ->> 'ctype', 'status', x.status) order by x.id desc), '[]'::jsonb) into plants
+      from public.crm_records x where x.kind = 'quote' and x.deleted_at is null and x.party_id = pid;
+    if q.id is null then
+      -- no quotation yet: show the flow of the customer's kind with Leads / Add Customer / Conversation done
+      q.party_id := pid;
+      q.data := jsonb_build_object('ctype', case coalesce(pt.data ->> 'cust_kind', '') when 'product' then 'Items only' when 'service' then 'Service' else '' end,
+        'wf', jsonb_build_object('1', jsonb_build_object('at', to_char(pt.created_at at time zone 'Asia/Kolkata', 'YYYY-MM-DD"T"HH24:MI:SS"+05:30"'), 'auto', true),
+                                 '2', jsonb_build_object('at', to_char(pt.created_at at time zone 'Asia/Kolkata', 'YYYY-MM-DD"T"HH24:MI:SS"+05:30"'), 'auto', true)));
+      return jsonb_build_object('party_id', pid, 'quote_id', null, 'plants', '[]'::jsonb, 'project', false, 'kind', case coalesce(pt.data ->> 'cust_kind', '') when 'product' then 'product' when 'service' then 'service' else 'project' end, 'steps', public.crm_wf_steps(s, q));
+    end if;
+  else
+    select * into q from public.crm_records where id = qid and kind = 'quote' and deleted_at is null;
+    if q.id is null or not public.crm_vis(s, q) then raise exception 'Quotation nahi mili'; end if;
+    plants := '[]'::jsonb;
+  end if;
+  if not public.crm_vis(s, q) then raise exception 'Quotation nahi mili'; end if;
+  fk := case coalesce(q.data ->> 'ctype', '') when 'Items only' then 'product' when 'Service' then 'service' else 'project' end;
+  return jsonb_build_object('party_id', q.party_id, 'quote_id', q.id, 'ref', q.ref, 'title', coalesce(q.data ->> 'qtitle', q.title), 'ctype', q.data ->> 'ctype', 'status', q.status, 'plants', plants,
+    'project', (q.data -> 'wf') ? '7', 'kind', fk, 'bill_state', q.data ->> 'bill_state', 'steps', public.crm_wf_steps(s, q));
+end $$;
+
+-- confirm / undo one manual step
+create or replace function public.crm_wf_set(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
+declare s public.crm_ses := public.crm_session(p ->> 'token'); q public.crm_records; n int := (p ->> 'step')::int; done boolean := coalesce((p ->> 'done')::boolean, true); note text := left(trim(coalesce(p ->> 'note', '')), 500);
+        skip boolean := coalesce((p ->> 'skip')::boolean, false); w jsonb; flow int[]; ct text; inf jsonb := '{}'::jsonb; f jsonb; v text; miss text[] := '{}'; entry jsonb; has_info boolean := p ? 'info';
+begin
+  select * into q from public.crm_records where id = (p ->> 'id')::bigint and kind = 'quote' and deleted_at is null;
+  if q.id is null or not public.crm_vis(s, q) then raise exception 'Quotation nahi mili'; end if;
+  if n is null or n < 1 or n > 19 then raise exception 'Step galat hai'; end if;
+  if public.crm_wf_is_auto(n) then raise exception 'Ye step apne aap hota hai (quotation / bill / lead se)'; end if;
+  ct := coalesce(q.data ->> 'ctype', ''); flow := public.crm_wf_flow_of(q);
+  if not (n = any (flow)) then
+    if n = 13 then raise exception 'Subsidy sirf Residential solar ke liye hai'; end if;
+    raise exception 'Ye step is customer ke liye nahi hai (% — %)', case ct when 'Items only' then 'Product customer' when 'Service' then 'Service customer' else 'Project customer' end, (public.crm_wf_names())[n];
+  end if;
+  if n = 13 and not (public.crm_is_admin(s) or (s).role = 'manager') then raise exception 'Subsidy sirf Admin ya Manager green kar sakte hain'; end if;
+  if not public.crm_wf_can(s, n, 'edit') then raise exception 'Is step ko badalne ki permission nahi hai — Admin se allow karwayein'; end if;
+  w := coalesce(q.data -> 'wf', '{}'::jsonb);
+  if done then
+    if n = 7 and not (w ? '6') then raise exception 'Pehle quotation Confirm hona chahiye'; end if;
+    if (n in (8, 9, 10, 11, 13) or (n = 17 and ct <> 'Service')) and not (w ? '7') then raise exception 'Pehle Apply Process confirm karein — tabhi customer Projects me aata hai'; end if;
+    if (n in (15, 16, 18) or (n = 17 and ct = 'Service')) and not (w ? '6') then raise exception 'Pehle quotation Confirm hona chahiye'; end if;
+    if skip and not public.crm_wf_can_skip(n) then raise exception 'Ye step "Lagu nahi" nahi kiya ja sakta'; end if;
+    if skip then
+      entry := jsonb_build_object('at', public.crm_iso_now(), 'by', (s).name, 'by_id', (s).uid, 'note', note, 'skip', true);
+    else
+      -- keep only the fields this step defines; mandatory ones must be filled (only when the new screen sends "info")
+      for f in select * from jsonb_array_elements(coalesce(public.crm_wf_fields() -> n::text, '[]'::jsonb)) loop
+        v := left(trim(coalesce(p -> 'info' ->> (f ->> 'k'), '')), 200);
+        if v <> '' then inf := inf || jsonb_build_object(f ->> 'k', v);
+        elsif has_info and coalesce((f ->> 'req')::boolean, false) then miss := miss || (f ->> 'l'); end if;
+      end loop;
+      if array_length(miss, 1) > 0 then raise exception 'Ye details bharna zaroori hai: %', array_to_string(miss, ', '); end if;
+      entry := jsonb_build_object('at', public.crm_iso_now(), 'by', (s).name, 'by_id', (s).uid, 'note', note) || case when inf = '{}'::jsonb then '{}'::jsonb else jsonb_build_object('info', inf) end;
+    end if;
+    w := w || jsonb_build_object(n::text, entry);
+  else
+    if not public.crm_is_admin(s) then raise exception 'Step wapas sirf Admin kar sakta hai'; end if;
+    w := w - n::text;
+  end if;
+  perform set_config('sp.wf', '1', true);
+  update public.crm_records set data = data || jsonb_build_object('wf', w), updated_at = now() where id = q.id;
+  perform set_config('sp.wf', '', true);
+  perform public.crm_log(s, 'workflow', 'quote', q.id, coalesce(q.ref, '') || ' — ' || (public.crm_wf_names())[n] || case when not done then ' ↩' when skip then ' (lagu nahi)' else ' ✔' end);
+  select * into q from public.crm_records where id = q.id;
+  return public.crm_wf_get(jsonb_build_object('token', p ->> 'token', 'id', q.id));
+end $$;
+
+-- Admin: who can see / change which step
+create or replace function public.crm_wf_perm(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
+declare s public.crm_ses := public.crm_session(p ->> 'token'); cur jsonb;
+begin
+  if not public.crm_is_admin(s) then raise exception 'Sirf Admin'; end if;
+  if p ? 'perm' then
+    update public.crm_settings set data = jsonb_set(coalesce(data, '{}'::jsonb), '{wf}', coalesce(data -> 'wf', '{}'::jsonb) || jsonb_build_object('perm', coalesce(p -> 'perm', '{}'::jsonb), 'allow_old', coalesce((p ->> 'allow_old')::boolean, false))), updated_at = now() where id = 1;
+    perform public.crm_log(s, 'settings', 'settings', 1, 'Workflow permission badli');
+  end if;
+  select data -> 'wf' into cur from public.crm_settings where id = 1;
+  return jsonb_build_object('perm', coalesce(cur -> 'perm', '{}'::jsonb), 'allow_old', coalesce((cur ->> 'allow_old')::boolean, false), 'names', to_jsonb(public.crm_wf_names()),
+    'manual', (select coalesce(jsonb_agg(k order by k), '[]'::jsonb) from generate_series(1, 18) k where not public.crm_wf_is_auto(k)), 'flow', to_jsonb(public.crm_wf_flow('Residential')));
+end $$;
+
+-- Projects list (Apply Process confirmed, or an old project Admin allowed)
+create or replace function public.crm_projects(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
+declare s public.crm_ses := public.crm_session(p ->> 'token');
+begin
+  return coalesce((select jsonb_agg(x order by (x ->> 'id')::bigint desc) from (
+    select jsonb_build_object('id', q.id, 'ref', q.ref, 'party_id', q.party_id, 'customer', q.title, 'mobile', q.mobile, 'title', coalesce(q.data ->> 'qtitle', q.title), 'ctype', q.data ->> 'ctype',
+      'kw', q.data ->> 'kw', 'amount', q.amount, 'status', q.status, 'bill_state', q.data ->> 'bill_state', 'closed', coalesce((q.data ->> 'closed')::boolean, false), 'old', coalesce((q.data ->> 'old_project')::boolean, false),
+      'owner', public.crm_uname(q.owner_id),
+      'done', (select count(*) from unnest(public.crm_wf_flow_of(q)) f where f = 19 or (q.data -> 'wf') ? f::text),
+      'total', array_length(public.crm_wf_flow_of(q), 1),
+      'last', (select max(v ->> 'at') from jsonb_each(coalesce(q.data -> 'wf', '{}'::jsonb)) e(k, v)),
+      'balance', (select (i.data ->> 'balance')::numeric from public.crm_records i where i.id = nullif(q.data ->> 'invoice_id', '')::bigint),
+      'steps', public.crm_wf_steps(s, q)) as x
+    from public.crm_records q
+    where q.kind = 'quote' and q.deleted_at is null and coalesce(q.data ->> 'ctype', '') in ('Residential', 'Commercial', 'Industrial', 'VFD')
+      and ((q.data -> 'wf') ? '7' or coalesce((q.data ->> 'old_project')::boolean, false)) and public.crm_vis(s, q) limit 2000) z), '[]'::jsonb);
+end $$;

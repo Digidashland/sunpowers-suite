@@ -53,6 +53,7 @@
     used[s.toLowerCase()] = 1; return s;
   }
 
+  XL.zip = function (files) { return new Blob([zipStore(files.map(function (f) { return { name: f.name, data: typeof f.data === 'string' ? enc.encode(f.data) : f.data }; }))], { type: 'application/zip' }); };
   XL.write = function (sheets) {
     var used = {}, files = [], sheetEntries = '', relEntries = '', overrides = '';
     sheets.forEach(function (sh, idx) {

@@ -1,0 +1,36 @@
+ROUND 34 — kya badla (abhi LIVE nahi karna — pehle staging me test)
+=================================================================
+
+1. BLUEPRINT / DESIGNER (website, store, CRM sab me)
+   - Step order: Solar modules -> Inverter -> Battery (sirf battery wale plant me) -> Wiring -> ACDB/DCDB -> Cable tray -> Tippadai -> Report (sabse last).
+   - Design shuru karne se pehle zaroori: customer details, capacity, plant type (On-Grid, Off-Grid, Hybrid, Zero Export, Net Feeding/Gross Metering, VFD, Battery-less Direct Inverter), area length x width, area type.
+   - "Koi rukawat nahi" option; Auto design ke saath note: "sirf plain surface ke liye".
+   - Public user: inverter/battery tak free; "Save your design" -> "Get Advance" (optional, Skip ka option) -> aage badhne par payment.
+   - Watermark hata diya; "Download & Get Complete Report" button.
+   - CRM / Admin me designer pehle jaisa free.
+
+2. MAINTENANCE & AMC (CRM)
+   - Customer ko plan dete waqt "Visit ka cycle": Ek baar (one-time), Har mahine, Quarterly, Half-yearly, Yearly, 5 saal me 1 baar.
+   - "Visit ka time" bhi (calendar visits me save hota hai).
+   - Plan ke items inventory se hi (pehle jaisa).
+   *** SQL chahiye: crm_maint_contract naya version (MASTER-UPDATE.sql ke ROUND 34 section me) ***
+
+3. SITE VISIT (CRM)
+   - Calendar + start/end time pehle se; ab Address aur Remarks/Note bhi zaroori. Customer chunte hi details apne aap bhar jati hain.
+
+4. NAYA KAAM — SIRF EK SERVICE
+   - Customer page -> Naya Kaam me do naye option: "Sirf AMC / Maintenance" aur "Sirf Site Visit".
+   - Lead, Customer, Conversation pehle se bhare; seedha AMC / Site Visit par jump. Flow patti me baaki steps grey.
+   - Customer ek hi record; har kaam alag history. Online / offline / store — sab usi customer ke flow me judte hain.
+   *** SQL chahiye: crm_ctypes, crm_wf_flow, crm_wf_get, crm_wf_set, crm_rules_trg, crm_job_new (ROUND 34 section) ***
+
+5. Free designer per CRM user: CRM me designer pehle se free hai (paywall sirf public ke liye) — alag permission ki zaroorat nahi padi.
+
+SQL: Supabase SQL Editor me pehle STAGING par chalayein, phir backup ke baad LIVE par.
+Carry-over live se pehle: admin default password badlein, emergency login hatayein, Mapbox token restrict karein.
+
+6. 5 FIXED AMC PLANS (inventory me, 🔒 lock)
+   - Random (one-time, 1 visit, next due nahi) · Recommended (quarterly, 4 visits/saal) · Valuable (yearly, 1/saal) · Tension Free (quarterly, 5 saal, 20 visits) · Best Value (yearly, 5 saal, 5 visits).
+   - Naam/cycle/duration lock; sirf Admin keemat aur plan ke andar ke kaam badal sakta hai. Purane test plans hata diye.
+   - Assign karte waqt plan ka price/kaam visits ke saath save (snapshot). "Plan badlein" option, aur plan khatam hone par sab plans ka suggestion.
+   *** SQL: ROUND 34b section ***

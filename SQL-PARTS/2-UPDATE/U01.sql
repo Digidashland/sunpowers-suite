@@ -1,7 +1,7 @@
 -- ============================================================================
--- SUNPOWERS — DATABASE UPDATE — part 1 of 9
+-- SUNPOWERS — DATABASE UPDATE — part 1 of 12
 -- Purane project par update (naya ya purana, dono par chalega).
--- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (U01 -> U09). Safe to re-run.
+-- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (U01 -> U12). Safe to re-run.
 -- ============================================================================
 
 -- ============================================================================
@@ -46,6 +46,9 @@ begin
     raise exception 'Cart is empty';
   end if;
 
+  -- pincode-wise availability (server-side, cannot be bypassed from the browser)
+  perform public.sp_pin_guard(p_order ->> 'pincode', p_order -> 'items');
+
   -- identity always comes from the account, never from the browser
   o := (p_order - 'token' - 'customer_id')
        || jsonb_build_object(
@@ -59,9 +62,10 @@ begin
     raise exception 'Naam aur mobile account mein save karein';
   end if;
 
+  o := o || jsonb_build_object('order_no', public.crm_next_no('order'));
   insert into public.sp_orders(data) values (o) returning id into new_id;
-  perform public.sp_notify_admin('Naya order #' || new_id || ' — ' || (o->>'name'),
-    '<p>Naya order aaya hai: <b>#' || new_id || '</b></p><p>' || (o->>'name') || ' · ' || (o->>'phone') || '</p><p>Total: ₹' || (o->>'total') || ' — payment ka UTR aane par dobara notification milega. Admin panel mein dekhein.</p>');
+  perform public.sp_notify_admin('Naya order ' || (o->>'order_no') || ' — ' || (o->>'name'),
+    '<p>Naya order aaya hai: <b>' || (o->>'order_no') || '</b></p><p>' || (o->>'name') || ' · ' || (o->>'phone') || '</p><p>Total: ₹' || (o->>'total') || ' — payment ka UTR aane par dobara notification milega. Admin panel mein dekhein.</p>');
   return new_id;
 end $$;
 
@@ -109,13 +113,6 @@ begin
 end $$;
 
 -- 4) Admin dashboard counter: orders waiting for payment verification.
-create or replace function public.sp_admin_pending_payments(p_pass text)
-returns integer language plpgsql stable security definer
-set search_path = public as $$
-begin
-  perform public.sp_check(p_pass);
-  return (select count(*)::int from public.sp_orders where data ->> 'payment_status' = 'submitted');
-end $$;
 
 -- 4b) Dashboard counts now also include payments waiting for verification.
 create or replace function public.sp_admin_counts(p_pass text)
@@ -147,8 +144,6 @@ revoke all on function public.sp_submit_utr(jsonb) from public;
 grant execute on function public.sp_submit_utr(jsonb) to anon, authenticated;
 revoke all on function public.sp_admin_verify_payment(text, bigint, boolean) from public;
 grant execute on function public.sp_admin_verify_payment(text, bigint, boolean) to anon, authenticated;
-revoke all on function public.sp_admin_pending_payments(text) from public;
-grant execute on function public.sp_admin_pending_payments(text) to anon, authenticated;
 -- ============================================================================
 -- PHASE 2 + 3 (database): blueprint, connections, bulk product tools, project -> store
 -- Run ONCE in Supabase SQL Editor AFTER: app/setup.sql, crm/crm-setup.sql, app/phase1-login-orders.sql
@@ -204,7 +199,7 @@ begin
   perform public.crm_need(s, 'items.to_store');
   select * into r from public.crm_records where id = (p ->> 'id')::bigint and kind = 'item' and deleted_at is null;
   if r.id is null then raise exception 'Item nahi mila'; end if;
-  if coalesce(r.data ->> 'type', 'product') not in ('product', 'project') then raise exception 'Sirf product ya project store par bheja ja sakta hai'; end if;
+  if coalesce(r.data ->> 'type', 'product') not in ('product', 'project') then raise exception 'Sirf product ya project online store ko bheja ja sakta hai'; end if;
   update public.crm_records set data = jsonb_set(data, '{store}', coalesce(data -> 'store', '{}'::jsonb) || jsonb_build_object('status', 'pending', 'sent_at', now(), 'sent_by', (s).name)), updated_at = now() where id = r.id;
   perform public.crm_log(s, 'to_store', 'item', r.id, 'Online Store Admin ko bheja: ' || r.title);
   return jsonb_build_object('ok', true);
@@ -242,12 +237,6 @@ end $$;
 -- ============================================================================
 -- (3) Blueprint — role check used by crm_vis (Settings → Project blueprint → "Kaun dekh sakta hai")
 -- ============================================================================
-create or replace function public.crm_bp_role_ok(s public.crm_ses) returns boolean
-language sql stable security definer set search_path = public as $$
-  select coalesce(
-    (select coalesce(data #> '{blueprint,visible_roles}', '["admin","manager"]'::jsonb) ? (s).role from public.crm_settings where id = 1),
-    (s).role in ('admin', 'manager'));
-$$;
 
 -- Public (Store / Website) customer sends a blueprint and asks for a quotation → becomes a CRM lead
 create or replace function public.sp_blueprint_submit(p jsonb) returns jsonb
@@ -276,9 +265,18 @@ begin
   insert into public.crm_records(kind, title, mobile, status, owner_id, assigned_to, data, search, created_by)
     values ('blueprint', nm, mob, 'new', 0, asg, (bp - 'customer') || jsonb_build_object('customer', jsonb_build_object('name', nm, 'mobile', mob, 'city', city, 'note', note), 'from', src, 'user_id', u.id), lower(nm || ' ' || mob), 0)
     returning id into bid;
-  -- a lead is created ONLY the first time this account uses any Sunpowers tool; later use never makes another lead
+  -- (Round 16) one person = one lead.  A lead is created ONLY the first time this account uses any Sunpowers tool; later use never makes another lead
   select id into lid from public.crm_records where kind = 'lead' and deleted_at is null and data ->> 'tools_uid' = u.id::text order by id limit 1;
   if lid is null then
+    -- the same person may already have a lead from signing up: use that one (one person = one lead)
+    select id into lid from public.crm_records where kind = 'lead' and deleted_at is null and data ->> 'signup_uid' = u.id::text and not (data ? 'tools_uid') order by id limit 1;
+  end if;
+  if lid is not null and not newlead and not exists (select 1 from public.crm_records where id = lid and data ? 'tools_uid') then
+    update public.crm_records set assigned_to = coalesce(assigned_to, asg), data = data || jsonb_build_object('email', u.email, 'city', city, 'source', 'Leads from project blueprint', 'kw', kw, 'note', summary, 'company', true, 'blueprint_id', bid, 'tools_uid', u.id::text, 'tool', 'blueprint',
+          'address', coalesce(bp #>> '{location,addr}', ''), 'map', 'https://www.google.com/maps?q=' || coalesce(bp #>> '{location,lat}', '') || ',' || coalesce(bp #>> '{location,lng}', ''))
+      where id = lid;
+    newlead := true;
+  elsif lid is null then
     insert into public.crm_records(kind, title, mobile, status, owner_id, assigned_to, due_at, data, search, created_by)
       values ('lead', nm, mob, 'new', 0, asg, public.crm_today(),
         jsonb_build_object('name', nm, 'mobile', mob, 'email', u.email, 'city', city, 'source', 'Leads from project blueprint', 'kw', kw, 'note', summary, 'company', true, 'blueprint_id', bid, 'tools_uid', u.id::text, 'tool', 'blueprint',
@@ -305,6 +303,13 @@ begin
   if mob !~ '^[6-9][0-9]{9}$' then raise exception 'Account me sahi 10 ank ka mobile save karein'; end if;
   src := case tool when 'detector' then 'Solar Error Detector' else 'Leads from project blueprint' end;
   select nullif(data #>> '{blueprint,assign_to}', '')::bigint into asg from public.crm_settings where id = 1;
+  select id into lid from public.crm_records where kind = 'lead' and deleted_at is null and data ->> 'signup_uid' = u.id::text and not (data ? 'tools_uid') order by id limit 1;
+  if lid is not null then
+    update public.crm_records set assigned_to = coalesce(assigned_to, asg),
+      data = data || jsonb_build_object('email', u.email, 'source', src, 'tool', tool, 'tools_uid', u.id::text, 'company', true, 'note', coalesce(nullif(info, ''), 'Used ' || tool)), updated_at = now()
+      where id = lid;
+    return jsonb_build_object('ok', true, 'new_lead', false, 'lead_id', lid);
+  end if;
   insert into public.crm_records(kind, title, mobile, status, owner_id, assigned_to, due_at, data, search, created_by)
     values ('lead', u.name, mob, 'new', 0, asg, public.crm_today(),
       jsonb_build_object('name', u.name, 'mobile', mob, 'email', u.email, 'source', src, 'tool', tool, 'tools_uid', u.id::text, 'company', true, 'note', coalesce(nullif(info, ''), 'Used ' || tool)),
@@ -486,6 +491,7 @@ end $$;
 create or replace function public.crm_lead_alert_trg() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
+  if coalesce(current_setting('sp.restoring', true), '') = 'on' then return new; end if;
   begin
     perform public.crm_alert('Naya lead: ' || coalesce(new.title, '') || ' · ' || coalesce(new.mobile, '') || ' · ' || coalesce(new.data ->> 'source', ''),
       jsonb_build_object('event', 'lead.created', 'id', new.id, 'name', new.title, 'mobile', new.mobile, 'source', new.data ->> 'source'));
@@ -541,21 +547,3 @@ begin
   perform public.crm_log(s, 'update', 'item', 0, 'Sheet upload: ' || upd || ' items update');
   return jsonb_build_object('ok', true, 'updated', upd, 'skipped', skipped);
 end $$;
-
--- ============================================================================
--- Grants
--- ============================================================================
-do $g$
-declare f text;
-begin
-  foreach f in array array['public.sp_blueprint_submit(jsonb)', 'public.sp_tool_use(jsonb)', 'public.crm_blueprint_save(jsonb)', 'public.crm_blueprint_list(jsonb)', 'public.crm_blueprint_get(jsonb)', 'public.crm_blueprint_delete(jsonb)',
-    'public.crm_blueprint_cfg(jsonb)', 'public.crm_conn_get(jsonb)', 'public.crm_conn_save(jsonb)', 'public.crm_items_bulk_delete(jsonb)', 'public.crm_items_bulk_update(jsonb)', 'public.crm_to_store(jsonb)']
-  loop
-    execute 'revoke all on function ' || f || ' from public';
-    execute 'grant execute on function ' || f || ' to anon, authenticated';
-  end loop;
-  execute 'revoke all on function public.crm_conn_val(text, text) from public, anon, authenticated';
-  execute 'revoke all on function public.crm_conn_on(text) from public, anon, authenticated';
-  execute 'revoke all on function public.crm_alert(text, jsonb) from public, anon, authenticated';
-  execute 'revoke all on function public.crm_bp_role_ok(public.crm_ses) from public, anon, authenticated';
-end $g$;

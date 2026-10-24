@@ -1,41 +1,8 @@
 -- ============================================================================
--- SUNPOWERS — DATABASE UPDATE — part 4 of 9
+-- SUNPOWERS — DATABASE UPDATE — part 4 of 12
 -- Purane project par update (naya ya purana, dono par chalega).
--- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (U01 -> U09). Safe to re-run.
+-- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (U01 -> U12). Safe to re-run.
 -- ============================================================================
-
--- filter: {all:true} | {ids:[..]} | {product_id, scope, status, value}
-create or replace function public.sp_pin_rules_delete(p_pass text, p_f jsonb) returns jsonb
-language plpgsql security definer set search_path = public, extensions as $$
-declare n int;
-begin
-  perform public.sp_check(p_pass);
-  if p_f is null or jsonb_typeof(p_f) <> 'object' then raise exception 'Invalid filter'; end if;
-  if coalesce((p_f ->> 'all')::boolean, false) then
-    delete from public.sp_pin_rules; get diagnostics n = row_count;
-  elsif jsonb_typeof(p_f -> 'ids') = 'array' then
-    delete from public.sp_pin_rules where id in (select (jsonb_array_elements_text(p_f -> 'ids'))::bigint); get diagnostics n = row_count;
-  elsif coalesce(p_f ->> 'product_id', '') <> '' or coalesce(p_f ->> 'scope', '') <> '' or coalesce(p_f ->> 'status', '') <> '' then
-    delete from public.sp_pin_rules r
-     where (coalesce(p_f ->> 'product_id', '') = '' or r.product_id = p_f ->> 'product_id')
-       and (coalesce(p_f ->> 'scope', '') = '' or r.scope = p_f ->> 'scope')
-       and (coalesce(p_f ->> 'status', '') = '' or r.status = p_f ->> 'status');
-    get diagnostics n = row_count;
-  else
-    raise exception 'Kya delete karna hai ye batayein';
-  end if;
-  perform public.sp_pin_modes_gc();
-  return jsonb_build_object('deleted', n);
-end $$;
-
--- areas -------------------------------------------------------------------------------------
-create or replace function public.sp_pin_area_list(p_pass text) returns jsonb
-language plpgsql stable security definer set search_path = public, extensions as $$
-begin
-  perform public.sp_check(p_pass);
-  return coalesce((select jsonb_agg(jsonb_build_object('name', name, 'label', label, 'n', coalesce(array_length(pins, 1), 0),
-      'rules', (select count(*) from public.sp_pin_rules r where r.scope = 'area' and r.value = a.name)) order by label) from public.sp_pin_areas a), '[]'::jsonb);
-end $$;
 
 create or replace function public.sp_pin_area_get(p_pass text, p_name text) returns jsonb
 language plpgsql stable security definer set search_path = public, extensions as $$
@@ -119,17 +86,6 @@ notify pgrst, 'reload schema';
 -- ROUND 11: CRM projects can now be sent to the Online Store (bulk send + Approved-for-Publish queue)
 -- Run once in Supabase SQL Editor. Safe to re-run.
 -- ============================================================================
-create or replace function public.crm_to_store(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
-declare s public.crm_ses := public.crm_session(p ->> 'token'); r public.crm_records;
-begin
-  perform public.crm_need(s, 'items.to_store');
-  select * into r from public.crm_records where id = (p ->> 'id')::bigint and kind = 'item' and deleted_at is null;
-  if r.id is null then raise exception 'Item nahi mila'; end if;
-  if coalesce(r.data ->> 'type', 'product') not in ('product', 'project') then raise exception 'Sirf product ya project online store ko bheja ja sakta hai'; end if;
-  update public.crm_records set data = jsonb_set(data, '{store}', coalesce(data -> 'store', '{}'::jsonb) || jsonb_build_object('status', 'pending', 'sent_at', now(), 'sent_by', (s).name)), updated_at = now() where id = r.id;
-  perform public.crm_log(s, 'to_store', 'item', r.id, 'Online Store Admin ko bheja: ' || r.title);
-  return jsonb_build_object('ok', true);
-end $$;
 
 -- ============================================================================
 -- ROUND 13 (database) — Catalog + auto SKU, sheet codes (privacy), permissions, Dashboard/Analytics/Reports/Accounts.
@@ -453,3 +409,36 @@ create table if not exists public.crm_sheets (
 );
 alter table public.crm_sheets enable row level security;
 do $r$ begin revoke all on public.crm_sheets from anon, authenticated; exception when others then null; end $r$;
+
+create or replace function public.crm_sheet_issue(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
+declare s public.crm_ses := public.crm_session(p ->> 'token'); kind_ text := coalesce(nullif(p ->> 'kind', ''), 'item'); ids_ jsonb; cols_ jsonb := coalesce(p -> 'cols', '[]'::jsonb); c text;
+        ok_ids jsonb; code_ text; allowed text[] := array['name', 'title', 'category', 'subcategory', 'price', 'mrp', 'gst', 'hsn', 'unit', 'desc', 'more', 'brand', 'mpn', 'image_link', 'stock', 'warranty', 'cost_price', 'min_price'];
+        days int := 30;
+begin
+  if kind_ <> 'item' then raise exception 'Galat sheet'; end if;
+  perform public.crm_need(s, 'items.edit'); perform public.crm_need(s, 'sheets.download');
+  if jsonb_typeof(p -> 'ids') <> 'array' or jsonb_array_length(p -> 'ids') = 0 then raise exception 'Koi row nahi chuni'; end if;
+  if jsonb_array_length(p -> 'ids') > 5000 then raise exception 'Ek sheet me 5000 se zyada rows nahi'; end if;
+  if jsonb_typeof(cols_) <> 'array' or jsonb_array_length(cols_) = 0 then raise exception 'Koi column nahi chuna'; end if;
+  for c in select jsonb_array_elements_text(cols_) loop
+    if not (c = any(allowed) or c like 'spec:%') then raise exception 'Column "%" sheet me nahi ja sakta', c; end if;
+    if c in ('cost_price', 'min_price') and not public.crm_can(s, 'items.cost') then raise exception 'Kharid / minimum rate dekhne ki permission nahi hai'; end if;
+  end loop;
+  select coalesce(jsonb_agg(r.id), '[]'::jsonb) into ok_ids from public.crm_records r
+   where r.kind = 'item' and r.deleted_at is null and r.id::text in (select jsonb_array_elements_text(p -> 'ids')) and public.crm_vis(s, r);
+  if jsonb_array_length(ok_ids) = 0 then raise exception 'Chuni hui rows aapko dikhane ki permission nahi hai'; end if;
+  code_ := 'SH' || upper(substr(md5(random()::text || clock_timestamp()::text || (s).uid::text), 1, 12));
+  insert into public.crm_sheets(code, kind, ids, cols, filt, n, issuer_uid, issuer_name, expires_at)
+  values (code_, kind_, ok_ids, cols_, p -> 'filt', jsonb_array_length(ok_ids), (s).uid, (s).name, now() + make_interval(days => days));
+  perform public.crm_log(s, 'export', 'item', 0, 'Sheet download for edit ' || code_ || ': ' || jsonb_array_length(ok_ids) || ' rows' || coalesce(' · filter ' || left(p ->> 'fdesc', 160), ''));
+  return jsonb_build_object('ok', true, 'code', code_, 'n', jsonb_array_length(ok_ids), 'expires_at', now() + make_interval(days => days));
+end $$;
+
+create or replace function public.crm_sheet_list(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
+declare s public.crm_ses := public.crm_session(p ->> 'token');
+begin
+  perform public.crm_need(s, 'items.edit');
+  return coalesce((select jsonb_agg(jsonb_build_object('code', code, 'kind', kind, 'n', n, 'issuer', issuer_name, 'created_at', created_at, 'expires_at', expires_at, 'uses', uses, 'last_used', last_used,
+      'revoked', revoked, 'live', (not revoked and expires_at > now()), 'filt', filt, 'cols', cols) order by created_at desc)
+    from (select * from public.crm_sheets where public.crm_is_admin(s) or public.crm_can(s, 'sheets.manage') or issuer_uid = (s).uid order by created_at desc limit 100) z), '[]'::jsonb);
+end $$;

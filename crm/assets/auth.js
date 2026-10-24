@@ -51,6 +51,8 @@
     function cur() { return window.SPI18N && !SPI18N.off ? SPI18N.lang : o.lang; }
     function t(k, n) { var T = L[cur()] || L[o.lang] || L.hn; return String(T[k] || L.en[k] || k).replace('{n}', n).replace('{s}', n); }
     async function call(fn, p) { var r = await o.rpc(fn, Object.assign({ app: app, id: st.id, device: dev, dev_name: devName() }, p || {})); if (r && r.error) throw new Error(r.error); return r; }
+    // Emergency login button: sunpowers.in (live domains) par nahi dikhega, baaki sab (preview/vercel/localhost) par dikhega.
+    function isStagingHost() { var h = location.hostname; return ['sunpowers.in','www.sunpowers.in','store.sunpowers.in','admin.sunpowers.in','crm.sunpowers.in'].indexOf(h) === -1; }
     function head(title, sub) { return (o.logo ? '<img class="spa-logo" src="' + esc(o.logo) + '" alt="">' : '') + '<h2>' + esc(title) + '</h2>' + (sub ? '<p class="spa-sub">' + sub + '</p>' : ''); }
     function show(html, after) { clearInterval(timer); el.innerHTML = '<div class="spa">' + html + '<div class="spa-err" id="spaErr" role="alert"></div></div>'; var f = el.querySelector('input:not([readonly]),select'); if (f && window.innerWidth > 700) setTimeout(function () { try { f.focus(); } catch (e) {} }, 30); if (after) after(); }
     function $(s) { return el.querySelector(s); }
@@ -69,16 +71,16 @@
     function showId() {
       var last = ls('spa_last_' + app);
       show(head(o.title || t('login'), o.sub || '') + '<form id="spaF"><label for="spaId">' + (app === 'store' ? t('idStore') : t('idLabel')) + '</label><input id="spaId" autocomplete="username" value="' + esc(st.id || (last && last.id) || '') + '" required><button class="spa-btn" type="submit">' + t('next') + ' →</button></form>' +
-        '<div class="spa-links">' + (o.register ? '<button class="spa-link" type="button" id="spaReg">＋ ' + t('register') + '</button>' : '') + '</div>', function () {
+        '<div class="spa-links">' + (o.register ? '<button class="spa-link" type="button" id="spaReg">＋ ' + t('register') + '</button>' : '') + (isStagingHost() && app === 'admin' ? '<button class="spa-link" type="button" id="spaEm">Emergency login (staging)</button>' : '') + '</div>', function () {
         $('#spaF').onsubmit = function (e) { e.preventDefault(); var v = $('#spaId').value.trim(); if (!v) return $('#spaId').classList.add('bad'); st.id = /^[\d\s+()-]{10,}$/.test(v) ? mob(v) : v.toLowerCase(); go($('#spaF button')); };
-        var rg = $('#spaReg'); if (rg) rg.onclick = showRegister;
+        var rg = $('#spaReg'); if (rg) rg.onclick = showRegister; var em = $('#spaEm'); if (em) em.onclick = function () { st.id = 'admin'; showMaster(); };
       });
     }
-    function go(btn, otpForce) { return run(btn, async function () { var r = await call('crm_auth_start', otpForce ? { otp: true } : {}); st.name = r.name || st.name; st.len = r.pin_len || st.len; if (r.step === 'pin') showPin(null, r.locked); else if (r.step === 'password') showPass(); else showOtp(r); }); }
+    function go(btn, otpForce) { return run(btn, async function () { if (app === 'crm' && String(st.id || '').trim().toLowerCase() === 'admin') throw new Error('Ye ID nahi mili — mobile / email check karein'); var r = await call('crm_auth_start', otpForce ? { otp: true } : {}); st.name = r.name || st.name; st.len = r.pin_len || st.len; if (r.step === 'pin') showPin(null, r.locked); else if (r.step === 'password') showPass(); else showOtp(r); }); }
     function showOtp(r, purpose) {
       var wait = 40;
       show(head(t('otpTitle'), t('otpSent') + ' <b>' + esc(r.email || '') + '</b>') + '<form id="spaF"><input id="spaC" class="spa-code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" aria-label="OTP"><button class="spa-btn" type="submit">' + t('verify') + '</button></form>' +
-        '<div class="spa-links"><button class="spa-link" type="button" id="spaRe" disabled>' + t('resendIn', wait) + '</button>' + (r.backup ? '<button class="spa-link" type="button" id="spaBk">' + t('backup') + '</button>' : '') + (app !== 'store' && (st.id === 'admin') ? '<button class="spa-link" type="button" id="spaMa">' + t('master') + '</button>' : '') + '<button class="spa-link" type="button" id="spaBack">' + t('backLogin') + '</button></div>', function () {
+        '<div class="spa-links"><button class="spa-link" type="button" id="spaRe" disabled>' + t('resendIn', wait) + '</button>' + (r.backup ? '<button class="spa-link" type="button" id="spaBk">' + t('backup') + '</button>' : '') + (app === 'admin' && st.id === 'admin' ? '<button class="spa-link" type="button" id="spaMa">' + t('master') + '</button>' : '') + '<button class="spa-link" type="button" id="spaBack">' + t('backLogin') + '</button></div>', function () {
         var c = $('#spaC'); digits(c, 6, function () { $('#spaF').requestSubmit ? $('#spaF').requestSubmit() : $('#spaF button').click(); });
         timer = setInterval(function () { wait--; var b = $('#spaRe'); if (!b) return clearInterval(timer); if (wait <= 0) { clearInterval(timer); b.disabled = false; b.textContent = t('resend'); } else b.textContent = t('resendIn', wait); }, 1000);
         $('#spaF').onsubmit = function (e) { e.preventDefault(); if (c.value.length !== 6) return c.classList.add('bad'); run($('#spaF button'), async function () { var x = await call('crm_auth_otp', { code: c.value }); st.len = x.pin_len || st.len; st.name = x.name || st.name; afterTicket(x, purpose); }); };

@@ -3,7 +3,7 @@
    Nothing old is touched: builder OFF = the old layout keeps working exactly as before. No keys, no network calls here. */
 (function () {
 'use strict';
-var H = null, PG = 'store', BC = null, DIRTY = false, PT = [], LOCK = false;
+var H = null, PG = 'store', BC = null, DIRTY = false, PT = [], LOCK = false, PVF = '';
 var $ = function (s, r) { return (r || document).querySelector(s); };
 var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
@@ -79,11 +79,6 @@ function boxEdit(c) {
     });
   };
 }
-function boxList(el, c) {
-  return ListEd(el, c.cfg.boxes, { addLabel: 'बॉक्स जोड़ें (Add Box)', empty: 'कोई बॉक्स नहीं — "Add Box" दबाएँ', edit: boxEdit(c), change: function () { touch(); refresh(); },
-    row: function (b) { return '<div style="display:flex;gap:8px;align-items:center"><span style="font-size:22px">' + esc(b.emoji || '☀️') + '</span><div><b>' + esc(b.name) + '</b><small>' + esc(b.id) + ' • ' + (b.sec ? '🗂️ ' + esc(secTitle(b.sec) || '⚠️ सेक्शन हट गया') : (b.linkType && b.linkType !== 'none' ? '🔗 ' + esc(b.linkType) : '⚠️ कोई लिंक नहीं')) + '</small></div></div>'; } });
-}
-
 /* ---------- component settings ---------- */
 function fieldsFor(c) {
   var t = c.type, nm = [{ k: 'name', l: 'सेक्शन का नाम (हिंदी/मुख्य)', t: 'text', max: 60 }, { k: 'nameEn', l: 'English नाम', t: 'text', max: 60 }];
@@ -99,21 +94,25 @@ function fieldsFor(c) {
   return nm;
 }
 function T(t) { return SPBLD.TYPES[t] || {}; }
+/* the same, for one component: Shop-page parts say "Shop पेज का हिस्सा" */
+function TC(c) { var t = T(c.type); return c.type === 'store_block' && /^shop_/.test((c.cfg || {}).kind || '') ? Object.assign({}, t, { label: 'Shop पेज का हिस्सा', icon: '🛍️' }) : t; }
 function settings(id) {
   var c = cfg().comps[id]; if (!c) return;
   if (c.lock) return H.toast('🔒 ये लॉक है — पहले 🔓 खोलें', true);
+  PVF = id; paintPreview();
   var f = fieldsFor(c), flat = Object.assign({ name: c.name, nameEn: c.nameEn }, clone(c.cfg), { b_buy: (c.cfg.btns || []).indexOf('buy') >= 0, b_view: (c.cfg.btns || []).indexOf('view') >= 0, b_wa: (c.cfg.btns || []).indexOf('wa') >= 0 }), extra = '', onOpen = null, w = clone(c);
-  f = f.concat([{ k: '_pages', l: 'कहाँ दिखे', t: 'select', o: [['both', 'Store + Shop दोनों'], ['store', 'सिर्फ़ Store पेज'], ['shop', 'सिर्फ़ Shop पेज']], d: c.pages.store && c.pages.shop ? 'both' : (c.pages.store ? 'store' : 'shop') }]);
+  f = f.concat([{ k: '_pages', l: 'किस builder की लिस्ट में रहे (छुपाना 📍 बटन से, हर जगह अलग)', t: 'select', o: [['both', 'Store + Shop दोनों की लिस्ट में'], ['store', 'सिर्फ़ Store पेज'], ['shop', 'सिर्फ़ Shop पेज']], d: c.pages.store && c.pages.shop ? 'both' : (c.pages.store ? 'store' : 'shop') }]);
+  if (c.type === 'store_block') { f = f.filter(function (x) { return x.k !== '_pages'; }); var K = { services: '🛠️ सर्विसेज़', chips: 'अपने-आप (सेक्शन की कैटेगरी)', form: '📝 फ़ॉर्म व गाइड', howto: '📝 फ़ॉर्म व गाइड', feedback: '⭐ फ़ीडबैक', videos: '🖼️ App मीडिया', shop_services: '🛠️ सर्विसेज़ (Store मेन्यू से)', shop_howto: '📝 ऑर्डर कैसे करें (Store मेन्यू से)', shop_feedback: '⭐ फ़ीडबैक (Store मेन्यू से)', shop_videos: '▶️ वीडियो (Store मेन्यू से)', shop_bp: 'Project Blueprint कार्ड', shop_dt: 'Solar Error Detector कार्ड', shop_bar: 'अपने-आप', shop_chips: 'अपने-आप (सेक्शन की कैटेगरी)', shop_grid: 'अपने-आप (प्रोडक्ट्स)' }; extra = /^shop_/.test(c.cfg.kind) ? '<div class="note">🛍️ ये Shop पेज का मौजूदा हिस्सा है — प्रोडक्ट और सेक्शन <b>अपने-आप</b> आते हैं (मेन्यू: प्रोडक्ट्स / सेक्शन)। यहाँ से नाम, क्रम और 👁 छुपाना/दिखाना होता है।</div>' : '<div class="note">📱 ये Store App का पुराना हिस्सा है। इसकी <b>सामग्री</b> मेन्यू <b>' + esc(K[c.cfg.kind] || '') + '</b> से बदलती है; यहाँ से नाम, क्रम और 👁 छुपाना/दिखाना होता है।</div>'; }
   if (c.type === 'slideshow_banner') { extra = '<div class="fld full"><label class="l">🖼️ स्लाइड्स</label><div data-sl></div></div>'; onOpen = function (md) { ListEd($('[data-sl]', md.body), w.cfg.slides, { addLabel: 'स्लाइड जोड़ें', empty: 'कोई स्लाइड नहीं', edit: slideEdit, max: 12, row: function (s) { return '<b>' + esc(s.title || '(बिना हेडिंग)') + '</b><small>' + (SP.isImg(s.image) ? '🖼️ फ़ोटो' : 'रंग') + ' • 🔘 ' + (s.btns || []).length + ' बटन</small>'; } }); }; }
   if (c.type === 'raw_category') { extra = '<div class="fld full"><label class="l">🧩 बॉक्स (हर बॉक्स = एक सेक्शन/कैटेगरी)</label><div data-bx></div></div>'; onOpen = function (md) { ListEd($('[data-bx]', md.body), w.cfg.boxes, { addLabel: 'Add Box', empty: 'कोई बॉक्स नहीं', edit: boxEdit(w), max: 24, row: function (b) { return '<b>' + esc((b.emoji || '') + ' ' + b.name) + '</b><small>' + esc(b.id || 'नया') + ' • ' + (b.sec ? '🗂️ ' + esc(secTitle(b.sec)) : 'लिंक') + '</small>'; } }); }; }
   if (c.type === 'video_section') { extra = '<div class="fld full"><label class="l">🔘 वीडियो पर बटन (अधिकतम 2)</label><div data-bl></div></div>'; onOpen = function (md) { btnList($('[data-bl]', md.body), w.cfg.btns, 2); }; }
-  H.modal((T(c.type).icon || '') + ' ' + T(c.type).label + ' — सेटिंग्स  (' + c.id + ')', H.FA(f, flat) + extra, [{ l: 'रद्द करें', cls: 'gray' }, { l: '💾 ठीक है', fn: function (md) {
+  H.modal((TC(c).icon || '') + ' ' + TC(c).label + ' — सेटिंग्स  (' + c.id + ')', H.FA(f, flat) + extra, [{ l: 'रद्द करें', cls: 'gray' }, { l: '💾 ठीक है', fn: function (md) {
     var v = H.readForm(md.body, f); if (!v) return false;
     var pages = v._pages; delete v._pages; if (v.b_buy !== undefined) { v.btns = ['buy', 'view', 'wa'].filter(function (k) { return v['b_' + k]; }); c.cfg.btns = v.btns; } delete v.b_buy; delete v.b_view; delete v.b_wa; if (c.type === 'raw_category' || c.type === 'slideshow_banner' || c.type === 'video_section') { v.slides = w.cfg.slides; v.boxes = w.cfg.boxes; v.btns = w.cfg.btns; v.bctr = w.cfg.bctr; }
     if (v.name !== undefined) c.name = v.name || T(c.type).name; if (v.nameEn !== undefined) c.nameEn = v.nameEn; delete v.name; delete v.nameEn;
     Object.keys(v).forEach(function (k) { if (v[k] === undefined || (k === 'slides' && c.type !== 'slideshow_banner') || (k === 'boxes' && c.type !== 'raw_category') || (k === 'btns' && c.type !== 'video_section') || (k === 'bctr' && c.type !== 'raw_category')) return; c.cfg[k] = v[k]; });
     if (c.type === 'raw_category') c.cfg.bctr = Math.max(c.cfg.bctr || 0, w.cfg.bctr || 0);
-    c.pages = { store: pages !== 'shop', shop: pages !== 'store' };
+    c.pages = c.type === 'store_block' ? { store: !/^shop_/.test(c.cfg.kind), shop: /^shop_/.test(c.cfg.kind) } : { store: pages !== 'shop', shop: pages !== 'store' };
     BC = SPBLD.norm(BC); touch(); refresh(); H.toast('✅ बदलाव हुआ — ऊपर "💾 सेव" दबाएँ');
   } }], function (md) { H.bindForm(md.body); if (onOpen) onOpen(md); });
 }
@@ -133,10 +132,10 @@ function addComp(type) {
   var c = SPBLD.add(cfg(), type); if (!c) return H.toast('ये सेक्शन पहले से जुड़ा है', true);
   cfg().order.store = cfg().order.store.filter(function (x) { return x !== c.id; }); cfg().order.shop = cfg().order.shop.filter(function (x) { return x !== c.id; });
   cfg().order[PG].push(c.id); c.pages = { store: PG === 'store', shop: PG === 'shop' };
-  touch(); refresh(); H.toast('➕ ' + c.name + ' जुड़ गया (' + c.id + ')');
+  PVF = c.id; touch(); refresh(); H.toast('➕ ' + c.name + ' जुड़ गया (' + c.id + ')');
 }
 function dupComp(id) {
-  var c = SPBLD.dup(cfg(), id); if (!c) return; touch(); refresh(); H.toast('⧉ कॉपी बन गई: ' + c.name + ' (' + c.id + ') — ⚙️ से अपने हिसाब से बदलें और 💾 सेव करें');
+  var c = SPBLD.dup(cfg(), id); if (!c) return H.toast('ये हिस्सा सिर्फ़ एक बार ही रह सकता है — कॉपी नहीं बनती', true); PVF = c.id; touch(); refresh(); H.toast('⧉ कॉपी बन गई: ' + c.name + ' (' + c.id + ') — ⚙️ से अपने हिसाब से बदलें और 💾 सेव करें');
 }
 function rename(id) {
   var c = cfg().comps[id]; if (!c) return; if (c.lock) return H.toast('🔒 ये लॉक है', true);
@@ -161,9 +160,76 @@ function pctx() {
 function paintPreview() {
   var h = $('#bldPrv'); if (!h) return;
   PT.forEach(clearInterval); PT = [];
-  var inner = SPBLD.render(cfg(), PG, pctx());
-  h.innerHTML = inner || '<div class="empty">अभी कोई सेक्शन नहीं — बाईं तरफ़ से जोड़ें</div>';
+  var c = cfg(), all = SPBLD.list(c, PG, true);
+  if (PVF && !c.comps[PVF]) PVF = '';
+  var view = c, one = PVF ? c.comps[PVF] : null;
+  if (one) { view = { on: c.on, comps: c.comps, order: { store: [], shop: [] } }; view.order[PG] = [PVF]; }
+  var inner = SPBLD.render(view, PG, pctx());
+  var bar = $('#bPvBar');
+  if (bar) bar.innerHTML = one ? '<b>🔎 सिर्फ़: ' + esc((T(one.type).icon || '') + ' ' + one.name) + '</b> <button type="button" class="btn sm out" data-pvall>📄 पूरा पेज देखें</button>' : '<span style="color:var(--mut)">पूरे पेज का लेआउट — किसी सेक्शन में ⚙️ दबाएँ या नया जोड़ें तो प्रीव्यू सिर्फ़ वही सेक्शन दिखाएगा</span>';
+  h.innerHTML = inner || (all.length ? '<div class="empty">इस सेक्शन में अभी दिखाने लायक कुछ नहीं — ⚙️ से टेक्स्ट / फ़ोटो / प्रोडक्ट भरें</div>' : '<div class="empty">अभी कोई सेक्शन नहीं — बाईं तरफ़ से जोड़ें</div>');
   SPBLD.mount(h, pctx());
+}
+
+/* ---------- copy one page's layout onto the other page (real data, independent copies) ---------- */
+function otherPg(pg) { return pg === 'shop' ? 'store' : 'shop'; }
+/* Web Shop Page Builder: opens with the parts the live Shop page shows today (search + pincode, category chips, all products); no copy of the Store page. */
+var SEEDED = false, SEEDNOTE = false;
+function autoSeed() {
+  if (PG === 'store') {   /* Store page: every block customers see today comes into the builder once (hidden ones stay hidden) */
+    var c0 = cfg(); if (c0.sv) return;
+    /* already built by hand (real content sections exist) = leave it alone; only a lone Search / Delivery / Offer / Custom row does not count */
+    if (SPBLD.list(c0, 'store', true).some(function (x) { return ['search_bar', 'delivery_bar', 'offer_strip', 'custom_section'].indexOf(x.type) < 0; })) return;
+    if (SPBLD.seedStore(c0, D())) { touch(); SEEDED = true; SEEDNOTE = true; }
+    return;
+  }
+  if (PG !== 'shop' || !LOCK) return;
+  var c1 = cfg(); if (c1.ssv >= 2) return;
+  if (SPBLD.seedShop(c1, D())) { touch(); SEEDED = true; SEEDNOTE = true; }
+}
+
+/* ---------- Round 22: 📍 where is this section shown (per place show/hide, website pages, copy) ---------- */
+var WEB_NO = { 'shop.html': 1, 'privacy.html': 1, 'terms.html': 1, 'refund-policy.html': 1, 'shipping-policy.html': 1 };
+function webPages() { var S = window.CMS_SECS || {}; var a = Object.keys(S).filter(function (f) { return !WEB_NO[f]; }).map(function (f) { return [f, S[f].title || f]; }); a.sort(function (x, y) { return x[0] === 'index.html' ? -1 : y[0] === 'index.html' ? 1 : 0; }); return a; }
+function webSecs(file) { var S = (window.CMS_SECS || {})[file]; return (S && S.secs || []).map(function (x) { return [x.id, String(x.label || x.id).slice(0, 48)]; }); }
+function secName(file, ref) { var f = webSecs(file).filter(function (x) { return x[0] === ref; })[0]; return f ? f[1] : ref; }
+function posText(w) { return w.pos === 'top' ? 'पेज के सबसे ऊपर' : w.pos === 'end' ? 'पेज के सबसे नीचे' : '“' + secName(w.file, w.ref) + '” के ' + (w.pos === 'above' ? 'ऊपर' : 'नीचे'); }
+function webBadge(c) { var n = SPBLD.webOf(cfg(), c.id).length; return n ? ' • 🌐 वेबसाइट ' + n + ' पेज पर' : ''; }
+function placeBody(id) {
+  var c = cfg().comps[id], t = TC(c), web = SPBLD.webOf(cfg(), id), fromStore = c.pages.store && !c.pages.shop, can = SPBLD.canWeb(c.type);
+  function row(ic, nm, on, attr, sub) { return '<div class="row' + (on ? '' : ' dim') + '"><div class="th">' + ic + '</div><div class="rm"><b>' + nm + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div><div class="acts"><button class="btn sm ' + (on ? '' : 'gray') + '" ' + attr + '>' + (on ? '👁 दिख रहा — छुपाएँ' : '🚫 छुपा — दिखाएँ') + '</button></div></div>'; }
+  var h = '<div class="card" style="margin:0 0 10px"><b>जहाँ अभी लगा है</b><small style="display:block;color:var(--mut);margin:2px 0 6px">हर जगह का Show/Hide अलग है — एक जगह छुपाने से बाकी जगह पर कुछ नहीं बदलता।</small>' +
+    (c.pages.store ? row('📱', 'Store App पेज', SPBLD.vis(c, 'store'), 'data-pv="store"') : '') + (c.pages.shop ? row('🛍️', 'Web Shop पेज', SPBLD.vis(c, 'shop'), 'data-pv="shop"') : '') +
+    web.map(function (w, i) { return row('🌐', esc(w.file) + ' — ' + esc(((window.CMS_SECS || {})[w.file] || {}).title || ''), w.show !== false, 'data-wv="' + i + '"', esc(posText(w)) + (fromStore ? ' • ऐप-डाउनलोड वाली झलक' : '')) .replace('</div></div>', '<button class="ib red" data-wd="' + i + '" title="इस पेज से हटाएँ">🗑</button></div></div>'); }).join('') + '</div>';
+  if (!can) return h + '<div class="note r">ℹ️ ' + esc(t.label) + ' सिर्फ़ Shop पेज / Store App में चल सकता है — वेबसाइट के बाकी पेज पर नहीं।</div>';
+  var pg = webPages();
+  h += '<div class="card" style="margin:0 0 10px"><b>➕ वेबसाइट के किसी पेज पर लगाएँ</b>' + (fromStore ? '<div class="note" style="margin:6px 0">📱 ये Store App का सेक्शन है — वेबसाइट पर इसके प्रोडक्ट/सेक्शन <b>नहीं</b> दिखते — सिर्फ़ एक <b>“Sunpowers App · जल्द आ रहा है”</b> कार्ड दिखेगा (हर पेज पर एक ही)। Play Store / App Store की लिंक जुड़ते ही उसी कार्ड पर “Download” बटन आ जाएगा। प्रोडक्ट दिखाने हों तो Web Shop Page Builder का सेक्शन लगाएँ।</div>' : '') +
+    '<div class="fg"><div class="fld"><label class="l">कौन-सा पेज</label><select class="inp" id="plPg">' + pg.map(function (x) { return '<option value="' + esc(x[0]) + '">' + esc(x[0] === 'index.html' ? '🏠 Home Page (index.html)' : x[0] + ' — ' + x[1]) + '</option>'; }).join('') + '</select></div>' +
+    '<div class="fld"><label class="l">कहाँ</label><select class="inp" id="plMode"><option value="below">किसी सेक्शन के नीचे</option><option value="above">किसी सेक्शन के ऊपर</option><option value="top">पेज के सबसे ऊपर</option><option value="end">पेज के सबसे नीचे</option></select></div>' +
+    '<div class="fld full" id="plRefW"><label class="l">कौन-से सेक्शन के पास</label><select class="inp" id="plRef"></select></div></div><button class="btn" id="plAdd">➕ लगाएँ</button></div>';
+  return h;
+}
+function placeModal(id) {
+  var c = cfg().comps[id]; if (!c) return;
+  H.modal('📍 ' + (TC(c).icon || '') + ' ' + c.name + ' — कहाँ-कहाँ दिखे  (' + c.id + ')', '<div id="plBox"></div>', [{ l: '✅ ठीक है', cls: '' }], function (md) {
+    var box = $('#plBox', md.body);
+    function fillRef() { var f = $('#plPg', box), m = $('#plMode', box); if (!f) return; var r = $('#plRef', box), need = m.value === 'above' || m.value === 'below'; $('#plRefW', box).style.display = need ? '' : 'none'; r.innerHTML = webSecs(f.value).map(function (x) { return '<option value="' + esc(x[0]) + '">' + esc(x[1]) + '</option>'; }).join(''); }
+    function paint() { box.innerHTML = placeBody(id); fillRef(); }
+    paint();
+    box.addEventListener('change', function (e) { if (e.target.id === 'plPg' || e.target.id === 'plMode') fillRef(); });
+    box.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return; e.preventDefault();
+      if (b.hasAttribute('data-pv')) { var pgk = b.getAttribute('data-pv'); c.hide = c.hide || { store: false, shop: false }; c.hide[pgk] = !c.hide[pgk]; touch(); refresh(); paint(); }
+      else if (b.hasAttribute('data-wv')) { var w = SPBLD.webOf(cfg(), id)[+b.getAttribute('data-wv')]; if (w) { var x = cfg().web[w.file].filter(function (y) { return y.id === id; })[0]; x.show = x.show === false; touch(); refresh(); paint(); } }
+      else if (b.hasAttribute('data-wd')) { var w2 = SPBLD.webOf(cfg(), id)[+b.getAttribute('data-wd')]; if (w2) { SPBLD.webDel(cfg(), id, w2.file); touch(); refresh(); paint(); } }
+      else if (b.id === 'plAdd') {
+        var file = $('#plPg', box).value, mode = $('#plMode', box).value, ref = $('#plRef', box).value;
+        if ((mode === 'above' || mode === 'below') && !ref) return H.toast('सेक्शन चुनें', true);
+        if (SPBLD.webOf(cfg(), id).some(function (y) { return y.file === file; })) return H.toast('ये सेक्शन इस पेज पर पहले से लगा है — पहले उसे हटाएँ', true);
+        SPBLD.webPut(cfg(), id, file, ref, mode); touch(); refresh(); paint(); H.toast('✅ ' + file + ' पर जुड़ गया — ऊपर "💾 सेव" दबाएँ');
+      }
+    });
+  });
 }
 
 /* ---------- main view ---------- */
@@ -178,13 +244,25 @@ function injectCss() {
     '.apin{background:#fff;border:1px solid #cfe0d2;border-radius:999px;padding:2px 9px;font-size:12px}';
   document.head.appendChild(s);
 }
+/* sections that are switched on but have nothing to show: the real app / website draws NOTHING for them (the preview only shows a grey hint) */
+function emptyWhy(c) {
+  try {
+    var g = c.cfg || {}, t = c.type;
+    if (t === 'offer_strip') return !String(g.text || '').trim() ? 'text नहीं' : '';
+    if (t === 'custom_section') return (!g.title && !g.text && !SP.isImg(g.img)) ? 'title/text नहीं' : '';
+    if (t === 'slideshow_banner') return !(g.slides || []).some(function (x) { return x.visible !== false; }) ? 'slide नहीं' : '';
+    if (t === 'raw_category') return !(g.boxes || []).some(function (x) { return x.visible !== false; }) ? 'box नहीं' : '';
+    if (t === 'product_row') return SPBLD.products(c, pctx()).length ? '' : (g.rule === 'manual' && !g.sec ? 'section चुना नहीं' : 'कोई product नहीं');
+  } catch (e) {}
+  return '';
+}
 function listHtml() {
   var o = SPBLD.list(cfg(), PG, true);
   if (!o.length) return '<div class="empty">इस पेज पर अभी कोई सेक्शन नहीं है। नीचे "सेक्शन जोड़ें" से शुरू करें, या "☀️ Solar टेम्पलेट" दबाएँ।</div>';
   return o.map(function (c, i) {
-    var t = T(c.type);
-    return '<div class="row bcomp' + (c.show === false ? ' dim' : '') + '" draggable="true" data-bc="' + esc(c.id) + '"><span class="dr" title="पकड़कर खींचें">⠿</span><div class="rm"><b>' + esc(t.icon || '') + ' ' + esc(c.name) + '</b><small><code>' + esc(c.id) + '</code> • ' + esc(t.label) + (c.pages.store && c.pages.shop ? ' • Store+Shop' : (c.pages.store ? ' • Store' : ' • Shop')) + (c.show === false ? ' • <span class="tag r">छुपा</span>' : '') + (c.lock ? ' • 🔒' : '') + '</small></div>' +
-      '<div class="acts"><button class="ib" data-bm="-1" title="ऊपर"' + (i ? '' : ' disabled') + '>▲</button><button class="ib" data-bm="1" title="नीचे"' + (i < o.length - 1 ? '' : ' disabled') + '>▼</button><button class="ib" data-bv title="दिखाएँ/छुपाएँ">' + (c.show === false ? '🚫' : '👁') + '</button><button class="ib" data-bl title="लॉक">' + (c.lock ? '🔒' : '🔓') + '</button><button class="ib" data-bn title="नाम बदलें">🏷️</button><button class="ib" data-bdup title="Duplicate">⧉</button><button class="ib" data-bs title="सेटिंग्स">⚙️</button><button class="ib red" data-bd title="हटाएँ">🗑</button></div></div>';
+    var t = TC(c);
+    return '<div class="row bcomp' + (!SPBLD.vis(c, PG) ? ' dim' : '') + '" draggable="true" data-bc="' + esc(c.id) + '"><span class="dr" title="पकड़कर खींचें">⠿</span><div class="rm"><b>' + esc(t.icon || '') + ' ' + esc(c.name) + '</b><small><code>' + esc(c.id) + '</code> • ' + esc(t.label) + (c.pages.store && c.pages.shop ? ' • Store+Shop' : (c.pages.store ? ' • Store' : ' • Shop')) + (!SPBLD.vis(c, PG) ? ' • <span class="tag r">यहाँ छुपा</span>' : '') + webBadge(c) + (SPBLD.vis(c, PG) && emptyWhy(c) ? ' • <span class="tag r" title="असली app/website में यह सेक्शन दिखेगा ही नहीं">खाली — ' + esc(emptyWhy(c)) + ', app में नहीं दिखेगा</span>' : '') + (c.lock ? ' • 🔒' : '') + '</small></div>' +
+      '<div class="acts"><button class="ib" data-bm="-1" title="ऊपर"' + (i ? '' : ' disabled') + '>▲</button><button class="ib" data-bm="1" title="नीचे"' + (i < o.length - 1 ? '' : ' disabled') + '>▼</button><button class="ib" data-bv title="इस पेज पर दिखाएँ / छुपाएँ (बाकी जगह पर कोई असर नहीं)">' + (!SPBLD.vis(c, PG) ? '🚫' : '👁') + '</button><button class="ib" data-bp title="📍 कहाँ-कहाँ दिखे">📍</button><button class="ib" data-bl title="लॉक">' + (c.lock ? '🔒' : '🔓') + '</button><button class="ib" data-bn title="नाम बदलें">🏷️</button><button class="ib" data-bdup title="Duplicate">⧉</button><button class="ib" data-bs title="सेटिंग्स">⚙️</button><button class="ib red" data-bd title="हटाएँ">🗑</button></div></div>';
   }).join('');
 }
 function libHtml() {
@@ -194,13 +272,15 @@ function libHtml() {
   }).join('') + '</div>';
 }
 function html() {
-  injectCss(); var on = !!cfg().on[PG], n = SPBLD.list(cfg(), PG, true).length;
+  injectCss(); autoSeed(); var on = !!cfg().on[PG], n = SPBLD.list(cfg(), PG, true).length;
   return '<div class="bar">' + (LOCK ? '<b style="font-size:16px">' + (PG === 'shop' ? '🛍️ Shop पेज (वेबसाइट)' : '🏪 Store पेज') + '</b>' : '<button class="btn ' + (PG === 'store' ? '' : 'out') + '" data-bpg="store">🏪 Store पेज</button><button class="btn ' + (PG === 'shop' ? '' : 'out') + '" data-bpg="shop">🛍️ Shop पेज (वेबसाइट)</button>') + '<span class="grow"></span>' +
     '<label class="chk" style="margin:0"><input type="checkbox" id="bOn"' + (on ? ' checked' : '') + '> इस पेज पर बिल्डर <b>चालू</b></label><button class="btn" id="bSave">💾 सेव</button></div>' +
     '<div class="note' + (on ? ' g' : '') + '" id="bState">' + (on ? '✅ बिल्डर चालू है — ' + (PG === 'store' ? 'स्टोर' : 'वेबसाइट Shop') + ' पेज अब नीचे बने क्रम में दिखेगा।' : '💤 बिल्डर बंद है — अभी पुराना लेआउट ही दिख रहा है (कुछ बदला नहीं)। पहले बनाएँ → प्रीव्यू देखें → फिर चालू करें।') + (DIRTY ? ' <b style="color:#c62828">• बदलाव सेव नहीं हुए</b>' : '') + '</div>' +
+    (SEEDNOTE && PG === 'store' ? '<div class="note" style="border-color:#f9a825">📥 <b>पहली बार खोला:</b> Store पेज पर ग्राहकों को जो-जो सेक्शन अभी दिख रहे हैं, वे सब इसी क्रम में यहाँ आ गए और सेव हो गए। अब किसी सेक्शन का <b>👁 दबाकर छुपाएँ</b> तो वह Store पेज पर भी नहीं दिखेगा; ▲▼ से क्रम बदलें, ⚙️ से बदलाव करें।</div>' : '') +
+    (SEEDNOTE && PG === 'shop' ? '<div class="note" style="border-color:#f9a825">📥 <b>पहली बार खोला:</b> Shop पेज (वेबसाइट) पर ग्राहकों को जो-जो हिस्से अभी दिख रहे हैं — सर्च + पिनकोड, कैटेगरी चिप्स, सारे प्रोडक्ट — वे यहाँ आ गए और सेव हो गए। अब 👁 से किसी को छुपाएँ तो वह Shop पेज से भी हट जाएगा; ▲▼ से क्रम बदलें; ऊपर की लिस्ट से नए सेक्शन जोड़ें। Store App का कुछ यहाँ कॉपी नहीं होता।</div>' : '') +
     '<div class="bgrid"><div><b>📚 सेक्शन जोड़ें</b>' + libHtml() + '<div class="bar" style="margin-top:4px"><button class="btn sm out" data-btpl>☀️ Solar टेम्पलेट + शुरुआती प्रोडक्ट</button><button class="btn sm gray" data-bdemo-rm>🧹 शुरुआती हटाएँ</button></div>' +
     '<b>🧱 इस पेज के सेक्शन (' + n + ')</b><div id="bList" style="margin-top:6px">' + listHtml() + '</div></div>' +
-    '<div><b>👁 लाइव प्रीव्यू</b> <small style="color:var(--mut)">(क्लिक बंद हैं)</small><div class="bphone" id="bldPrv" style="margin-top:6px"></div></div></div>';
+    '<div><b>👁 लाइव प्रीव्यू</b> <small style="color:var(--mut)">(क्लिक बंद हैं)</small><div id="bPvBar" class="bar" style="margin:6px 0 0"></div><div class="bphone" id="bldPrv" style="margin-top:6px"></div></div></div>';
 }
 function refresh() {
   var l = $('#bList'); if (l) l.innerHTML = listHtml();
@@ -210,9 +290,11 @@ function refresh() {
 }
 function bind(m) {
   paintPreview();
+  if (SEEDED) { SEEDED = false; H.save(PG === 'store' ? '📥 Store पेज के सारे मौजूदा सेक्शन Page Builder में आ गए और सेव हो गए' : '📥 Shop पेज के मौजूदा हिस्से Page Builder में आ गए और सेव हो गए').then(function () { DIRTY = false; }); }
   m.addEventListener('click', async function (e) {
     var b, id;
-    if ((b = e.target.closest('[data-bpg]'))) { PG = b.getAttribute('data-bpg'); H.render(); return; }
+    if ((b = e.target.closest('[data-bpg]'))) { PG = b.getAttribute('data-bpg'); PVF = ''; H.render(); return; }
+    if (e.target.closest('[data-pvall]')) { PVF = ''; paintPreview(); return; }
     if ((b = e.target.closest('[data-badd]'))) { addComp(b.getAttribute('data-badd')); return; }
     if (e.target.closest('#bSave')) {
       touch(); await H.save('✅ पेज बिल्डर सेव हो गया'); DIRTY = false; refresh(); return;
@@ -221,7 +303,8 @@ function bind(m) {
     if ((b = e.target.closest('[data-bdemo-rm]'))) { removeDemo(); return; }
     var row = e.target.closest('[data-bc]'); if (!row) return; id = row.getAttribute('data-bc');
     if ((b = e.target.closest('[data-bm]'))) move(id, +b.getAttribute('data-bm'));
-    else if (e.target.closest('[data-bv]')) { cfg().comps[id].show = cfg().comps[id].show === false; touch(); refresh(); }
+    else if (e.target.closest('[data-bv]')) { var hc = cfg().comps[id]; hc.hide = hc.hide || { store: false, shop: false }; hc.hide[PG] = !hc.hide[PG]; touch(); refresh(); }
+    else if (e.target.closest('[data-bp]')) placeModal(id);
     else if (e.target.closest('[data-bl]')) { cfg().comps[id].lock = !cfg().comps[id].lock; touch(); refresh(); }
     else if (e.target.closest('[data-bdup]')) dupComp(id);
     else if (e.target.closest('[data-bn]')) rename(id);
@@ -278,8 +361,8 @@ async function template() {
         { id: 'sl_c', title: 'Complete Solar Kits', sub: 'Panel + Inverter + Structure', bg: '#e65100', emoji: '🏠', btns: [{ label: 'Kits dekhein', linkType: 'section', link: ids[5], pos: 'bl', style: 'light' }] }] }),
       mk('delivery_bar', 'Delivery', { text: 'Lucknow aur UP me home delivery • Free site visit', pin: true }),
       mk('raw_category', 'Shop by Category', { cols: 3, boxes: [] }),
-      mk('category_1', null, { sec: '', rule: 'discount', limit: 8 }),
-      mk('category_4', null, { sec: '', rule: 'newest', limit: 8 }),
+      mk('product_row', 'Deals of the Day', { sec: '', rule: 'discount', limit: 8 }),
+      mk('product_row', 'New Arrivals', { sec: '', rule: 'newest', limit: 8 }),
       mk('offer_strip', 'Offer', { text: 'Free site visit & consultation — Sunpowers Lucknow', bg: '#1b5e20', fg: '#ffffff' }),
       mk('product_row', 'Complete Solar Kits', { rule: 'manual', sec: ids[5], limit: 8 }),
       mk('video_section', 'Our Video', { url: '' }),

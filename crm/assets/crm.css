@@ -368,6 +368,15 @@ table.t td.bad{color:var(--red);font-weight:800}
 .gks{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .gk{display:flex;gap:10px;align-items:flex-start}.gd{width:10px;height:10px;border-radius:50%;margin-top:5px;flex:none}
 .gk b{font-size:18px}
+.hintdd{position:relative;margin:0 0 0 auto}
+.hintdd summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-weight:700;font-size:13px;background:var(--card,#fff);color:var(--leaf-d,inherit);white-space:nowrap}
+.hintdd summary::-webkit-details-marker{display:none}
+.hintdd summary svg{width:16px;height:16px}
+.hintdd-pan{position:absolute;right:0;top:calc(100% + 8px);z-index:25;width:min(380px,88vw);max-height:70vh;overflow:auto;background:var(--card,#fff);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.12);font-size:13px}
+.hintdd-pan ul{margin:8px 0 0 18px;padding:0}.hintdd-pan li{margin:5px 0}
+.hintdd-pan .mg-acts{display:flex;flex-direction:column;gap:8px;align-items:stretch}
+.hintdd-pan .mg-acts>.bar,.hintdd-pan .mg-acts>.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0}
+.hintdd-pan .mg-help{border-top:1px solid var(--line);margin-top:10px;padding-top:8px}
 .hintbar{margin:0 0 14px;border:1px solid var(--line);border-radius:12px;background:var(--g-l,#f1f7ee);padding:8px 12px}
 .hintbar summary{cursor:pointer;font-weight:800;font-size:13px;color:var(--leaf-d);display:flex;align-items:center;gap:6px;list-style:none}
 .hintbar summary::-webkit-details-marker{display:none}
@@ -416,3 +425,11 @@ table.t td.bad{color:var(--red);font-weight:800}
 @media(max-width:560px){.wfn{width:76px}.wfc{width:46px;height:46px;font-size:21px}.wfa{width:14px;height:46px;font-size:12px}}
 .proj-li .prog{max-width:360px}
 .nav a .nrib{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;background:#1e8e3e;color:#fff;padding:1px 6px;border-radius:99px;white-space:nowrap}
+
+/* Round 21: skipped ("lagu nahi") steps look muted */
+.wfn.done.skip .wfc{background:#9aa5a0;box-shadow:none}
+.wfn.done.skip b{color:var(--mut,#66756a)}
+[data-show][hidden]{display:none!important}
+.hintdd-pan .mg-grp{display:flex;flex-direction:column;gap:6px;border-top:1px dashed var(--line);padding-top:8px}
+.hintdd-pan .mg-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute,#66756a);font-weight:700}
+.hintdd-pan .mg-grp>.row{display:flex;flex-wrap:wrap;gap:6px}

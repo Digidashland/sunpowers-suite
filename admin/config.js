@@ -6,9 +6,9 @@
 //  SITE_URL  : aapki Website ka link (khaali = Store Settings ka "मुख्य वेबसाइट लिंक")
 // =====================================================================
 var SP_DB = (function () {
-  // Branch preview URL (…-git-branch…vercel.app) = STAGING database. Live domain = LIVE database.
+  // Sirf 5 live hosts = LIVE database. Baaki sab (staging-*, preview, vercel.app, localhost) = STAGING database.
   var h = location.hostname;
-  var staging = /-git-/.test(h) && /\.vercel\.app$/.test(h);
+  var staging = ['sunpowers.in','www.sunpowers.in','store.sunpowers.in','admin.sunpowers.in','crm.sunpowers.in'].indexOf(h) === -1;
   return staging
     ? { url: 'https://czthmbezxlkqanbhqplz.supabase.co', key: 'sb_publishable_B0f2LniPY1cR5Jzx-CbYYg_wrUiUfdq' }
     : { url: 'https://fotmykjrqrgjnzqbdsea.supabase.co', key: 'sb_publishable_sN48EuIxQhDgS4xaalwJZA_aV-9mfLg' };
@@ -19,7 +19,9 @@ window.SP_CONFIG = {
   IMAGE_BUCKET: 'sp-images',
   STORE_URL: 'https://store.sunpowers.in',
   CRM_URL: 'https://crm.sunpowers.in',
-  SITE_URL: 'https://www.sunpowers.in'
+  SITE_URL: 'https://www.sunpowers.in',
+  // Staging (Vercel preview) par deployment-wale link se kholne par bhi sahi CRM/Store/Website khulein
+  STAGING_SUFFIX: 'git-update-oct20-digi-7195.vercel.app'
 };
 
 // =====================================================================

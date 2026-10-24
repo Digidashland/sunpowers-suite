@@ -171,12 +171,33 @@
   C.toDataUrl = function (blob) { return new Promise(function (res, rej) { var r = new FileReader(); r.onload = function () { res(r.result); }; r.onerror = rej; r.readAsDataURL(blob); }); };
   C.fromB64 = function (b64, mime) { var s = atob(b64), u = new Uint8Array(s.length); for (var i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return new Blob([u], { type: mime || 'application/octet-stream' }); };
   C.download = function (blob, name) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500); };
+  /* PDF ka public link: file Supabase storage me jati hai (CRM login se chhota token milta hai) */
+  C.pdfLink = async function (blob, name) {
+    var r = await C.call('crm_upload_token', {}), tk = (r && (r.token || r)) || '';
+    if (!tk || typeof tk !== 'string') throw new Error('upload token nahi mila');
+    var path = 'u/' + tk + '/' + Date.now() + '-' + String(name || 'doc.pdf').replace(/[^\w.\-]+/g, '-'), k = String(CFG.SUPABASE_KEY || '').trim(), h = { apikey: k, 'Content-Type': 'application/pdf', 'x-upsert': 'false' };
+    if (k.indexOf('sb_') !== 0) h.Authorization = 'Bearer ' + k;
+    var res = await fetch(base() + '/storage/v1/object/sp-images/' + path, { method: 'POST', headers: h, body: blob });
+    if (!res.ok) throw new Error('upload ' + res.status);
+    return base() + '/storage/v1/object/public/sp-images/' + path;
+  };
+  C.openWa = function (url) { var w = null; try { w = window.open(url, '_blank'); } catch (e) {} if (!w) location.href = url; };
+  /* WhatsApp par seedha file na ja sake to: PDF download + link + poori details text me */
   C.share = async function (blob, name, text, phone) {
     var file = blob ? new File([blob], name, { type: blob.type || 'application/octet-stream' }) : null;
     try { if (file && navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text: text || '' }); return 'shared'; } } catch (e) { if (e && e.name === 'AbortError') return 'cancel'; }
+    var link = '';
+    if (blob && /pdf/i.test(blob.type || name)) { try { link = await C.pdfLink(blob, name); } catch (e) { link = ''; } }
     if (blob) C.download(blob, name);
-    window.open(C.wa(phone || '', (text || '') + (blob ? '\n\n(' + name + ' attach karein — file download ho gayi hai)' : '')), '_blank');
-    return 'fallback';
+    var msg = (text || '') + (link ? '\n\n📄 PDF download karein:\n' + link : blob ? '\n\n(' + name + ' attach karein — file download ho gayi hai)' : '');
+    C.openWa(C.wa(phone || '', msg));
+    return link ? 'link' : 'fallback';
+  };
+  C.pdfSave = async function (html, name) {
+    C.busy(true);
+    try { var b = await C.pdfBlob(html, name); C.download(b, name); C.toast('PDF download ho gayi ✔'); return b; }
+    catch (e) { C.toast('PDF nahi bani — Print → "Save as PDF" chunein', true); C.printHtml(html, name); return null; }
+    finally { C.busy(false); }
   };
   C.printHtml = function (html, title) {
     var f = document.createElement('iframe'); f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0'; document.body.appendChild(f);
@@ -187,11 +208,11 @@
   };
   C.loadScript = function (src) { return new Promise(function (res, rej) { if ($('script[src="' + src + '"]')) return res(); var s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = function () { s.remove(); rej(new Error('load')); }; document.head.appendChild(s); }); };
   C.pdfBlob = async function (html, name) {
-    await C.loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
+    if (!window.html2pdf) { try { await C.loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'); } catch (e) { await C.loadScript('https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js'); } }
     var box = document.createElement('div'); box.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;background:#fff'; box.innerHTML = html; document.body.appendChild(box);
     var pw = html.indexOf('pstrip') >= 0 ? C.powered() : null;
     try {
-      var w = window.html2pdf().set({ margin: [8, 8, pw ? 16 : 10, 8], filename: name, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy'] } }).from(box.firstElementChild || box);
+      var w = window.html2pdf().set({ margin: [8, 8, pw ? 16 : 10, 8], filename: name, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794, scrollX: 0, scrollY: 0 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy'] } }).from(box.querySelector('.bill') || box.querySelector('div') || box);
       if (pw && w.toPdf) w = w.toPdf().get('pdf').then(function (pdf) { C.pdfStrip(pdf, pw); });
       return await w.outputPdf('blob');
     }
@@ -216,11 +237,13 @@
     } catch (e) { /* patti na bane to bhi PDF chale */ }
   };
   /* share a printable document as PDF (WhatsApp / any app); falls back to Print + WhatsApp text */
-  C.sharePdf = async function (html, name, text, phone) {
+  C.sharePdf = async function (html, name, text, phone, meta) {
+    /* Round 32: one "Send" sheet — 🔗 Send via Link (page with details + download) or 📎 Send from Local Storage (real PDF file) */
+    if (window.SPSHARE) { SPSHARE.open(Object.assign({ html: html, name: name, text: text, phone: phone, title: name.replace(/\.pdf$/i, '') }, meta || {})); return 'sheet'; }
     C.busy(true); var blob = null;
     try { blob = await C.pdfBlob(html, name); } catch (e) { blob = null; } finally { C.busy(false); }
     if (blob) return C.share(blob, name, text, phone);
-    C.toast('PDF ke liye Print → "Save as PDF" chunein', false); C.printHtml(html, name); window.open(C.wa(phone || '', text || ''), '_blank'); return 'print';
+    C.toast('PDF ke liye Print → "Save as PDF" chunein', false); C.printHtml(html, name); C.openWa(C.wa(phone || '', text || '')); return 'print';
   };
   C.xl = async function (name, head, rows) { if (!window.XLSXLite) return C.toast('Excel tool load nahi hua', true); var fx = C.dlFilter ? await C.dlFilter(name, { head: head, rows: rows }) : { head: head, rows: rows }; if (!fx) return; head = fx.head; rows = fx.rows; C.download(window.XLSXLite.write([{ name: name, rows: [head].concat(rows), widths: head.map(function () { return 18; }) }]), name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + today() + '.xlsx'); };
   C.readSheet = async function (file) {
@@ -252,7 +275,7 @@
     var hideP = type === 'quote' && d.show_item_prices === false;
     var rows = (d.lines || []).map(function (l, n) {
       var body = (l.title ? '<div class="ttl2">' + esc(l.title) + '</div>' : '') + '<b>' + esc(l.name) + '</b>';
-      if ((l.kind || 'product') === 'project') body += '<div class="det">' + (l.proj_items || []).map(function (x) { return '• ' + (x.title ? esc(x.title) + ' – ' : '') + esc(x.name) + ' × ' + esc(x.qty) + (l.show_prices && num(x.price) ? ' @ ' + money(x.price) : '') + (C.lines(x.desc).length ? '<br><span style="padding-left:12px;display:inline-block">' + C.lines(x.desc).map(esc).join('<br>') + '</span>' : ''); }).join('<br>') + '</div>' + C.itemDetails(l);
+      if ((l.kind || 'product') === 'project') body += (l.kw ? '<div class="det"><b>System size: ' + esc(l.kw) + ' kW</b></div>' : '') + '<div class="det">' + (l.proj_items || []).map(function (x) { return '• ' + (x.title ? esc(x.title) + ' – ' : '') + esc(x.name) + ' × ' + esc(x.qty) + (l.show_prices && num(x.price) ? ' @ ' + money(x.price) : '') + (C.lines(x.desc).length ? '<br><span style="padding-left:12px;display:inline-block">' + C.lines(x.desc).map(esc).join('<br>') + '</span>' : ''); }).join('<br>') + '</div>' + C.itemDetails(l);
       else body += C.itemDetails(l);
       var amt = num(l.qty) * num(l.price);
       return '<tr class="pg"><td>' + (n + 1) + '</td><td>' + body + '</td><td>' + esc(l.hsn || '') + '</td><td class="r">' + esc(l.qty) + (l.unit ? ' ' + esc(l.unit) : '') + '</td>' + (hideP ? '' : '<td class="r">' + money(l.price) + '</td><td class="r">' + esc(num(l.gst)) + '%</td><td class="r">' + money(amt * (1 + num(l.gst) / 100)) + '</td>') + '</tr>';
@@ -263,6 +286,7 @@
     h += '<table class="it"><thead><tr><th style="width:26px">#</th><th>Item</th><th style="width:62px">HSN</th><th class="r" style="width:54px">Qty</th>' + (hideP ? '' : '<th class="r" style="width:86px">Rate</th><th class="r" style="width:48px">GST</th><th class="r" style="width:96px">Amount</th>') + '</tr></thead><tbody>' + rows + '</tbody></table>';
     h += '<table style="margin-top:8px"><tr><td style="width:52%"></td><td><table class="tot"><tr><td>Subtotal</td><td class="r">' + money(d.subtotal, 1) + '</td></tr><tr><td>GST</td><td class="r">' + money(d.gst_total, 1) + '</td></tr>' + (num(d.discount) > 0 ? '<tr><td>Discount</td><td class="r">−' + money(d.discount, 1) + '</td></tr>' : '') + '<tr class="gt"><td>Grand Total</td><td class="r">' + money(d.grand, 1) + '</td></tr>' + (type === 'invoice' ? '<tr><td>Paid</td><td class="r">' + money(d.paid || 0, 1) + '</td></tr><tr><td><b>Balance Due</b></td><td class="r"><b>' + money(d.balance != null ? d.balance : d.grand, 1) + '</b></td></tr>' : '') + '</table></td></tr></table>';
     h += '<div class="words"><b>Amount in words:</b> ' + C.words(d.grand) + '</div>';
+    if (type === 'invoice') h += (d.cancelled ? '<div style="margin:8px 0;padding:6px 10px;border:2px solid #b3261e;color:#b3261e;font-weight:800;text-align:center">CANCELLED – NON REFUNDABLE</div>' : '') + '<div class="sm" style="margin-top:6px"><b>Note:</b> ' + (d.refund_ok ? 'Refund sirf Admin ki likhit ijazat se.' : 'Is bill ka bhugtan non-refundable hai — jama hua paisa wapas nahi hoga.') + '</div>';
     if (type === 'invoice' && (rec.payments || []).length) h += '<h4>Payment History</h4><table class="ph"><thead><tr><th>Date</th><th>Mode</th><th>Ref / UTR</th><th class="r">Amount</th></tr></thead><tbody>' + rec.payments.map(function (p) { return '<tr><td>' + esc(fd(p.due_at)) + '</td><td>' + esc(p.data.mode || '') + '</td><td>' + esc(p.data.utr || p.ref || '-') + '</td><td class="r">' + money(p.amount) + '</td></tr>'; }).join('') + '</tbody></table>';
     var bank = co.bank_name || co.bank_acc || co.upi;
     var terms = d.notes || (type === 'quote' ? co.terms_quote : '') || co.terms;
@@ -308,18 +332,20 @@
       { k: 'home', l: 'Home', i: 'home' },
       { k: 'today', l: 'Aaj ke kaam', i: 'today', cnt: 'today' },
       { k: 'leads', l: 'Leads', i: 'lead', show: function () { return C.canAny('leads.create', 'leads.view_all'); } },
-      { k: 'customers', l: 'Customers', i: 'users', show: function () { return C.canAny('customers.create', 'customers.view_all') || C.isPartner(); } }
+      { k: 'inquiries', l: 'Conversation', i: 'today', show: function () { return C.canAny('customers.create', 'customers.view_all'); } },
+      { k: 'customers', l: 'All Customers', i: 'users', show: function () { return C.canAny('customers.create', 'customers.view_all') || C.isPartner(); } }
     ] },
     { g: 'Sales', items: [
       { k: 'quotes', l: 'Quotations & Templates', i: 'quote', show: function () { return C.canAny('quotes.create', 'quotes.view_all'); } },
       { k: 'projects', l: 'Projects', i: 'plant', rib: 'Live tracking', show: function () { return C.canAny('quotes.create', 'quotes.view_all', 'plants.create', 'plants.view_all'); } },
       { k: 'billing', l: 'Billing', i: 'bill', show: function () { return C.canAny('invoices.create', 'invoices.view_all', 'payments.record', 'purchase.manage') || C.isPartner(); } },
       { k: 'items', l: 'Inventory/Stock', i: 'box', show: function () { return C.can('items.view'); } },
+      { k: 'sitevisit', l: 'Site Visit', i: 'plant', show: function () { return C.canAny('leads.create', 'leads.view_all'); } },
       { k: 'blueprint', l: 'Project blue print', i: 'plant', show: function () { return C.canAny('leads.create', 'leads.view_all'); } },
       { k: 'accounts', l: 'Accounts', i: 'rupee', show: function () { return C.canAny('accounts.manage', 'accounts.view'); } },
       { k: 'reports', l: 'Reports', i: 'quote', show: function () { return C.can('reports.view'); } },
       { k: 'analytics', l: 'Analytics', i: 'activity', show: function () { return C.can('analytics.view'); } },
-      { k: 'maintenance', l: 'Maintenance & Audit', i: 'settings', show: function () { return C.canAny('items.view', 'reminders.view_all', 'customers.create', 'customers.view_all'); } },
+      { k: 'maintenance', l: 'Maintenance & AMC', i: 'settings', show: function () { return C.canAny('items.view', 'reminders.view_all', 'customers.create', 'customers.view_all'); } },
       { k: 'orders', l: 'Store Orders', i: 'cart', cnt: 'orders', show: function () { return C.can('orders.view'); } }
     ] },
     { g: 'Field', items: [
@@ -344,7 +370,7 @@
   function mobNavHtml() {
     var list = [{ k: 'home', l: 'Home', i: 'home' }, { k: 'today', l: 'Aaj', i: 'today', cnt: 'today' }];
     if (C.canAny('leads.create', 'leads.view_all')) list.push({ k: 'leads', l: 'Leads', i: 'lead' });
-    if (C.canAny('quotes.create', 'quotes.view_all')) list.push({ k: 'quotes', l: 'Quotations & Templates', i: 'quote' }); else list.push({ k: 'customers', l: 'Customers', i: 'users' });
+    if (C.canAny('quotes.create', 'quotes.view_all')) list.push({ k: 'quotes', l: 'Quotations & Templates', i: 'quote' }); else list.push({ k: 'customers', l: 'All Customers', i: 'users' });
     list = list.slice(0, 4);
     return list.map(function (x) { return '<a href="#/' + x.k + '" data-nav="' + x.k + '">' + C.ic(x.i) + esc(x.l) + (x.cnt ? '<span class="cnt" data-cnt="' + x.cnt + '" hidden></span>' : '') + '</a>'; }).join('') + '<button type="button" id="mobMore">' + C.ic('grid') + 'Menu</button>';
   }
@@ -428,7 +454,7 @@
   /* ================================================================ auth screens (Email OTP + PIN — assets/auth.js) */
   function authHtml() {
     var co = C.company();
-    return '<button type="button" class="btn btn-o btn-sm auth-lang" data-sp-lang="long" aria-label="Language"></button><div class="auth"><section class="auth-art"><div class="brand">' + C.LOGO + '<span><b>' + esc(co.name || 'Sunpowers') + '</b><small>CRM</small></span></div><div><h1>Har lead, har quotation, har plant — <em>ek jagah.</em></h1><p>Billing, quotation, leads, reminders, documents aur team ka poora hisab — mobile aur computer dono par.</p><ul><li>' + C.ic('check') + 'Pehli baar Email OTP, phir sirf PIN</li><li>' + C.ic('check') + 'Quotation aur GST bill ek click me WhatsApp par</li><li>' + C.ic('check') + 'Har user ko sirf uska data — Admin ko sab</li></ul></div><p class="xs" style="color:var(--on-dark-mute)">© ' + new Date().getFullYear() + ' ' + esc(co.legal || co.name || 'Sunpowers') + '</p></section><section class="auth-form"><div class="auth-card" id="authBox"></div></section></div><div class="toasts" id="toasts"></div>';
+    return '<button type="button" class="btn btn-o btn-sm auth-lang" data-sp-lang="long" aria-label="Language"></button><div class="auth"><section class="auth-art"><div class="brand">' + C.LOGO + '<span><b>' + esc(co.name || 'Sunpowers') + '</b><small>CRM</small></span></div><div><h1>Har lead, har quotation, har plant — <em>ek jagah.</em></h1><p>Billing, quotation, leads, reminders, documents aur team ka poora hisab — mobile aur computer dono par.</p><ul><li>' + C.ic('check') + 'Pehli baar Email OTP, phir sirf PIN</li><li>' + C.ic('check') + 'Quotation aur GST bill ek click me WhatsApp par</li><li>' + C.ic('check') + 'Har user ko sirf apna data dikhta hai</li></ul></div><p class="xs" style="color:var(--on-dark-mute)">© ' + new Date().getFullYear() + ' ' + esc(co.legal || co.name || 'Sunpowers') + '</p></section><section class="auth-form"><div class="auth-card" id="authBox"></div></section></div><div class="toasts" id="toasts"></div>';
   }
   function saveToken(r) {
     C.token = r.token;
@@ -439,21 +465,37 @@
     document.body.onclick = null;
     document.body.innerHTML = authHtml();
     if (!window.SPAuth) { $('#authBox').innerHTML = '<p class="err">auth.js load nahi hua — page refresh karein</p>'; return; }
-    window.SPAuth.mount($('#authBox'), { app: 'crm', lang: 'hn', title: 'Login', sub: 'Admin, Manager, Staff, Dealer aur Influencer — sab yahin se.',
+    window.SPAuth.mount($('#authBox'), { app: 'crm', lang: 'hn', title: 'Login', sub: 'Manager, Staff, Dealer aur Influencer — apni ID se login karein.',
       register: [['dealer', 'Dealer'], ['influencer', 'Influencer']], regSub: 'Dealer / Influencer ki ID — Admin verify karega.',
       rpc: function (fn, p) { return C.rpc(fn, { p: p }); },
       onDone: async function (r) { saveToken(r); await boot(); } });
   }
   C.ss = function (k, v) { try { if (v === undefined) return sessionStorage.getItem(k); if (v === null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch (e) { return null; } };
-  C.logoutLocal = function (msg) { C.me = null; C.token = null; C.cache = {}; C.ls('crm_tok', null); C.ss('crm_tok_s', null); clearInterval(pulseTimer); showAuth(); if (msg) C.toast(msg, true); };
+  /* Round 33: an Admin who came through the Admin panel goes BACK to the Admin page on logout (not to the CRM login screen). */
+  function backToAdmin() {
+    var u = null; try { u = window.SPSwitch && SPSwitch.urlFor('admin'); } catch (e) {}
+    if (u) { location.href = u; return true; }
+    try { window.close(); } catch (e) {}
+    return false;
+  }
+  C.logoutLocal = function (msg) { var wasAdmin = false; try { wasAdmin = !!(C.me && C.isAdmin()); } catch (e) {} if (window.SPSwitch) SPSwitch.unmount(); C.me = null; C.token = null; C.cache = {}; C.ls('crm_tok', null); C.ss('crm_tok_s', null); clearInterval(pulseTimer); if (wasAdmin && backToAdmin()) return; showAuth(); if (msg) C.toast(msg, true); };
   C.logout = async function () { try { await C.call('crm_logout', {}); } catch (e) {} C.logoutLocal(); };
 
+  /* Round 26: Admin enters the CRM only through the Admin panel (one-time ticket in the URL fragment, verified on the server). */
+  async function takeHandoff() {
+    var m = /[#&]h=([0-9a-f]{20,})/.exec(location.hash || ''); if (!m) return;
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+    try { var r = await C.rpc('crm_auth_handoff', { p: { ticket: m[1], device: '' } }); if (r && r.token) saveToken(r); }
+    catch (e) { C.ss('crm_tok_s', null); C.token = null; C._hoErr = e.message || 'Link expire ho gaya'; }
+  }
   async function boot() {
+    await takeHandoff();
     C.token = C.ss('crm_tok_s') || C.ls('crm_tok');
     if (window.SPAuth && window.SPAuth.resetToken()) { showAuth(); return; }
-    if (!C.token) { showAuth(); return; }
+    if (!C.token) { showAuth(); if (C._hoErr) { C.toast(C._hoErr, true); C._hoErr = ''; } return; }
     try { C.me = await C.call('crm_me', {}); }
     catch (e) { C.ls('crm_tok', null); C.ss('crm_tok_s', null); C.token = null; showAuth(); if (!/Login expired/.test(e.message)) C.toast(e.message, true); return; }
+    if (window.SPSwitch) SPSwitch.mount(C.me.role, 'crm');
     try { await C.settings(); } catch (e) { C.cache.settings = {}; }
     if (C.canAny('users.manage', 'leads.assign', 'reminders.assign', 'customers.assign', 'earnings.manage', 'team.stats', 'docs.folders')) C.users();
     shell();

@@ -5,17 +5,25 @@
   var OST = { new: ['Naya', 'r'], confirmed: ['Confirm', 'b'], paid: ['Payment mila', 'o'], shipped: ['Bheja', 'v'], delivered: ['Pahuncha', ''], cancelled: ['Cancel', 'g'] };
   var EST = { new: ['Nayi', 'r'], contacted: ['Baat hui', 'b'], closed: ['Band', ''], cancelled: ['Cancel', 'g'] };
 
+  /* Round 38: enquiry / signup ka raasta hamesha Lead -> Conversation -> Customer. Yahan se seedha customer form nahi (clone / dobara likhna). */
+  async function openLead(pre) {
+    var dg = String(pre.mobile || '').replace(/\D/g, '').slice(-10);
+    var pt = dg.length === 10 ? (await C.list('party', { q: dg, limit: 5 }).catch(function () { return []; })).find(function (x) { return x.mobile === dg; }) : null;
+    if (pt) return C.go('#/customer/' + pt.id);
+    var ex = dg.length === 10 ? (await C.list('lead', { q: dg, limit: 5 }).catch(function () { return []; })).find(function (x) { return x.mobile === dg && x.status !== 'won' && x.status !== 'lost'; }) : null;
+    var r = ex || await C.leadForm(null, pre); if (r) C.go('#/leads?open=' + r.id); return r;
+  }
   function refName(code) { var u = (C.cache.users || []).find(function (x) { return x.ref_code && x.ref_code === String(code).toUpperCase(); }); return u ? code + ' — ' + u.name : code; }
   async function appCustomers(el) {
     var list = await C.call('crm_consumers', {});
     var h = '<div class="ph"><div><h1>Store Orders &amp; Enquiry</h1><p>Main app (Online Store) par login karne wale customers.</p></div><div class="row">' + C.reportBtns('App customers', function () { return { head: ['Naam', 'Mobile', 'Email', 'Shahar', 'Pata', 'Pincode', 'Orders', 'Bana', 'Aakhri login'], rows: list.map(function (u) { return [u.name, u.mobile, u.email || '', u.city || '', u.address || '', u.pincode || '', u.orders, C.fd(u.created_at), u.last_seen ? C.fdt(u.last_seen) : '']; }) }; }) + '</div></div>';
     h += '<div class="tabs"><button data-tab="orders">Orders</button><button data-tab="enquiries">Enquiry</button><button data-tab="app" class="on">App customers (' + list.length + ')</button></div>';
     h += '<div class="bar"><input class="inp" type="search" data-q placeholder="Naam / mobile khojein"></div>';
-    h += list.length ? '<div class="list" id="al">' + list.map(function (u) { return '<div class="li"><span class="av b">' + esc(C.initials(u.name)) + '</span><span class="grow"><span class="t">' + esc(u.name) + (u.in_crm ? C.pill('CRM me hai') : '') + '</span><span class="m"><span>' + C.ic('phone') + esc(u.mobile) + '</span>' + (u.city ? '<span>' + esc(u.city) + '</span>' : '') + '<span>' + u.orders + ' order</span><span>Bana ' + esc(C.fd(u.created_at)) + '</span>' + (u.last_seen ? '<span>Aakhri login ' + esc(C.ago(u.last_seen)) + '</span>' : '') + '</span></span><span class="acts">' + C.callBtns(u.mobile) + (!u.in_crm && C.can('customers.create') && !/\*/.test(u.mobile) ? '<button class="btn btn-o btn-sm" style="display:inline-flex" data-act="mk" data-id="' + u.id + '">' + C.ic('plus') + ' Customer</button>' : '') + '</span></div>'; }).join('') + '</div>' : '<div class="card">' + C.empty('users', 'Abhi kisi ne app par login nahi banaya', 'Online Store me "👤 Mera account" se customer ID banate hain') + '</div>';
+    h += list.length ? '<div class="list" id="al">' + list.map(function (u) { return '<div class="li"><span class="av b">' + esc(C.initials(u.name)) + '</span><span class="grow"><span class="t">' + esc(u.name) + (u.in_crm ? C.pill('CRM me hai') : '') + '</span><span class="m"><span>' + C.ic('phone') + esc(u.mobile) + '</span>' + (u.city ? '<span>' + esc(u.city) + '</span>' : '') + '<span>' + u.orders + ' order</span><span>Bana ' + esc(C.fd(u.created_at)) + '</span>' + (u.last_seen ? '<span>Aakhri login ' + esc(C.ago(u.last_seen)) + '</span>' : '') + '</span></span><span class="acts">' + C.callBtns(u.mobile) + (!u.in_crm && C.can('leads.create') && !/\*/.test(u.mobile) ? '<button class="btn btn-o btn-sm" style="display:inline-flex" data-act="mk" data-id="' + u.id + '">' + C.ic('lead') + ' Lead / Conversation</button>' : '') + '</span></div>'; }).join('') + '</div>' : '<div class="card">' + C.empty('users', 'Abhi kisi ne app par login nahi banaya', 'Online Store me "👤 Mera account" se customer ID banate hain') + '</div>';
     el.innerHTML = h;
     var al = $('#al', el); if (al) C.filterList($('[data-q]', el), al);
     el.addEventListener('click', function (e) { var t = e.target.closest('[data-tab]'); if (t) C.go('#/orders?tab=' + t.getAttribute('data-tab')); });
-    C.bind(el, { mk: async function (id) { var u = list.find(function (x) { return String(x.id) === id; }); var p = await C.partyForm(null, { prefill: { name: u.name, mobile: u.mobile, email: u.email, city: u.city, address: u.address, pincode: u.pincode, source: 'Online Store' } }); if (p) C.go('#/customer/' + p.id); } });
+    C.bind(el, { mk: async function (id) { var u = list.find(function (x) { return String(x.id) === id; }); await openLead({ intake: 'inbound', name: u.name, mobile: u.mobile, email: u.email, city: u.city, address: u.address, source: 'Online Store' }); } });
   }
 
   C.mod('orders', {
@@ -43,9 +51,10 @@
           else body += (d.subject || d.type ? '<p class="b" style="margin-bottom:6px">' + esc([d.subject, d.type].filter(Boolean).join(' · ')) + '</p>' : '') + '<div class="note g" style="white-space:pre-line">' + esc(d.message || d.note || d.product || '(Koi sandesh nahi)') + '</div>' + (d.kw || d.bill ? '<p class="sm" style="margin-top:8px">' + (d.kw ? 'kW: ' + esc(d.kw) + ' ' : '') + (d.bill ? 'Bill: ₹' + esc(d.bill) : '') + '</p>' : '');
           if (d.note && tab === 'orders') body += '<div class="note" style="margin-top:10px">' + esc(d.note) + '</div>';
           if (mg) body += '<div class="sec-t">Status</div>' + C.chips(Object.keys(M).map(function (s) { return [s, M[s][0]]; }), o.status, 'os');
-          var m = C.modal({ title: tab === 'orders' ? 'Order ' + (d.order_no || '#' + o.id) : 'Enquiry — ' + (d.name || ''), body: body, size: 'wide', foot: C.callBtns(ph, 'Namaste ' + (d.name || '') + ' ji, ' + (C.company().name || '') + ' se — aapka ' + (tab === 'orders' ? 'order #' + o.id : 'sandesh') + ' mila. ') + (C.can('quotes.create') && tab === 'orders' ? '<button class="btn btn-p" data-qt>' + C.ic('quote') + ' Quotation banayein</button>' : '') + (C.can('customers.create') ? '<button class="btn btn-o" data-cu>' + C.ic('users') + ' Customer banayein</button>' : '') + (tab === 'enquiries' && C.can('leads.create') ? '<button class="btn btn-p" data-ld>' + C.ic('lead') + ' Lead banayein</button>' : '') });
+          var m = C.modal({ title: tab === 'orders' ? 'Order ' + (d.order_no || '#' + o.id) : 'Enquiry — ' + (d.name || ''), body: body, size: 'wide', foot: C.callBtns(ph, 'Namaste ' + (d.name || '') + ' ji, ' + (C.company().name || '') + ' se — aapka ' + (tab === 'orders' ? 'order #' + o.id : 'sandesh') + ' mila. ') + (C.can('quotes.create') && tab === 'orders' ? '<button class="btn btn-p" data-qt>' + C.ic('quote') + ' Quotation banayein</button>' : '') + (tab === 'orders' ? '<button class="btn btn-o" data-cu>' + C.ic('users') + ' Customer kholein</button>' : '') + (tab === 'enquiries' && C.canAny('leads.create', 'leads.view_all') ? '<button class="btn btn-p" data-ld>' + C.ic('lead') + ' Lead / Conversation kholein</button>' : '') });
           m.el.addEventListener('click', async function (ev) { var s = ev.target.closest('[data-os]'); if (!s) return; try { await C.run('crm_order_status', { kind: tab, id: o.id, status: s.getAttribute('data-os') }, 'Status badal gaya ✔'); m.close(); C.render(); } catch (x) {} });
-          var cu = $('[data-cu]', m.el); if (cu) cu.onclick = async function () { m.close(); var p = await C.partyForm(null, { prefill: { name: d.name, mobile: ph, address: d.address, city: d.city, pincode: d.pincode, source: tab === 'orders' ? 'Online Store' : (d.channel && C.channelName ? C.channelName(d.channel) : d.source === 'website' ? 'Website' : 'Online Store'), note: d.message || '' } }); if (p) C.go('#/customer/' + p.id); };
+          /* Round 38: online order ka customer apne aap ban jata hai (adhura pata ho to "Details adhuri") — yahan sirf kholna hai */
+          var cu = $('[data-cu]', m.el); if (cu) cu.onclick = async function () { var dg1 = String(ph || '').replace(/\D/g, '').slice(-10), p1 = dg1.length === 10 ? (await C.list('party', { q: dg1, limit: 5 }).catch(function () { return []; })).find(function (x) { return x.mobile === dg1; }) : null; if (!p1) return C.toast('Is order ka customer nahi mila (mobile sahi nahi?)', true); m.close(); C.go('#/customer/' + p1.id); };
           var qt = $('[data-qt]', m.el); if (qt) qt.onclick = async function () {
             try {
               C.busy(true);
@@ -57,13 +66,12 @@
               if (!lines.length) { C.toast('Is order ka koi item Inventory me nahi mila — pehle Inventory me jodein', true); return; }
               var dg = String(ph || '').replace(/\D/g, '').slice(-10), found = dg.length === 10 ? (await C.list('party', { q: dg, limit: 5 })).find(function (x) { return x.mobile === dg; }) : null;
               C.busy(false);
-              var p = found || await C.partyForm(null, { prefill: { name: d.name, mobile: ph, address: d.address, city: d.city, pincode: d.pincode, source: 'Online Store' } });
-              if (!p) return;
+              var p = found; if (!p) { C.toast('Is order ka customer nahi mila (mobile sahi nahi?)', true); return; }
               try { sessionStorage.setItem('crm_qt_pre', JSON.stringify({ lines: lines, order_no: d.order_no || ('#' + o.id), order_id: o.id, miss: miss })); } catch (e) {}
               m.close(); C.go('#/quote/new?party=' + p.id + '&pre=1');
             } catch (e) { C.toast(e.message, true); } finally { C.busy(false); }
           };
-          var ld = $('[data-ld]', m.el); if (ld) ld.onclick = async function () { m.close(); var dg0 = String(ph || '').replace(/\D/g, '').slice(-10), ex0 = dg0.length === 10 ? (await C.list('lead', { q: dg0, limit: 5 }).catch(function () { return []; })).find(function (x) { return x.mobile === dg0; }) : null; var r = ex0 || await C.leadForm(null, { intake: 'inbound', name: d.name, mobile: ph, city: d.city, source: d.source === 'website' ? 'Website' : 'Online Store', note: d.message || d.product || '', kw: d.kw, bill: d.bill }); if (r) { if (o.status === 'new' && C.can('orders.manage')) { try { await C.call('crm_order_status', { kind: 'enquiries', id: o.id, status: 'contacted' }); } catch (x) {} } C.go('#/leads?open=' + r.id); } };
+          var ld = $('[data-ld]', m.el); if (ld) ld.onclick = async function () { m.close(); var r = await openLead({ intake: 'inbound', name: d.name, mobile: ph, email: d.email, city: d.city, source: d.source === 'website' ? 'Website' : 'Online Store', note: d.message || d.product || '', kw: d.kw, bill: d.bill }); if (r && o.status === 'new' && C.can('orders.manage')) { try { await C.call('crm_order_status', { kind: 'enquiries', id: o.id, status: 'contacted' }); } catch (x) {} } };
         }
       });
     }

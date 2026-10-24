@@ -1,0 +1,27 @@
+ROUND 32 — "Send" har jagah (Link se / Local Storage se)
+=========================================================
+PEHLE KARNA:
+1) Supabase staging -> SQL Editor: SQL-PARTS/2-UPDATE ka sabse naya part (U10) chalayein, ya poori SQL-1-SABSE-PEHLE-CHALAYEIN.sql / MASTER-UPDATE.sql dobara. (Naya: sp_shares table + share functions. Safe to re-run.)
+2) Website dobara deploy karein (naya: website/api/d.js + vercel.json me /d/ rewrite). Vercel project ka Root Directory = website/ hona chahiye, tabhi /api chalega.
+
+KYA MILA:
+Jahan bhi document download hota tha, wahan ab 2 bade button: "🔗 Send via Link" aur "📎 Send from Local Storage" (+ Download, Copy link, Print).
+- Send via Link: PDF online save hota hai, chhota link sunpowers.in/d/<code> banta hai, WhatsApp me preview card (title, amount, kaun) ke saath jata hai. Link kholne par upar details, neeche Download button.
+- Send from Local Storage: asli PDF file seedha WhatsApp/kisi bhi app me (phone me). Computer par file download hoti hai aur WhatsApp khulta hai - aap attach karein.
+- WhatsApp me aapko "Send" khud dabana hota hai (bina API ke ye automatic nahi ho sakta).
+
+KAHAN KAHAN:
+CRM: Quotation, Bill, Receipt, Customer Ledger, Service report, Documents (file), Blueprint/Designer (drawing, angles, quotation).
+Designer/Blueprint: Website + Store + CRM (Quotation sirf staff ko; customer ke link me paisa nahi jata).
+Error Detector (report), Invoices (Store + Website, Shop order + Design), Plant documents (customer ka Final Quotation / Bill / Maintenance / uploaded files).
+
+LINK KE NIYAM:
+- Staff ke link 120 din chalte hain; customer (public) ke 30 din. CRM me link ki history (kitni baar khola) aur "Band karein" hai.
+- Public logon ke liye 1 ghante me 20 link ki limit (spam rokne ko).
+- WhatsApp card pehli baar bhejne par cache ho jata hai.
+- Staging se bane links me ?e=s lagta hai (staging DB padhta hai). Agar staging ki alag website ho to crm/config.js me SITE_URL_STAGING bharein.
+- Excel jaise non-PDF file ka link nahi banta, sirf Local Storage wala tareeka.
+- Customer ke Designer me Send abhi bhi paywall ke baad hi chalta hai.
+
+LIVE JAANE SE PEHLE (purane carry-over): admin ka default password badlein, emergency login hatayein, Mapbox token sirf live URLs ke liye restrict karein.
+Asli phone par WhatsApp/Android/iPhone check https deploy ke baad hi hota hai.

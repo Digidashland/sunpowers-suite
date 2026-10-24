@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/crm.css?v=4">
+<link rel="stylesheet" href="assets/crm.css?v=7">
 <style>
 /* ---- splash: app icon only + running-lines loader ---- */
 #splash{position:fixed;inset:0;z-index:99998;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;background:radial-gradient(120% 90% at 50% 0%,#2f9e4f 0%,#14622e 55%,#0b3a1b 100%);pointer-events:none;transition:opacity .45s ease,visibility 0s linear .45s}
@@ -40,41 +40,47 @@ if(document.readyState==='complete')ready();else window.addEventListener('load',
 <div class="loading" style="min-height:100vh"><span class="spin"></span> CRM khul raha hai…</div>
 <noscript>CRM chalane ke liye JavaScript on karein.</noscript>
 <script src="config.js?v=4"></script>
-<script src="assets/sp-i18n.js?v=5"></script>
-<script src="assets/i18n-dict.js?v=5"></script>
+<script src="assets/sp-i18n.js?v=12"></script>
+<script src="assets/sp-voice.js?v=2" defer></script>
+<script src="assets/i18n-dict.js?v=13"></script>
+<script src="assets/i18n-langs.js?v=3"></script>
 <script src="assets/lic.js?v=4" data-app="crm"></script>
 <script src="assets/sp-look.js?v=1" data-app="crm"></script>
 <script src="assets/sp-look-ui.js?v=1" defer></script>
 <script src="assets/xlsx-lite.js?v=4" defer></script>
 <script src="assets/auth.js?v=4" defer></script>
-<script src="assets/core.js?v=10" defer></script>
+<script src="assets/core.js?v=19" defer></script>
+<script src="assets/sp-share.js?v=3" defer></script>
 <script src="assets/india-geo.js?v=5" defer></script>
-<script src="assets/ui.js?v=5" defer></script>
+<script src="assets/ui.js?v=10" defer></script>
 <script src="assets/charts.js?v=1" defer></script>
 <script src="assets/sheets.js?v=1" defer></script>
-<script src="assets/blueprint.js?v=2" defer></script>
-<script src="modules/home.js?v=4" defer></script>
+<script src="assets/blueprint.js?v=8" defer></script>
+<script src="modules/home.js?v=7" defer></script>
 <script src="modules/today.js?v=4" defer></script>
-<script src="modules/leads.js?v=4" defer></script>
-<script src="modules/customers.js?v=4" defer></script>
-<script src="modules/items.js?v=5" defer></script>
-<script src="modules/billing.js?v=5" defer></script>
-<script src="modules/plants.js?v=5" defer></script>
-<script src="modules/workflow.js?v=1" defer></script>
-<script src="modules/blueprint.js?v=2" defer></script>
+<script src="modules/leads.js?v=7" defer></script>
+<script src="modules/customers.js?v=16" defer></script>
+<script src="modules/items.js?v=7" defer></script>
+<script src="modules/billing.js?v=15" defer></script>
+<script src="modules/plants.js?v=6" defer></script>
+<script src="modules/flow.js?v=8" defer></script>
+<script src="modules/workflow.js?v=6" defer></script>
+<script src="modules/blueprint.js?v=5" defer></script>
+<script src="modules/sitevisit.js?v=4" defer></script>
 <script src="modules/docs.js?v=4" defer></script>
-<script src="modules/orders.js?v=4" defer></script>
+<script src="modules/orders.js?v=6" defer></script>
 <script src="modules/team.js?v=4" defer></script>
-<script src="modules/settings.js?v=7" defer></script>
+<script src="modules/settings.js?v=8" defer></script>
 <script src="modules/connections.js?v=2" defer></script>
-<script src="modules/maintenance.js?v=2" defer></script>
+<script src="modules/maintenance.js?v=6" defer></script>
 <script src="modules/accounts.js?v=2" defer></script>
 <script src="modules/reports.js?v=1" defer></script>
 <script src="modules/analytics.js?v=1" defer></script>
 <script src="modules/activity.js?v=5" defer></script>
 <script src="modules/profile.js?v=4" defer></script>
-<script src="modules/hints.js?v=6" defer></script>
+<script src="modules/hints.js?v=12" defer></script>
+<script src="modules/flowbar.js?v=4" defer></script>
 <script src="modules/marketing.js?v=5" defer></script>
 <script>if ('serviceWorker' in navigator && location.protocol === 'https:') addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });</script>
-</body>
+<script src="assets/sp-switch.js"></script></body>
 </html>

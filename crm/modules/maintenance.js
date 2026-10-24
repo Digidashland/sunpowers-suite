@@ -1,20 +1,21 @@
-/* Maintenance & Audit Packages
-   - Plans and checklist items live in the INVENTORY (Items): edit / delete / add from here or from Products & Projects → "Maintenance & Audit".
+/* Maintenance & AMC Packages
+   - Plans and checklist items live in the INVENTORY (Items): edit / delete / add from here or from Products & Projects → "Maintenance & AMC".
    - A contract = one customer + one plan. Every visit is a reminder (shows in "Aaj ke kaam"). When a visit is marked done the
      materials used are taken out of stock and the next visit date moves forward from the real service date. */
 (function () {
   'use strict';
   var C = window.CRM, $ = C.$, $$ = C.$$, esc = C.esc, money = C.money, num = function (v) { return parseFloat(v) || 0; };
-  var PER = { monthly: ['Har mahine', 1, 12], quarterly: ['Quarterly (har 3 mahine)', 3, 4], half: ['Half-yearly (har 6 mahine)', 6, 2], yearly: ['Yearly (saal me 1 baar)', 12, 1] };
+  var PER = { one: ['Ek baar (one-time)', 0, 1], monthly: ['Har mahine', 1, 12], quarterly: ['Quarterly (har 3 mahine)', 3, 4], half: ['Half-yearly (har 6 mahine)', 6, 2], yearly: ['Yearly (saal me 1 baar)', 12, 1] };
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var ST = { overdue: ['Overdue', 'r'], soon: ['Jaldi due', 'o'], upcoming: ['Aane wali', 'b'], complete: ['Poori ho gayi', ''] };
 
   function allItems() { return C.list('item', { limit: 3000 }); }
-  function plansOf(a) { return a.filter(function (x) { return (x.data.type || '') === 'maintenance' && x.status !== 'inactive'; }); }
+  var ORDER = ['random', 'recommended', 'valuable', 'tension', 'best'];
+  function plansOf(a) { return a.filter(function (x) { return (x.data.type || '') === 'maintenance' && x.status !== 'inactive'; }).sort(function (a, b) { var i = ORDER.indexOf(a.data.plan_code), j = ORDER.indexOf(b.data.plan_code); return (i < 0 ? 99 : i) - (j < 0 ? 99 : j) || a.id - b.id; }); }
   function checksOf(a) { return a.filter(function (x) { return (x.data.type || '') === 'mcheck' && x.status !== 'inactive'; }); }
   function visits() { return C.list('reminder', { limit: 3000 }).then(function (a) { return a.filter(function (x) { return x.data && x.data.maint; }); }); }
   function perOf(d) { var p = PER[d.period]; return p || (d.visits >= 12 ? PER.monthly : d.visits >= 4 ? PER.quarterly : d.visits >= 2 ? PER.half : PER.yearly); }
-  function visitsTotal(d) { var p = perOf(d); return Math.max(1, Math.ceil(p[2] * Math.max(1, num(d.years) || 1))); }
+  function visitsTotal(d) { if (d.period === 'one') return 1; var p = perOf(d); return Math.max(1, Math.ceil(p[2] * Math.max(1, num(d.years) || 1))); }
 
   function groups(V) {
     var g = {}, t0 = C.today(), t7 = C.addDays(t0, 7);
@@ -37,13 +38,13 @@
   function waText(c, v) { return 'Namaste ' + c.party + ' ji 🙏\n' + (C.company().name || 'Sunpowers') + ' se — aapke solar plant ki *' + c.plan + '* service ' + C.fd(v.due_at) + ' ko due hai. Kya hum aa sakte hain? Aapko jo samay theek lage bata dein.'; }
 
   C.mod('maintenance', {
-    title: 'Maintenance & Audit Packages',
+    title: 'Maintenance & AMC Packages',
     allowed: function () { return C.canAny('items.view', 'reminders.view_all', 'customers.create', 'customers.view_all'); },
     render: async function (el, params, q) {
       var tab = ['cal', 'plans', 'checks'].indexOf(q && q.tab) >= 0 ? q.tab : 'dash', canEdit = C.can('items.create');
       var sub = { dash: 'Kis customer ne kaunsa package liya, last service kab hui aur agli kab due hai.', cal: 'Mahine aur saal ke hisab se aane wali maintenance aur audit ki tareekhein.', plans: 'Packages (plans) — kya-kya shamil hai, kitne periods me aur kitne ka. Ye Inventory ka hissa hai.', checks: 'Checklist items — har kaam ka apna cost aur (agar lage) stock ka maal. Ye Inventory ka hissa hai.' }[tab];
-      var h = '<div class="ph"><div><h1>Maintenance &amp; Audit Packages</h1><p>' + esc(sub) + '</p></div><div class="acts">' +
-        (tab === 'plans' ? (canEdit ? '<button class="btn btn-p" data-act="newplan">' + C.ic('plus') + ' Naya plan</button>' : '') :
+      var h = '<div class="ph"><div><h1>Maintenance &amp; AMC Packages</h1><p>' + esc(sub) + '</p></div><div class="acts">' +
+        (tab === 'plans' ? '<span class="pill">🔒 5 Fixed plans — sirf Admin keemat / kaam ki list badal sakta hai</span>' :
           tab === 'checks' ? (canEdit ? '<button class="btn btn-p" data-act="newcheck">' + C.ic('plus') + ' Naya checklist item</button>' : '') :
             '<button class="btn btn-p" data-act="newcontract">' + C.ic('plus') + ' Customer ko plan dein</button>') + '</div></div>' +
         '<div class="tabs"><button data-tab="dash" class="' + (tab === 'dash' ? 'on' : '') + '">Dashboard</button><button data-tab="cal" class="' + (tab === 'cal' ? 'on' : '') + '">Calendar</button><button data-tab="plans" class="' + (tab === 'plans' ? 'on' : '') + '">Plans (Inventory)</button><button data-tab="checks" class="' + (tab === 'checks' ? 'on' : '') + '">Checklist items (Inventory)</button></div>';
@@ -57,6 +58,7 @@
       else h += checksHtml(K, ALL);
 
       el.innerHTML = h;
+      if (q.party && C._mOpened !== String(q.party)) { C._mOpened = String(q.party); C.get(q.party).then(function (pp) { contractForm(pp, P, K); }).catch(function () {}); } else if (!q.party) C._mOpened = '';
       $$('[data-tab]', el).forEach(function (b) { b.onclick = function () { C.go('#/maintenance' + C.qs({ tab: b.getAttribute('data-tab') === 'dash' ? '' : b.getAttribute('data-tab') })); }; });
       var cs = $('[data-q]', el), lst = $('#mlist', el); if (cs && lst) C.filterList(cs, lst);
       $$('[data-st]', el).forEach(function (b) { b.onclick = function () { C.go('#/maintenance' + C.qs({ st: b.getAttribute('data-st') })); }; });
@@ -87,7 +89,7 @@
     h += list.length ? '<div class="list" id="mlist">' + list.map(function (c) {
       var s = ST[c.status], nx = c.next;
       return '<div class="li click" data-act="open" data-id="' + esc(c.key) + '"><span class="av ' + (c.status === 'overdue' ? 'r' : '') + '">' + C.ic('settings') + '</span><span class="grow"><span class="t">' + esc(c.party) + ' ' + C.pill(s[0], s[1]) + '</span>' +
-        '<span class="m"><span>' + esc(c.plan) + (c.free ? ' · ' + C.pill('FREE', '') : '') + '</span><span>Last service: ' + (c.last ? C.fd(c.last) : '—') + '</span><span><b>Next due: ' + (nx ? C.fd(nx.due_at) : '—') + '</b></span><span>' + c.done.length + '/' + c.total + ' visits</span></span></span>' +
+        '<span class="m"><span>' + esc(c.plan) + (c.free ? ' · ' + C.pill('FREE', '') : '') + '</span><span>Last service: ' + (c.last ? C.fd(c.last) : '—') + '</span><span><b>Next due: ' + (nx ? C.fd(nx.due_at) : '—') + '</b></span><span>' + c.done.length + '/' + c.total + ' visits</span>' + (c.status === 'complete' ? '<span class="xs mute">Plan poora — dobara plan lene ke liye kholein</span>' : '') + '</span></span>' +
         '<span class="acts">' + (nx && c.mobile ? '<a class="btn btn-o btn-sm" target="_blank" rel="noopener" href="' + esc(C.wa(c.mobile, waText(c, nx))) + '">WhatsApp</a>' : '') + (nx ? '<button class="btn btn-p btn-sm" data-act="done" data-id="' + esc(c.key) + '">Visit ho gayi</button>' : '') + '</span></div>';
     }).join('') + '</div>' : '<div class="card">' + C.empty('settings', G.length ? 'Is filter me koi nahi' : 'Abhi kisi customer ne package nahi liya', G.length ? '' : '"Customer ko plan dein" dabayein — naye aur purane dono customers ko plan de sakte hain.') + '</div>';
     return h;
@@ -137,7 +139,7 @@
     var kc = {}; K.forEach(function (k) { kc[k.id] = k; });
     return P.length ? '<div class="list">' + P.map(function (x) {
       var d = x.data, ck = (d.checklist || []).map(function (i) { return kc[i]; }).filter(Boolean), vc = ck.reduce(function (m, k) { return m + num(k.data.cost); }, 0), p = perOf(d);
-      return '<div class="li click" data-act="editplan" data-id="' + x.id + '"><span class="av">' + C.ic('settings') + '</span><span class="grow"><span class="t">' + esc(x.title) + (d.free || num(d.price) === 0 ? ' ' + C.pill('FREE', '') : '') + '</span>' +
+      return '<div class="li click" data-act="editplan" data-id="' + x.id + '"><span class="av">' + C.ic('settings') + '</span><span class="grow"><span class="t">' + esc(x.title) + (d.fixed ? ' <span class="pill" title="Cycle aur duration lock hai">🔒 Fixed</span>' : '') + (d.free || num(d.price) === 0 ? ' ' + C.pill('FREE', '') : '') + '</span>' +
         '<span class="m"><span>' + esc(p[0]) + '</span><span>' + visitsTotal(d) + ' visits / ' + (num(d.years) || 1) + ' saal</span><span>' + ck.length + ' kaam · ek visit ka cost ' + money(vc) + '</span></span>' +
         (ck.length ? '<span class="m"><span class="xs mute">' + esc(ck.map(function (k) { return k.title; }).join(' • ')) + '</span></span>' : '') + '</span><span class="amt">' + (num(d.price) === 0 ? 'Free' : money(d.price) + '<small>+ GST ' + esc(d.gst || 0) + '%</small>') + '</span></div>';
     }).join('') + '</div>' : '<div class="card">' + C.empty('settings', 'Abhi koi plan nahi', 'Plan banayein — jaise "Silver AMC" ya "Free Basic Check".') + '</div>';
@@ -151,13 +153,14 @@
     }).join('') + '</div>' : '<div class="card">' + C.empty('check', 'Koi checklist item nahi', '"Naya checklist item" dabayein — jaise Panel cleaning, Earthing test.') + '</div>';
   }
 
-  C.maintPlanForm = planForm; C.maintCheckForm = checkForm;
   function planForm(rec, K) {
+    if (rec && rec.data.fixed && !C.isAdmin()) return C.toast('Ye Fixed plan hai — sirf Admin keemat ya kaam ki list badal sakta hai. Koi recommendation/badlav nahi.', true);
     var d = Object.assign({ gst: 18, period: 'half', years: 1, price: '', free: false, checklist: [] }, rec ? rec.data : {}), isNew = !rec, chosen = {};
     (d.checklist || []).forEach(function (i) { chosen[i] = 1; });
-    var m = C.modal({ title: isNew ? 'Naya Maintenance & Audit plan' : 'Plan badlein', size: 'wide', body: '<form id="mpf" class="fg">' +
-      C.f('Plan ka naam *', C.inp('name', rec ? rec.title : '', 'maxlength="160" placeholder="Jaise: Silver AMC (3 kW tak)"'), 'full') +
-      C.f('Kitne periods me', C.sel('period', Object.keys(PER).map(function (k) { return [k, PER[k][0]]; }), d.period)) + C.f('Kitne saal ka', C.inp('years', d.years, 'inputmode="numeric"')) +
+    var fx = !!(rec && rec.data.fixed), lk = fx ? ' disabled' : '';
+    var m = C.modal({ title: isNew ? 'Naya Maintenance & AMC plan' : (fx ? '🔒 Fixed plan — ' + rec.title : 'Plan badlein'), size: 'wide', body: '<form id="mpf" class="fg">' + (fx ? '<div class="note full">Is plan ka naam, cycle aur duration lock hai. Sirf <b>keemat</b> aur <b>kaun-kaun se kaam shamil hain</b> badal sakte hain — naye customers par lagu hoga; jisko plan mil chuka hai uska plan nahi badlega.</div>' : '') +
+      C.f('Plan ka naam *', C.inp('name', rec ? rec.title : '', 'maxlength="160" placeholder="Jaise: Silver AMC (3 kW tak)"' + lk), 'full') +
+      C.f('Kitne periods me', C.sel('period', Object.keys(PER).map(function (k) { return [k, PER[k][0]]; }), d.period, null, lk)) + C.f('Kitne saal ka', C.inp('years', d.years, 'inputmode="numeric"' + lk)) +
       '<div class="f full"><label class="ck"><input type="checkbox" name="free"' + (d.free || (rec && num(d.price) === 0) ? ' checked' : '') + '> <b>Free plan</b> (Rs 0 — customer se paisa nahi)</label></div>' +
       C.f('Package ki keemat (₹, bina GST)', C.inp('price', d.price, 'inputmode="decimal"') + '<span class="hint" id="psug"></span>') + C.f('GST %', C.sel('gst', [['0', '0%'], ['5', '5%'], ['12', '12%'], ['18', '18%'], ['28', '28%']], String(d.gst))) +
       '<div class="f full"><label>Isme kaun-kaun se kaam shamil hain (Inventory ke Checklist items)</label><div class="list" id="mck" style="max-height:34vh;overflow:auto">' + (K.length ? K.map(function (k) {
@@ -179,7 +182,7 @@
     if (isNew && !f.price.value && !f.free.checked) f.price.value = '';
     var del = $('[data-del]', m.el); if (del) del.onclick = async function () { if (await C.delWithReason(rec, rec.title)) { m.close(); C.cache.items = null; C.render(); } };
     $('[data-ok]', m.el).onclick = async function () {
-      var o = C.form(f); if (!C.need(f, ['name'])) return; var cc = calc(), free = !!f.free.checked, price = free ? 0 : C.r2(o.price);
+      var o = C.form(f); if (fx) { o.name = rec.title; o.period = rec.data.period; o.years = rec.data.years; } if (!C.need(f, ['name'])) return; var cc = calc(), free = !!f.free.checked, price = free ? 0 : C.r2(o.price);
       if (!free && !(price > 0)) return C.toast('Keemat likhein, ya "Free plan" chunein', true);
       if (!cc.ids.length) return C.toast('Kam se kam 1 kaam chunein', true);
       var per = PER[o.period] || PER.half, names = K.filter(function (k) { return cc.ids.indexOf(k.id) >= 0; }).map(function (k) { return k.title; });
@@ -215,18 +218,19 @@
   /* ------------------------------------------------------------ give a plan to a customer (new or existing) */
   C.maintAssign = async function (party) { var A = []; try { A = await allItems(); } catch (e) { return C.toast(e.message, true); } return contractForm(party, plansOf(A), checksOf(A)); };
 
-  async function contractForm(party0, P, K) {
+  async function contractForm(party0, P, K, plan0) {
     var party = party0 || null, kc = {}; K.forEach(function (k) { kc[k.id] = k; });
-    if (!P.length) return C.toast('Pehle Maintenance & Audit → Plans me koi plan banayein', true);
-    var m = C.modal({ title: 'Customer ko Maintenance & Audit plan dein', size: 'wide', body: '<form id="mcf" class="fg">' +
+    if (!P.length) return C.toast('Pehle Maintenance & AMC → Plans me koi plan banayein', true);
+    var m = C.modal({ title: 'Customer ko Maintenance & AMC plan dein', size: 'wide', body: '<form id="mcf" class="fg">' +
       C.f('Customer * (naya ya purana)', '<button type="button" class="btn btn-o" data-pp style="justify-content:flex-start">' + C.ic('users') + '<span class="ellip">' + (party ? esc(party.title + ' · ' + (party.mobile || '')) : 'Customer chunein') + '</span></button>', 'full') +
-      C.f('Plan *', C.sel('plan', P.map(function (p) { return [String(p.id), p.title + (num(p.data.price) === 0 ? ' (FREE)' : ' — ' + money(p.data.price))]; }), String(P[0].id)), 'full') +
+      C.f('Plan *', C.sel('plan', P.map(function (p) { return [String(p.id), p.title + (num(p.data.price) === 0 ? ' (FREE)' : ' — ' + money(p.data.price))]; }), String(plan0 || P[0].id)), 'full') +
       C.f('Pehli visit ki tareekh *', C.inp('start', C.addDays(C.today(), 30), 'type="date"')) +
+      C.f('Visit ka time', C.inp('time', '10:00', 'type="time"')) +
       '<div class="full" id="mcn"></div></form>', foot: '<button class="btn btn-o" data-close>Cancel</button><button class="btn btn-p" data-ok>' + C.ic('check') + ' Visits schedule karein</button>' });
     var f = $('#mcf', m.el);
     function info() {
-      var p = P.find(function (x) { return String(x.id) === f.plan.value; }); if (!p) return; var d = p.data, per = perOf(d), tv = visitsTotal(d), ck = (d.checklist || []).map(function (i) { return kc[i]; }).filter(Boolean), vc = ck.reduce(function (s, k) { return s + num(k.data.cost); }, 0);
-      $('#mcn', m.el).innerHTML = '<div class="note g"><b>' + esc(p.title) + '</b> ' + (num(d.price) === 0 ? C.pill('FREE', '') : '') + '<br>' + esc(per[0]) + ' · ' + tv + ' visits · ' + (num(d.years) || 1) + ' saal<br>' +
+      var p = P.find(function (x) { return String(x.id) === f.plan.value; }); if (!p) return; var d = p.data, cyc = d.period || 'half', tv = visitsTotal(d), ck = (d.checklist || []).map(function (i) { return kc[i]; }).filter(Boolean), vc = ck.reduce(function (s, k) { return s + num(k.data.cost); }, 0);
+      $('#mcn', m.el).innerHTML = '<div class="note g"><b>' + esc(p.title) + '</b> ' + (num(d.price) === 0 ? C.pill('FREE', '') : '') + '<br>' + esc((PER[cyc] || PER.half)[0]) + ' · ' + tv + ' visit' + (tv > 1 ? 's' : '') + (cyc === 'one' ? ' · agli due date nahi' : ' · ' + (num(d.years) || 1) + ' saal') + '<br>' +
         '<ul style="margin:6px 0 0 18px">' + ck.map(function (k) { return '<li>' + esc(k.title) + ' — ' + money(k.data.cost) + (k.data.material_item_id ? ' (maal stock se kategi)' : '') + '</li>'; }).join('') + '</ul>' +
         '<div class="sm" style="margin-top:6px">Ek visit ka cost ' + money(vc) + ' · Customer se: ' + (num(d.price) === 0 ? 'Rs 0 (Free)' : money(d.price) + ' + GST ' + esc(d.gst || 0) + '%') + '</div></div>';
     }
@@ -236,7 +240,7 @@
       if (!party) return C.toast('Customer chunein', true);
       var o = C.form(f); if (!C.need(f, ['start'])) return;
       try {
-        var r = await C.run('crm_maint_contract', { party_id: party.id, plan_id: +o.plan, start: o.start, assigned_to: C.me.id }, null);
+        var r = await C.run('crm_maint_contract', { party_id: party.id, plan_id: +o.plan, start: o.start, time: o.time || '', assigned_to: C.me.id }, null);
         C.toast(r.visits + ' visits schedule ho gayi ✔'); m.close(); C.go('#/maintenance'); C.render();
       } catch (e) {}
     };
@@ -255,8 +259,22 @@
         return '<div class="li"><span class="grow"><span class="t">Visit ' + esc(v.data.visit_no || '') + ' — ' + C.fd(v.due_at) + ' ' + (v.status === 'done' ? C.pill('Ho gayi ' + C.fd(v.data.done_on || v.due_at), '') : late ? C.pill('Overdue', 'r') : '') + '</span>' + (v.data.done_note ? '<span class="m"><span>' + esc(v.data.done_note) + '</span></span>' : '') + '</span>' +
           '<span class="acts">' + (v.status === 'done' ? '<button class="btn btn-o btn-sm" data-rep="' + v.id + '">Report</button>' : '<button class="btn btn-o btn-sm" data-mv="' + v.id + '">Tareekh badlein</button><button class="btn btn-p btn-sm" data-dn="' + v.id + '">Visit ho gayi</button>') + '</span></div>';
       }).join('') + '</div>';
+    var others = P.filter(function (x) { return !plan || x.id !== plan.id; });
+    body += '<div class="sec-t" style="margin-top:14px">' + (c.next ? 'Plan badlein / Upgrade' : 'Plan poora hua — dobara plan lein') + '</div><div class="list">' + others.map(function (x) {
+      var pp = perOf(x.data);
+      return '<div class="li"><span class="grow"><span class="t">' + esc(x.title) + '</span><span class="m"><span>' + esc(pp[0]) + '</span><span>' + visitsTotal(x.data) + ' visit' + (visitsTotal(x.data) > 1 ? 's' : '') + (x.data.period === 'one' ? '' : ' / ' + (num(x.data.years) || 1) + ' saal') + '</span></span></span><span class="amt">' + (num(x.data.price) === 0 ? 'Free' : money(x.data.price)) + '</span>' +
+        '<span class="acts"><button class="btn btn-o btn-sm" data-chg="' + x.id + '">' + (c.next ? 'Plan badlein' : 'Ye plan lein') + '</button></span></div>';
+    }).join('') + '</div>';
     var m = C.modal({ title: c.party + ' — ' + c.plan, size: 'wide', body: body });
     m.el.addEventListener('click', async function (e) {
+      var cb = e.target.closest('[data-chg]');
+      if (cb) {
+        var np = P.find(function (x) { return String(x.id) === cb.getAttribute('data-chg'); }); if (!np) return;
+        if (!c.next) { m.close(); return contractForm({ id: c.party_id, title: c.party, mobile: c.mobile }, P, K, np.id); }
+        if (!(await C.confirm('Plan "' + c.plan + '" se badal kar "' + np.title + '" karein? Baaki bachi visits naye plan ke hisaab se dobara set hongi (ho chuki visits ka record rahega).', 'Haan, badlein'))) return;
+        try { var r = await C.run('crm_maint_change', { contract_id: c.key, plan_id: np.id }, null); m.close(); C.toast('Plan badal gaya ✔ · ' + r.visits + ' visit' + (r.visits > 1 ? 's' : '') + ' set'); C.render(); } catch (er) {}
+        return;
+      }
       var b = e.target.closest('[data-dn],[data-mv],[data-rep]'); if (!b) return;
       var id = b.getAttribute('data-dn') || b.getAttribute('data-mv') || b.getAttribute('data-rep'), v = c.visits.find(function (x) { return String(x.id) === id; });
       if (b.hasAttribute('data-dn')) { m.close(); doneForm(c, v, K); }
@@ -295,7 +313,9 @@
       '<tr><td style="padding:2px 14px 2px 0;color:#555">Visit</td><td>' + esc(d.visit_no || '') + ' / ' + esc(d.visits_total || c.total) + '</td></tr>' + (nx ? '<tr><td style="padding:2px 14px 2px 0;color:#555">Next service</td><td><b>' + C.fd(nx) + '</b></td></tr>' : '') + '</table>' +
       '<table style="border-collapse:collapse;width:100%;font-size:14px"><thead><tr><th style="padding:6px 8px;border:1px solid #ddd;text-align:left;background:#f4f4f4">Kaam</th><th style="padding:6px 8px;border:1px solid #ddd;background:#f4f4f4">Status</th></tr></thead><tbody>' + rows + '</tbody></table>' +
       (d.done_note ? '<p style="margin-top:12px"><b>Note:</b> ' + esc(d.done_note) + '</p>' : '') + '<p style="margin-top:28px;font-size:12px;color:#777">Ye report computer se banai gayi hai.</p></div>';
-    C.printHtml(html, 'Service-Report-' + c.party);
-    if (c.mobile) window.open(C.wa(c.mobile, 'Namaste ' + c.party + ' ji, aapke solar plant ki ' + c.plan + ' service ' + C.fd(d.done_on || v.due_at) + ' ko ho gayi hai.' + (nx ? ' Agli service: ' + C.fd(nx) + '.' : '') + ' Report PDF bhej rahe hain. — ' + (co.name || 'Sunpowers')), '_blank');
+    var fn = 'Service-Report-' + String(c.party || 'customer').replace(/[^\w\-]+/g, '-') + '.pdf';
+    C.sharePdf(html, fn, 'Namaste ' + c.party + ' ji, aapke solar plant ki ' + c.plan + ' service ' + C.fd(d.done_on || v.due_at) + ' ko ho gayi hai.' + (nx ? ' Agli service: ' + C.fd(nx) + '.' : '') + ' — ' + (co.name || 'Sunpowers'), c.mobile,
+      { kind: 'service', title: 'Service Report — ' + c.party, subtitle: c.plan + ' · visit ' + (d.visit_no || '') + '/' + (d.visits_total || c.total), customer: c.party, date: d.done_on || v.due_at, ref: 'svc:' + v.id,
+        details: [['Customer', c.party], ['Plan', c.plan], ['Service date', C.fd(d.done_on || v.due_at)], ['Visit', (d.visit_no || '') + ' / ' + (d.visits_total || c.total)], ['Next service', nx ? C.fd(nx) : ''], ['Kaam hue', ck.filter(function (k) { return !tk.length || tk.indexOf(k.id) >= 0 || tk.indexOf(String(k.id)) >= 0; }).map(function (k) { return k.name; }).join(', ')], ['Note', d.done_note || '']].filter(function (x) { return x[1]; }) });
   }
 })();

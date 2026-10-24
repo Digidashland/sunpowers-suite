@@ -139,7 +139,7 @@
   SP.uploadImage = async function (blob) {
     if (!SP.backendReady()) throw new Error('no backend');
     var ty = blob.type || 'image/jpeg';
-    var ext = ty === 'image/gif' ? 'gif' : ty === 'image/png' ? 'png' : ty === 'image/webp' ? 'webp' : ty === 'video/mp4' ? 'mp4' : ty === 'video/webm' ? 'webm' : 'jpg';
+    var ext = ty === 'image/gif' ? 'gif' : ty === 'image/png' ? 'png' : ty === 'image/webp' ? 'webp' : ty === 'video/mp4' ? 'mp4' : ty === 'video/webm' ? 'webm' : ty === 'application/pdf' ? 'pdf' : 'jpg';
     var path = 'u/' + (await upTok()) + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
     var res = await fetch(base() + '/storage/v1/object/' + SP.BUCKET + '/' + path, {
       method: 'POST',
@@ -386,7 +386,7 @@
         '## सोलर प्रोजेक्ट और इंस्टॉलेशन',
         '- पूरे सोलर सिस्टम/प्रोजेक्ट (सप्लाई + इंस्टॉलेशन) आपकी साइट के हिसाब से तैयार होते हैं, इन पर कोई रिटर्न पॉलिसी नहीं है। प्रोजेक्ट के बीच में कोई बदलाव कराने का खर्च अलग से लगेगा।',
         '## ऑर्डर कैंसिल करना',
-        '- डिस्पैच से पहले: ऑर्डर कैंसिल कर सकते हैं, जमा की गई पूरी रकम (COD का {advancePct}% एडवांस भी) वापस मिलेगी।',
+        '- डिस्पैच से पहले: ऑर्डर कैंसिल कर सकते हैं, जमा की गई पूरी रकम वापस मिलेगी।',
         '- डिस्पैच के बाद: सामान्यतः कैंसिल नहीं होता। हमारे द्वारा स्वीकार किए गए खास मामलों में डिलीवरी खर्च काटकर रकम वापस की जाएगी।',
         '## रिफ़ंड',
         '- मंज़ूर हुआ रिफ़ंड 7–10 कार्य-दिवस में उसी UPI ID या आपके बैंक खाते में भेजा जाएगा।',
@@ -407,7 +407,7 @@
         '## Solar projects and installations',
         '- Complete solar system / project orders (supply + installation) are prepared for your site and have no return policy. Changes requested in the middle of a project are charged separately.',
         '## Order cancellation',
-        '- Before dispatch: you may cancel the order; the full amount paid (including the {advancePct}% advance on Cash on Delivery orders) is refunded.',
+        '- Before dispatch: you may cancel the order; the full amount paid is refunded.',
         '- After dispatch: orders normally cannot be cancelled. In exceptional cases accepted by us, the amount is refunded after deducting delivery charges.',
         '## Refunds',
         '- Approved refunds are sent within 7–10 working days to the original UPI ID or to your bank account.',
@@ -431,7 +431,7 @@
         '- ₹{freeAbove} से ऊपर के ऑर्डर पर डिलीवरी फ़्री',
         'डिलीवरी चार्ज ऑर्डर करने से पहले कार्ट में दिख जाता है।',
         '## ऑर्डर कन्फ़र्मेशन',
-        '- ऑर्डर के बाद हम WhatsApp/फ़ोन पर कन्फ़र्म करते हैं। Cash on Delivery में {advancePct}% एडवांस UPI से देकर ऑर्डर कन्फ़र्म होता है, बाकी डिलीवरी पर।',
+        '- ऑर्डर के बाद हम WhatsApp/फ़ोन पर कन्फ़र्म करते हैं। सभी ऑर्डर प्रीपेड हैं (Cash on Delivery उपलब्ध नहीं); पेमेंट वेरिफ़ाई होने के बाद ऑर्डर आगे बढ़ता है।',
         '## इंस्टॉलेशन',
         '- जब तक अलग से न लिखा हो, प्रोडक्ट की कीमत में इंस्टॉलेशन शामिल नहीं है। इंस्टॉलेशन चार्ज साइट देखकर बताया जाता है।',
         '## रास्ते में नुकसान',
@@ -451,7 +451,7 @@
         '- Free delivery on orders above ₹{freeAbove}',
         'The delivery charge is shown in the cart before you place the order.',
         '## Order confirmation',
-        '- After you order, we confirm it on WhatsApp/phone. For Cash on Delivery, {advancePct}% advance is paid by UPI to confirm the order and the balance is paid on delivery.',
+        '- After you order, we confirm it on WhatsApp/phone. All orders are prepaid (no Cash on Delivery); the order moves ahead after payment is verified.',
         '## Installation',
         '- Unless stated, installation is not included in the product price. Installation charges are told after seeing the site.',
         '## Damage in transit',
@@ -500,7 +500,7 @@
         '- सभी कीमतें भारतीय रुपये में और GST सहित हैं। कीमत और ऑफ़र बिना सूचना बदल सकते हैं; ऑर्डर के समय दिखी कीमत लागू होगी।',
         '## ऑर्डर और पेमेंट',
         '- ऑर्डर तभी पक्का होता है जब हम फ़ोन/WhatsApp पर कन्फ़र्म करते हैं। प्रोडक्ट उपलब्ध न होने या कीमत गलत दिखने पर हम ऑर्डर कैंसिल कर सकते हैं, और जमा पूरी रकम वापस करेंगे।',
-        '- पेमेंट: Cash on Delivery ({advancePct}% एडवांस UPI से) या पूरा भुगतान UPI से।',
+        '- पेमेंट: सभी ऑर्डर प्रीपेड हैं — पूरा भुगतान UPI / PhonePe / Google Pay से।',
         '## प्रोडक्ट की जानकारी',
         '- फ़ोटो सिर्फ़ संदर्भ के लिए हैं, असली प्रोडक्ट थोड़ा अलग हो सकता है। स्पेसिफ़िकेशन निर्माता कंपनी के अनुसार हैं।',
         '## वारंटी और ज़िम्मेदारी',
@@ -517,7 +517,7 @@
         '- All prices are in Indian Rupees and include GST. Prices and offers may change without notice; the price shown when you place the order applies.',
         '## Orders and payment',
         '- An order is confirmed only when we confirm it by phone/WhatsApp. We may cancel an order if a product is unavailable or a price was shown wrongly; any amount paid will be refunded in full.',
-        '- Payment: Cash on Delivery ({advancePct}% advance via UPI) or full payment via UPI.',
+        '- Payment: all orders are prepaid — full payment via UPI / PhonePe / Google Pay.',
         '## Product information',
         '- Photos are for reference; the actual product may look slightly different. Specifications are as given by the manufacturer.',
         '## Warranty and liability',
@@ -711,7 +711,7 @@
         footerText: 'Sunpowers — सोलर पैनल, इन्वर्टर, बैटरी, पंप और कम्प्लीट सोलर सिस्टम। इंस्टॉलेशन सहित।',
         delivery: 'लखनऊ में फ़्री डिलीवरी • बाकी जगह ₹500 • ₹10,000 से ऊपर के ऑर्डर पर फ़्री',
         payments: {
-          cod: { enabled: true, advancePct: 15, label: 'Cash on Delivery (15% एडवांस)' },
+          cod: { enabled: false, advancePct: 0, label: 'Cash on Delivery (15% एडवांस)' },
           upi: { enabled: true, upiId: 'Sunpowers@ybl', payeeName: 'Sunpowers', label: 'UPI पेमेंट (पूरा भुगतान)' }
         },
         social: { facebook: 'https://www.facebook.com/share/1HwbkZd1oK/', instagram: 'https://www.instagram.com/sunpowers.in', youtube: 'https://www.youtube.com/@sunpowers', gmb: 'https://maps.app.goo.gl/9r7jtxRPokG3yKVw8' },

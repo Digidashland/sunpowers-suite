@@ -3,16 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Sunpowers — सोलर पैनल, इन्वर्टर, बैटरी ऑनलाइन</title>
+<title>Sunpowers App — सोलर पैनल, इन्वर्टर, बैटरी ऑनलाइन</title>
 <meta name="description" content="Sunpowers — सोलर पैनल, इन्वर्टर, बैटरी, सोलर पंप, वाटर हीटर और कम्प्लीट सोलर सिस्टम ऑनलाइन ऑर्डर करें। Cash on Delivery और UPI उपलब्ध।">
 <meta name="theme-color" content="#1e8e3e">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" href="favicon-32.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sunpowers">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Sunpowers — Solar Products Online">
-<meta property="og:description" content="Solar panels, inverters, batteries, pumps & complete solar systems. COD & UPI available.">
+<meta property="og:description" content="Solar panels, inverters, batteries, pumps & complete solar systems. Prepaid orders — UPI / PhonePe / Google Pay.">
 <meta property="og:url" content="https://store.sunpowers.in/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,6 +52,10 @@ img{display:block;max-width:100%}
 .pill{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--g-m);background:var(--g-l);color:var(--g-d);border-radius:999px;padding:4px 10px;font-size:13px;font-weight:600;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
 .ibtn{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:19px;position:relative;flex:none;border:1px solid var(--line);background:#fff}
 .ibtn:active{transform:scale(.95)}
+.ibtn .ic{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;overflow:hidden}.ibtn .ic img{width:100%;height:100%;object-fit:cover;display:block}.ibtn .ic.has{background:var(--g);color:#fff;font-size:16px;font-weight:800}
+.cid{position:absolute;right:-1px;bottom:calc(100% - 7px);font-size:8px;line-height:1;font-weight:800;letter-spacing:.2px;color:#fff;background:var(--g);padding:2px 5px;border-radius:99px;white-space:nowrap;pointer-events:none;animation:cidf 1.3s ease-in-out infinite;z-index:3}.cid.hide{display:none}
+@keyframes cidf{0%,100%{opacity:1;transform:translateY(0)}50%{opacity:.3;transform:translateY(-1px)}}@media(prefers-reduced-motion:reduce){.cid{animation:none}}
+.acc-av{overflow:hidden}.acc-av img{width:100%;height:100%;object-fit:cover;display:block}
 .ibtn .dot{position:absolute;right:1px;top:1px;width:10px;height:10px;border-radius:50%;background:var(--g);border:2px solid #fff}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#eef3ee;border-radius:14px;padding:4px;margin-bottom:14px}
 .seg button{padding:10px;border-radius:11px;font-weight:700;color:#556;background:transparent;border:0}
@@ -358,25 +366,41 @@ main{padding-top:12px}
 @keyframes spRun{from{left:-45%}to{left:100%}}
 @media (prefers-reduced-motion:reduce){#splash *{animation-duration:.01s!important;animation-delay:0s!important}#splash .sp-run i:before{animation:none;left:0;width:100%}}
 </style>
+<script src="config.js"></script>
+<script>
+/* speed: start the network request now (while the scripts download); core.js picks the answer up. Phone that already has the store only asks the tiny "changed?" question. */
+(function () {
+  try {
+    var c = window.SP_CONFIG || {}, base = String(c.SUPABASE_URL || '').replace(/\/+$/, ''), key = String(c.SUPABASE_KEY || '').trim(); if (!base || !key) return;
+    var l = document.createElement('link'); l.rel = 'preconnect'; l.href = base; l.crossOrigin = ''; document.head.appendChild(l);
+    var h = { apikey: key, 'Content-Type': 'application/json' }; if (key.indexOf('sb_') !== 0) h.Authorization = 'Bearer ' + key;
+    var rpc = function (fn) { return fetch(base + '/rest/v1/rpc/' + fn, { method: 'POST', headers: h, body: '{}' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); };
+    var warm = false; try { var cc = JSON.parse(localStorage.getItem('sp_store_cache_v1') || 'null'); warm = !!(cc && Array.isArray(cc.layout)); } catch (e) {}
+    var ver = rpc('sp_store_ver'); ver.catch(function () {});
+    if (warm) window.__spVer = ver; else { var data = rpc('sp_get_store'); data.catch(function () {}); window.__spPre = { at: Date.now(), p: data, v: ver }; }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <div id="splash" aria-hidden="true" data-noi18n><img src="splash-icon.png" alt="" width="190" height="190"><div class="sp-run"><i></i><i></i><i></i></div></div>
 <script>(function(){var d=document.getElementById('splash');if(!d)return;document.documentElement.appendChild(d);var seen=false;try{seen=sessionStorage.getItem('sp_splash')==='1';sessionStorage.setItem('sp_splash','1');}catch(e){}
 if(seen){d.remove();return;}
 function hide(){d.classList.add('out');setTimeout(function(){if(d.parentNode)d.remove();},600);}
-var t0=Date.now();function ready(){var w=Math.max(0,1700-(Date.now()-t0));setTimeout(hide,w);}
-if(document.readyState==='complete')ready();else window.addEventListener('load',ready);setTimeout(hide,3800);})();</script>
+var t0=Date.now();function ready(){var w=Math.max(0,900-(Date.now()-t0));setTimeout(hide,w);}
+/* speed: the splash leaves as soon as the real page replaces the grey placeholders (min 0.9 s) — it no longer waits for every photo to finish (window load) */
+(function chk(){var v=document.getElementById('view');if(v&&!v.querySelector('.skel'))return ready();setTimeout(chk,60);})();setTimeout(hide,3800);})();</script>
 
 <header class="hdr">
   <div class="wrap">
     <div class="hdr-top">
       <a class="brand" href="./" data-nav>
         <span class="brand-logo" id="logo"><img src="logo-mark.png" alt=""></span>
-        <span class="brand-name" id="storeName">Sunpowers</span>
+        <span class="brand-name" id="storeName">Sunpowers App</span>
       </a>
       <span class="pill" id="loc">📍 India</span>
       <button class="ibtn lbtn" id="langBtn" title="भाषा / Language" aria-label="Language">🌐</button>
-      <a class="ibtn" href="?view=account" data-nav aria-label="Account" id="accBtn">👤<span class="dot hide" id="accDot"></span></a>
+      <a class="ibtn" href="?view=account" data-nav aria-label="Account" id="accBtn"><span class="ic" id="accIc">👤</span><span class="dot hide" id="accDot"></span><span class="cid" id="accFlash" data-noi18n>Create ID with PIN</span></a>
       <a class="ibtn" href="?view=cart" data-nav aria-label="Cart">🛒<span class="badge hide" id="cartBadge">0</span></a>
     </div>
     <div class="search">
@@ -409,19 +433,38 @@ if(document.readyState==='complete')ready();else window.addEventListener('load',
 </nav>
 <div class="toast" id="toast"></div>
 
-<script src="config.js"></script>
 <script src="sp-look.js?v=1" data-app="store"></script>
-<script src="sp-i18n.js?v=1"></script>
-<script src="i18n-dict.js?v=1"></script>
-<script src="i18n-langs.js?v=1"></script>
+<script src="pwa.js?v=3" defer></script>
+<script src="sp-i18n.js?v=12"></script>
+<script src="sp-voice.js?v=2" defer></script>
+<script src="i18n-dict.js?v=3"></script>
+<script src="i18n-langs.js?v=2"></script>
 <script src="lic.js?v=1" data-app="store"></script>
-<script src="core.js"></script>
+<script src="core.js?v=2"></script>
 <script src="sp-track.js?v=1" data-site="store"></script>
 <script src="auth.js"></script>
-<script src="sp-gate.js?v=1"></script>
-<script src="sp-plant.js?v=1"></script>
-<script src="sp-doctor.js?v=2"></script>
-<script src="sp-builder.js?v=2"></script>
+<script src="sp-gate.js?v=2"></script>
+<script src="sp-invoice.js?v=2"></script>
+<script src="cid.js?v=1"></script>
+<script src="sp-plant.js?v=4"></script>
+<script src="sp-builder.js?v=8"></script>
+<script>
+/* sp-doctor.js (100 KB, Error Detector) is not needed to show the shop: it loads when it is first tapped, or later when the phone is idle. */
+(function () {
+  var st = 0, q = [];
+  function load(cb) {
+    if (window.SPDoctor) return cb && cb();
+    if (cb) q.push(cb); if (st) return; st = 1;
+    var s = document.createElement('script'); s.src = 'sp-doctor.js?v=3'; s.onload = function () { st = 2; q.splice(0).forEach(function (f) { try { f(); } catch (e) {} }); }; s.onerror = function () { st = 0; };
+    document.head.appendChild(s);
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-doctor]'); if (!b || window.SPDoctor) return;
+    e.preventDefault(); e.stopImmediatePropagation(); var a = b.getAttribute('data-doctor') || ''; load(function () { SPDoctor.open(a); });
+  }, true);
+  window.addEventListener('load', function () { var go = function () { load(); }; if (navigator.connection && navigator.connection.saveData) return; if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 8000 }); else setTimeout(go, 4000); });
+})();
+</script>
 <script>
 (function () {
 'use strict';
@@ -430,7 +473,7 @@ var S = null, SOURCE = 'demo';
 function langBase(l) { return l === 'hi' || l === 'hg' ? 'hi' : 'en'; } // Hinglish uses the Hindi texts (then transliterated); regional languages use English texts + dictionary
 var lang = (function () { try { var v = String(localStorage.getItem('sp_lang') || '').replace(/"/g, ''); return /^(en|hi|hg|bn|pa|mr|gu)$/.test(v) ? langBase(v) : null; } catch (e) { return null; } })();
 function setLang(l) { lang = langBase(l); if (window.SPI18N) SPI18N.set(l); else SP.ls.set('sp_lang', l); }
-document.addEventListener('sp-lang', function (e) { var b = langBase(e && e.detail && e.detail.lang); if (b !== lang && S) { lang = b; applyChrome(); route(); } else if (S) applyChrome(); });
+document.addEventListener('sp-lang', function (e) { var d = (e && e.detail) || {}, b = langBase(d.lang); if (!S) return; var ae = document.activeElement, typing = ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName); if (d.mt && typing) return; lang = b; applyChrome(); route(); });
 function pickLang(anchor) { if (window.SPI18N && SPI18N.menu) SPI18N.menu(anchor); else { setLang(lang === 'en' ? 'hi' : 'en'); applyChrome(); route(); } }
 var timers = [];
 var searchQ = '';
@@ -494,9 +537,12 @@ Object.assign(T.en, { account:'My account', login:'Login', register:'Create acco
   st_new:'New', st_confirmed:'Confirmed', st_paid:'Paid', st_shipped:'Shipped', st_delivered:'Delivered', st_cancelled:'Cancelled', st_contacted:'Contacted', st_closed:'Closed',
   seeAcc:'Log in to see all your orders', orderAgain:'Continue shopping', loading:'Loading…',
   changePin:'Change PIN', logoutAll:'Logout other devices', logoutAllOk:'Logged out from all other devices', oldPin:'Current PIN', newPin4:'New PIN (4 digits)', newPin4b:'New PIN again', pin4:'PIN must be 4 digits', pinMis:'PINs do not match' });
+Object.assign(T.hi, { qidOrder:'ऑर्डर देने के लिए ID बनाएँ — सिर्फ़ नाम, मोबाइल और 4 अंक का PIN (OTP नहीं)।', qidSvc:'यह सर्विस इस्तेमाल करने के लिए ID बनाएँ — सिर्फ़ नाम, मोबाइल और 4 अंक का PIN।', idDone:'ID बन गई', photoChg:'📷 फ़ोटो बदलें', photoDel:'फ़ोटो हटाएँ', photoOk:'फ़ोटो सेव हो गई ✓', photoLbl:'प्रोफ़ाइल फ़ोटो', backPin:'← PIN से लॉगिन / ID बनाएँ' });
+Object.assign(T.en, { qidOrder:'Create an ID to place your order — just name, mobile and a 4-digit PIN (no OTP).', qidSvc:'Create an ID to use this service — just name, mobile and a 4-digit PIN.', idDone:'ID created', photoChg:'📷 Change photo', photoDel:'Remove photo', photoOk:'Photo saved ✓', photoLbl:'Profile photo', backPin:'← Login with PIN / Create ID' });
 function t(k) { return (T[lang] || T.hi)[k] || T.hi[k] || k; }
 if (window.SPI18N) SPI18N.add(Object.keys(T.en).filter(function (k) { return T.hi[k]; }).map(function (k) { return [T.en[k], T.hi[k]]; }));
-function tr(o, k) { if (!o) return ''; return lang === 'en' ? (o[k + 'En'] || o[k] || '') : (o[k] || o[k + 'En'] || ''); }
+/* Round 27: whatever the owner typed is shown in the visitor's own language only (dictionary, then cached machine translation) */
+function tr(o, k) { if (!o) return ''; var v = lang === 'en' ? (o[k + 'En'] || o[k] || '') : (o[k] || o[k + 'En'] || ''), I = window.SPI18N; if (v && I && !I.off && I.tr) { var t = I.tr(v, I.lang); if (t) return t; } return v; }
 var $ = function (s, r) { return (r || document).querySelector(s); };
 var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
@@ -769,7 +815,6 @@ R.form = function () {
 };
 function payLines() {
   var p = S.settings.payments, out = [];
-  if (p.cod && p.cod.enabled) out.push('<div>💵 <b>' + esc(p.cod.label || 'Cash on Delivery') + '</b><br><small>' + Math.round(SP.num(p.cod.advancePct)) + t('codDesc') + ' — ' + Math.round(100 - SP.num(p.cod.advancePct)) + '% ' + (lang === 'en' ? 'on delivery' : 'डिलीवरी पर') + '</small></div>');
   if (p.upi && p.upi.enabled) out.push('<div>📱 <b>' + esc(p.upi.label || 'UPI') + '</b><br><small>UPI ID: <b>' + esc(p.upi.upiId) + '</b></small></div>');
   return out;
 }
@@ -854,7 +899,8 @@ function clearTimers() { timers.forEach(clearInterval); timers = []; }
 /* ---------------- views ---------------- */
 function bldCtx() {
   var vis = { products: S.products.filter(visibleProd) };
-  return { S: Object.assign({}, S, vis), lang: function () { return lang; }, t: t, card: card, timer: function (tm) { timers.push(tm); },
+  return { S: Object.assign({}, S, vis), lang: function () { return lang; }, t: t, card: card, anchor: true,
+    legacy: function (kind) { var r = R[kind]; if (!r) return ''; try { return r({ type: kind }) || ''; } catch (e) { console.error('Block error', kind, e); return ''; } }, timer: function (tm) { timers.push(tm); },
     rail: function (o) {
       var title = (o.icon ? esc(o.icon) + ' ' : '') + esc(o.title), link = o.viewAll && sec(o.viewAll.link) ? '?s=' + encodeURIComponent(o.viewAll.link) : '', cards = o.products.map(function (p) { return card(p, { btns: o.btns }); }).join('');
       return o.layout === 'grid' ? head(title, '', link) + '<div class="grid' + (o.cols ? ' gc' : '') + '"' + (o.cols ? ' style="--cols:' + o.cols + '"' : '') + '>' + cards + '</div>' : '<div class="band">' + head(title, '', link) + '<div class="hs">' + cards + '</div></div>';
@@ -865,22 +911,22 @@ function bldCtx() {
 }
 function renderHome() {
   setMeta();
-  var html = '', parts = [], bcfg = window.SPBLD && S.builder ? SPBLD.norm(S.builder) : null, useB = !!(bcfg && SPBLD.isOn(bcfg, 'store'));
-  if (useB) parts.push('<section class="blk" id="blk-builder"><div id="bldHost">' + SPBLD.render(bcfg, 'store', bldCtx()) + '</div></section>');
+  var html = '', parts = [], bcfg = window.SPBLD && S.builder ? SPBLD.norm(S.builder) : null, useB = !!(bcfg && (bcfg.sv ? bcfg.on.store : SPBLD.isOn(bcfg, 'store'))), sv = !!(useB && bcfg.sv), bx = null;
+  var fl = '<span class="flash"><i></i>' + t('live') + '</span>';
+  var bpc = '<section class="blk" id="blk-blueprint-w"><a class="fcard fc-bp" id="blk-blueprint" href="?view=blueprint" data-nav>' + fl + '<span class="fc-i">📐</span><span class="fc-t"><b>' + t('bpT') + '</b><small>' + t('bpS') + '</small></span><span class="fc-go">' + t('open') + ' ›</span></a></section>';
+  var dtc = '<section class="blk" id="blk-doctor-w"><button type="button" class="fcard fc-dt" id="blk-doctor" data-doctor="">' + fl + '<span class="fc-i">🔎</span><span class="fc-t"><b>' + t('docT') + '</b><small>' + t('docS') + '</small></span><span class="fc-go">' + t('open') + ' ›</span></button></section>';
+  if (useB) { bx = bldCtx(); if (sv) bx.inject = { 1: bpc, 4: dtc }; parts.push('<section class="blk" id="blk-builder"><div id="bldHost">' + SPBLD.render(bcfg, 'store', bx) + '</div></section>'); }
   S.layout.forEach(function (b) {
     if (b.hidden) return;
-    if (useB && (b.type === 'section' || b.type === 'slideshow' || b.type === 'chips')) return;
+    if (useB && (sv || b.type === 'section' || b.type === 'slideshow' || b.type === 'chips')) return;
     var r = R[b.type], inner = '';
     try { inner = r ? r(b) : ''; } catch (e) { console.error('Block error', b, e); inner = ''; }
     if (inner) parts.push('<section class="blk" id="' + (b.type === 'section' || b.type === 'slideshow' ? 'blk-' + esc(b.ref) : 'blk-' + b.type) + '">' + inner + '</section>');
   });
-  var fl = '<span class="flash"><i></i>' + t('live') + '</span>';
-  var bpc = '<section class="blk" id="blk-blueprint-w"><a class="fcard fc-bp" id="blk-blueprint" href="?view=blueprint" data-nav>' + fl + '<span class="fc-i">📐</span><span class="fc-t"><b>' + t('bpT') + '</b><small>' + t('bpS') + '</small></span><span class="fc-go">' + t('open') + ' ›</span></a></section>';
-  var dtc = '<section class="blk" id="blk-doctor-w"><button type="button" class="fcard fc-dt" id="blk-doctor" data-doctor="">' + fl + '<span class="fc-i">🔎</span><span class="fc-t"><b>' + t('docT') + '</b><small>' + t('docS') + '</small></span><span class="fc-go">' + t('open') + ' ›</span></button></section>';
-  if (parts.length > 4) { parts.splice(4, 0, dtc); parts.splice(1, 0, bpc); } else { parts.splice(Math.min(1, parts.length), 0, bpc); parts.push(dtc); }
+  if (!sv) { if (parts.length > 4) { parts.splice(4, 0, dtc); parts.splice(1, 0, bpc); } else { parts.splice(Math.min(1, parts.length), 0, bpc); parts.push(dtc); } }
   html = parts.join('');
   view.innerHTML = html;
-  if (useB) SPBLD.mount($('#bldHost'), bldCtx());
+  if (useB) SPBLD.mount($('#bldHost'), bx);
   mountSlideshows();
   bindForm();
   jsonLdList();
@@ -964,13 +1010,12 @@ function renderWishlist() {
 }
 function payModes() {
   var p = S.settings.payments, m = [];
-  if (p.cod && p.cod.enabled) m.push({ k: 'cod', label: p.cod.label || 'Cash on Delivery', desc: Math.round(SP.num(p.cod.advancePct)) + t('codDesc') });
+  /* sab products PREPAID — COD band */
   if (p.upi && p.upi.enabled) m.push({ k: 'upi', label: p.upi.label || 'UPI', desc: t('upiDesc') + ' • ' + (p.upi.upiId || '') });
   return m;
 }
 function calc(total, mode) {
   var pct = SP.num(S.settings.payments.cod.advancePct);
-  if (mode === 'cod') { var adv = Math.round(total * pct / 100); return { adv: adv, due: total - adv }; }
   return { adv: total, due: 0 };
 }
 function renderCart() {
@@ -1053,7 +1098,7 @@ function readCheckout(validate) {
   return ok ? d : null;
 }
 function cartLines() {
-  return getCart().map(function (x) { var p = prod(x.id); return { id: p.id, title: p.title, titleEn: p.titleEn, sku: p.sku, qty: x.qty, price: SP.price(p), amount: SP.price(p) * x.qty }; });
+  return getCart().map(function (x) { var p = prod(x.id); return { id: p.id, title: p.title, titleEn: p.titleEn, sku: p.sku, gst: p.gst, qty: x.qty, price: SP.price(p), amount: SP.price(p) * x.qty }; });
 }
 function orderText(d, id, sub, ono) {
   var sh = SP.shippingFor(sub, d.pin, S.settings), total = sub + (sh.known ? sh.charge : 0);
@@ -1069,7 +1114,7 @@ async function placeOrder(sub) {
   var d = readCheckout(true); if (!d) return;
   keepForm();
   var pbad = await cartPinCheck(d.pin); if (pbad.length) { var pm0 = $('#co-pinmsg'); if (pm0) pm0.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
-  if (!ctok()) { SP.ss.set('sp_after_login', '?view=cart'); go('?view=account'); return; }
+  if (!ctok()) { if (window.SPQID) { quickId({ note: t('qidOrder'), after: function () { placeOrder(sub); } }); return; } SP.ss.set('sp_after_login', '?view=cart'); go('?view=account'); return; }
   var btn = $('#placeBtn'); placing = true; btn.disabled = true; btn.textContent = t('placing');
   var sh = SP.shippingFor(sub, d.pin, S.settings), total = sub + sh.charge;
   var r = calc(total, d.pay), lines = cartLines();
@@ -1083,7 +1128,7 @@ async function placeOrder(sub) {
   placing = false;
   if (!id) {
     btn.disabled = false; btn.textContent = '✅ ' + t('place'); console.warn(err);
-    if (err && /NOT_AVAILABLE_AT_PIN|Pincode \(6 ank\)/.test(err.message || '')) { var fe0 = $('#co-fail'); fe0.innerHTML = '⚠️ ' + esc(String(err.message).replace(/^NOT_AVAILABLE_AT_PIN:\s*/, '')); fe0.classList.remove('hide'); fe0.scrollIntoView({ behavior: 'smooth', block: 'center' }); pinSync(true).then(function () { }); return; }
+    if (err && /NOT_AVAILABLE_AT_PIN|OUT_OF_STOCK|Pincode \(6 ank\)/.test(err.message || '')) { var fe0 = $('#co-fail'); fe0.innerHTML = '⚠️ ' + (/OUT_OF_STOCK/.test(err.message) ? (lang === 'en' ? 'Sorry, someone just booked this — not enough stock: ' : 'माफ़ कीजिए, अभी इतना स्टॉक नहीं बचा (किसी और का ऑर्डर आ चुका है): ') : '') + esc(String(err.message).replace(/^(NOT_AVAILABLE_AT_PIN|OUT_OF_STOCK):\s*/, '')); fe0.classList.remove('hide'); fe0.scrollIntoView({ behavior: 'smooth', block: 'center' }); pinSync(true).then(function () { }); return; }
     var fe = $('#co-fail'); fe.innerHTML = '⚠️ ' + esc(t('fail')) + (err && err.message ? '<br><small>' + esc(err.message) + '</small>' : '') +
       '<a class="btn wa full" style="margin-top:8px" target="_blank" rel="noopener" href="' + esc(SP.waLink(S.settings.whatsapp, orderText(d, null, sub))) + '">💬 ' + t('sendWa') + '</a>';
     fe.classList.remove('hide'); fe.scrollIntoView({ behavior: 'smooth', block: 'center' }); return;
@@ -1109,6 +1154,7 @@ function showSuccess(id, d, r, text, ono) {
       '<a class="btn full" href="' + esc(upiLink(r.adv, id)) + '">📱 ' + t('payNow') + ' — ' + SP.money(r.adv) + '</a>' : '') +
     payLinksHtml(r.adv, id) +
     '<div id="utrBox" style="margin-top:12px;text-align:left"></div>' +
+    '<div class="note" style="margin-top:10px;text-align:left;background:#fff8e1">ℹ️ ' + (lang === 'en' ? 'After verification of payment & Location, Invoice will appear on your Orders details — you can download it from there. UTR / slip is optional — our team will call you. All orders are prepaid.' : 'पेमेंट और लोकेशन वेरिफ़ाई होने के बाद Invoice आपकी Orders details में दिखेगा — वहीं से डाउनलोड कर सकते हैं। UTR / स्लिप डालना ज़रूरी नहीं — हमारी टीम कॉल करेगी। सभी ऑर्डर प्रीपेड हैं।') + '</div>' +
     '<a class="btn wa full" style="margin-top:8px" target="_blank" rel="noopener" href="' + esc(SP.waLink(S.settings.whatsapp, text)) + '">💬 ' + t('sendWa') + '</a>' +
     '<a class="btn out full" style="margin-top:8px" href="./" data-nav>🏠 ' + t('home') + '</a></div>';
   var c = $('#cpy'); if (c) c.onclick = function () { copy(u.upiId); };
@@ -1160,6 +1206,7 @@ function gateInit() {
   if (!window.SPGate || SPGate.active()) return;
   SPGate.init({ getToken: ctok, setToken: function (tk) { if (tk) SP.ls.set('sp_ctok', tk); else { SP.ls.del('sp_ctok'); SP.ls.del('sp_cme'); } accDot(); },
     rpc: function (fn, p) { return SP.rpc(fn, { p: p }); }, lang: function () { return lang; }, toast: toast, authUrl: 'auth.js',
+    loginUi: function (done) { quickId({ note: t('qidSvc'), after: function () { done(); } }); },
     links: { site: siteLink(), siteLabel: t('goSite') } });
 }
 function renderBlueprint() {
@@ -1173,10 +1220,11 @@ function renderBlueprint() {
     SPBlueprint.mount($('#bp-root'), { mode: 'public', pdfLibUrl: 'pdf-lib.min.js', targetKw: kw,
       customer: { name: me.name || saved.name || '', mobile: me.mobile || saved.phone || '', city: saved.city || '', locked: !!me.name },
       links: { site: siteLink(), siteLabel: t('goSite') },
+      pay: { rpc: function (fn, p) { return SP.rpc(fn, { p: Object.assign({ token: ctok() }, p || {}) }); }, settings: function () { return Promise.resolve((S && S.settings) || {}); } },
       onSubmit: function (p) { p.from = 'store'; p.token = ctok(); return SP.rpc('sp_blueprint_submit', { p: p }); } });
     SPGate.log('blueprint', 'Opened Project Blueprint (store)');
   }
-  function load() { if (window.SPBlueprint) go2(); else { var s = document.createElement('script'); s.src = 'blueprint.js?v=1'; s.onload = go2; s.onerror = function () { $('#bp-root').innerHTML = '<div class="note">⚠️ ' + esc(t('fail')) + '</div>'; }; document.head.appendChild(s); } }
+  function load() { if (window.SPBlueprint) go2(); else { var s = document.createElement('script'); s.src = 'blueprint.js?v=8'; s.onload = go2; s.onerror = function () { $('#bp-root').innerHTML = '<div class="note">⚠️ ' + esc(t('fail')) + '</div>'; }; document.head.appendChild(s); } }
   function go2() { SPGate.require('blueprint', start); }
   load();
 }
@@ -1213,12 +1261,53 @@ function ctok() {
   return t;
 }
 function accMsg(e) { var m = (e && e.message) || ''; return /Could not find|PGRST202|schema cache|404/i.test(m) ? t('accNA') : m; }
-function accDot() { var d = $('#accDot'); if (d) d.classList.toggle('hide', !ctok()); }
+var AVOK = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
+function avatarOf(me) { var a = me && me.meta && me.meta.avatar; return a && AVOK.test(a) ? a : ''; }
+function accDot() {
+  var on = !!ctok(), d = $('#accDot'), fl = $('#accFlash'), ic = $('#accIc'), me = on ? ACC.me : null;
+  if (d) d.classList.add('hide'); if (fl) fl.classList.toggle('hide', on);
+  if (ic) { var av = avatarOf(me); ic.classList.toggle('has', !!(on && me && me.name && !av)); ic.innerHTML = av ? '<img alt="" src="' + av + '">' : (on && me && me.name ? esc(me.name.trim().charAt(0).toUpperCase()) : '👤'); }
+}
+/* "Create ID with PIN" / "Login with PIN" pop-up: name + mobile + 4-digit PIN, no OTP. o.note = reason shown on top, o.after = what to do next. */
+function qidCfg(o) {
+  o = o || {};
+  var wa = S.settings && S.settings.whatsapp ? SP.waLink(S.settings.whatsapp, (lang === 'en' ? 'Hello, I forgot my PIN for ' : 'नमस्ते, मैं अपना PIN भूल गया/गई — ') + (S.settings.storeName || '')) : '';
+  return { mode: o.mode || 'create', lang: function () { return lang; }, note: o.note, whatsapp: wa, mobile: o.mobile,
+    rpc: function (fn, p) { return SP.rpc(fn, { p: p }).catch(function (e) { throw new Error(accMsg(e)); }); },
+    onEmail: function () { ACC.email = 1; if (curView() === 'account') renderAccount(); else go('?view=account'); },
+    onDone: async function (r) {
+      SP.ls.set('sp_ctok', r.token); ACC.email = 0; try { await accRefresh(); } catch (e) {} accDot();
+      toast('✅ ' + (r.created ? t('idDone') : t('welcome')) + ', ' + ((ACC.me && ACC.me.name) || r.name || ''));
+      if (o.after) o.after(r); else if (curView() === 'account') renderAccount();
+    } };
+}
+function quickId(o) { if (!window.SPQID) { go('?view=account'); return; } SPQID.open(qidCfg(o)); }
 async function accRefresh() {
   if (!ctok()) return null;
-  try { var me = await SP.rpc('crm_consumer_me', { p: { token: ctok() } }); ACC.me = me; SP.ls.set('sp_cme', me); return me; }
+  try { var me = await SP.rpc('crm_consumer_me', { p: { token: ctok() } }); ACC.me = me; SP.ls.set('sp_cme', me); accDot(); return me; }
   catch (e) { if (/expired|active nahi/i.test(e.message)) { SP.ls.del('sp_ctok'); SP.ls.del('sp_cme'); ACC.me = null; accDot(); } throw e; }
 }
+/* prepaid orders: payment state + GST invoice (appears only after Sunpowers verifies payment & location) */
+function orderPayLine(o) {
+  var en = lang === 'en';
+  if (o.invoice_no) return '<div style="margin-top:6px"><button class="btn out" style="padding:6px 12px" data-inv-order="' + o.id + '">🧾 ' + (en ? 'Download Invoice ' : 'Invoice download ') + esc(o.invoice_no) + '</button></div>';
+  return '<div style="margin-top:6px;font-size:12.5px;color:var(--mut)">⏳ ' + (en ? 'After verification of payment & location, Invoice will appear here — you can download it from here.' : 'पेमेंट और लोकेशन वेरिफ़ाई होने के बाद Invoice यहाँ दिखेगा — यहीं से डाउनलोड कर सकते हैं।') + '</div>';
+}
+function designsCard(ds) {
+  if (!ds.length) return '';
+  var en = lang === 'en';
+  return '<div class="card" style="margin-top:14px"><h2 style="font-size:17px;margin-bottom:6px">📐 ' + (en ? 'Solar Designer payments' : 'Solar Designer पेमेंट') + ' (' + ds.length + ')</h2>' + ds.map(function (d) {
+    return '<div class="orow"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>' + esc(d.order_no) + '</b><span class="ost ' + (d.status === 'verified' ? 'paid' : 'new') + '">' + esc(d.status === 'verified' ? (en ? 'Verified' : 'वेरिफ़ाइड') : d.status === 'submitted' ? (en ? 'Checking' : 'जाँच में') : d.status === 'rejected' ? (en ? 'Rejected' : 'रिजेक्ट') : (en ? 'Payment pending' : 'पेमेंट बाकी')) + '</span></div>' +
+      '<div style="font-size:13px;color:var(--mut)">' + esc(new Date(d.created_at).toLocaleDateString('en-IN')) + ' • <b style="color:var(--txt,#111)">' + SP.money(d.amount) + '</b>' + (d.location && d.location.addr ? ' • 📍 ' + esc(d.location.addr) : '') + '</div>' +
+      (d.invoice_no ? '<div style="margin-top:6px"><button class="btn out" style="padding:6px 12px" data-inv-design="' + d.id + '">🧾 ' + (en ? 'Download Invoice ' : 'Invoice download ') + esc(d.invoice_no) + '</button></div>' : '<div style="margin-top:6px;font-size:12.5px;color:var(--mut)">⏳ ' + (en ? 'After verification of payment & location, Invoice will appear here.' : 'वेरिफ़िकेशन के बाद Invoice यहाँ दिखेगा।') + '</div>') + '</div>';
+  }).join('') + '</div>';
+}
+document.addEventListener('click', function (e) {
+  var a = e.target.closest('[data-inv-order],[data-inv-design]'); if (!a || !window.SPInvoice) return;
+  var me = (typeof ACC !== 'undefined' && ACC.me) || {}, st = (S && S.settings) || {}, sel = { name: st.legalName || st.storeName, gstin: st.gstin, address: st.address, phone: st.phone, email: st.email };
+  if (a.hasAttribute('data-inv-order')) { var o = (me.orders || []).filter(function (x) { return String(x.id) === a.getAttribute('data-inv-order'); })[0]; if (o && o.invoice) SPInvoice.shop(o.invoice); }
+  else { var d = (me.designs || []).filter(function (x) { return String(x.id) === a.getAttribute('data-inv-design'); })[0]; if (d) SPInvoice.design(d, sel); }
+});
 function stLabel(s) { return t('st_' + s) !== 'st_' + s ? t('st_' + s) : s; }
 var SOC_ICON = {
   Facebook: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14 8V6.5c0-.8.2-1.3 1.4-1.3H17V2.2C16.7 2.1 15.7 2 14.6 2 12.2 2 10.6 3.4 10.6 6.1V8H8v3.2h2.6V22H14V11.2h2.6L17 8z"/></svg>',
@@ -1240,7 +1329,7 @@ function footHtml(st) {
       (links.length ? '<div class="pf-soc">' + links.map(function (l) { return '<a target="_blank" rel="noopener" aria-label="' + l[0] + '" href="' + esc(SP.safeUrl(l[1])) + '">' + SOC_ICON[l[0]] + '</a>'; }).join('') + '</div>' : '') + '</div>' +
     '<div><h4>' + t('fShop') + '</h4><div class="pf-links">' + cats.map(function (c) { return '<a href="?s=' + encodeURIComponent(c.id) + '" data-nav>' + esc(tr(c, 'title')) + '</a>'; }).join('') + '<a href="?view=categories" data-nav>' + t('fAll') + ' →</a></div></div>' +
     '<div><h4>' + t('fHelp') + '</h4><div class="pf-links">' + pages.map(function (pg) { return '<a href="?page=' + encodeURIComponent(pg.id) + '" data-nav>' + esc(tr(pg, 'title')) + '</a>'; }).join('') +
-      '<a href="?view=blueprint" data-nav>' + t('bpT') + '</a><a href="?view=help" data-nav>' + t('help') + '</a>' + (st.mainSite ? '<a href="' + esc(SP.safeUrl(st.mainSite)) + '" target="_blank" rel="noopener">' + t('mainSite') + ' ↗</a>' : '') + '</div></div>' +
+      '<a href="?view=blueprint" data-nav>' + t('bpT') + '</a><a href="?view=help" data-nav>' + t('help') + '</a>' + '<a href="#" data-pwa-install>📲 ' + (lang === 'en' ? 'Install App' : 'ऐप इंस्टॉल करें') + '</a>' + (st.mainSite ? '<a href="' + esc(SP.safeUrl(st.mainSite)) + '" target="_blank" rel="noopener">' + t('mainSite') + ' ↗</a>' : '') + '</div></div>' +
     '<div><h4>' + t('fContact') + '</h4><div class="pf-links">' + (st.phone ? '<a href="tel:' + esc(SP.digits(st.phone)) + '">📞 ' + esc(st.phone) + '</a>' : '') + (st.email ? '<a href="mailto:' + esc(st.email) + '">✉️ ' + esc(st.email) + '</a>' : '') +
       (st.address ? '<span>📍 ' + esc(st.address) + '</span>' : '') + (st.hours ? '<span>🕘 ' + esc(lang === 'en' ? (st.hoursEn || st.hours) : st.hours) + '</span>' : '') + '</div></div></div></div>' +
     '<div class="pf-bot"><div class="wrap"><span>© ' + new Date().getFullYear() + ' ' + esc(st.legalName || st.storeName) + (st.gstin ? ' • GSTIN: ' + esc(st.gstin) : '') + (st.gstNote ? ' • ' + esc(st.gstNote) : '') + '</span>' + poweredBy() + '</div></div>';
@@ -1255,7 +1344,9 @@ function renderAccount() {
   var top = '<div class="top"><button class="back" data-back aria-label="' + t('back') + '">←</button><h1>👤 ' + t('account') + '</h1></div>';
   if (ctok() && !(window.SPAuth && SPAuth.resetToken())) return renderProfile(top);
   view.innerHTML = top + '<div class="card"><p style="color:var(--mut);margin-bottom:12px">' + t('accWhy') + '</p><div id="accBox"></div></div>';
+  if (window.SPQID && !ACC.email) { SPQID.inject(); SPQID.mount($('#accBox'), qidCfg({ mode: 'create' })); return; }
   if (!window.SPAuth) { $('#accBox').innerHTML = '<div class="note">⚠️ ' + t('accNA') + '</div>'; return; }
+  if (window.SPQID) { var bp = document.createElement('div'); bp.innerHTML = '<button type="button" class="qid-link" id="qidBackPin" style="margin-top:8px;border:0;background:none;color:var(--g-d);font-weight:700;text-decoration:underline;cursor:pointer">' + esc(t('backPin')) + '</button>'; $('#accBox').parentNode.appendChild(bp); bp.firstChild.onclick = function () { ACC.email = 0; renderAccount(); }; }
   SPAuth.mount($('#accBox'), { app: 'store', lang: lang === 'en' ? 'en' : 'hi', title: t('login'), sub: '', register: true,
     rpc: function (fn, p) { return SP.rpc(fn, { p: p }).catch(function (e) { throw new Error(accMsg(e)); }); },
     onDone: async function (r) {
@@ -1270,16 +1361,17 @@ async function renderProfile(top) {
   function draw() {
     me = ACC.me || { name: '', mobile: '', meta: {}, orders: [], enquiries: [] };
     var mt = me.meta || {}, os = me.orders || [], es = me.enquiries || [];
-    view.innerHTML = top + '<div class="card"><div class="acc-hd"><div class="acc-av">' + esc((me.name || '?').trim().charAt(0).toUpperCase()) + '</div><div style="flex:1;min-width:0"><b style="font-size:18px">' + t('welcome') + ', ' + esc(me.name) + '</b><div style="color:var(--mut)">📱 ' + esc(me.mobile || '') + (me.email ? ' • ' + esc(me.email) : '') + '</div>' +
+    view.innerHTML = top + '<div class="card"><div class="acc-hd"><div class="acc-av">' + (avatarOf(me) ? '<img alt="" src="' + avatarOf(me) + '">' : esc((me.name || '?').trim().charAt(0).toUpperCase())) + '</div><div style="flex:1;min-width:0"><b style="font-size:18px">' + t('welcome') + ', ' + esc(me.name) + '</b><div style="color:var(--mut)">📱 ' + esc(me.mobile || '') + (me.email ? ' • ' + esc(me.email) : '') + '</div>' +
       (mt.address ? '<div style="color:var(--mut);font-size:14px">📍 ' + esc([mt.address, mt.city, mt.pincode].filter(Boolean).join(', ')) + '</div>' : '') + '</div></div>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px"><button class="btn out" id="acEdit">✏️ ' + t('editProfile') + '</button><button class="btn out" id="acPin">🔑 ' + t('changePin') + '</button><button class="btn out" id="acAll">📱 ' + t('logoutAll') + '</button><button class="btn out" id="acOut">' + t('logout') + '</button></div></div>' +
       '<div class="card" style="margin-top:14px"><h2 style="font-size:17px;margin-bottom:6px">📦 ' + t('myOrders') + ' (' + os.length + ')</h2>' + (os.length ? os.map(function (o) {
-        return '<div class="orow"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>' + esc(o.order_no || ('#' + o.id)) + '</b><span class="ost ' + esc(o.status) + '">' + esc(stLabel(o.status)) + '</span></div><div style="font-size:13px;color:var(--mut)">' + esc(new Date(o.created_at).toLocaleDateString('en-IN')) + ' • ' + esc(String(o.payment || '').toUpperCase()) + ' • <b style="color:var(--txt,#111)">' + SP.money(o.total) + '</b></div><div style="font-size:13px">' + esc((o.items || []).map(function (i) { return i.title + ' × ' + i.qty; }).join(', ')) + '</div></div>';
+        return '<div class="orow"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>' + esc(o.order_no || ('#' + o.id)) + '</b><span class="ost ' + esc(o.status) + '">' + esc(stLabel(o.status)) + '</span></div><div style="font-size:13px;color:var(--mut)">' + esc(new Date(o.created_at).toLocaleDateString('en-IN')) + ' • ' + esc(String(o.payment || '').toUpperCase()) + ' • <b style="color:var(--txt,#111)">' + SP.money(o.total) + '</b></div><div style="font-size:13px">' + esc((o.items || []).map(function (i) { return i.title + ' × ' + i.qty; }).join(', ')) + '</div>' + orderPayLine(o) + '</div>';
       }).join('') : '<p style="color:var(--mut)">' + t('noOrders') + '</p><a class="btn full" style="margin-top:8px" href="./" data-nav>' + t('shop') + '</a>') + '</div>' +
+      designsCard(me.designs || []) +
       '<div class="card" style="margin-top:14px"><h2 style="font-size:17px;margin-bottom:6px">📨 ' + t('myEnq') + ' (' + es.length + ')</h2>' + (es.length ? es.map(function (q) {
         return '<div class="orow"><div style="display:flex;justify-content:space-between;gap:8px"><b>' + esc(q.subject || q.type || ('#' + q.id)) + '</b><span class="ost ' + esc(q.status) + '">' + esc(stLabel(q.status)) + '</span></div><div style="font-size:13px;color:var(--mut)">' + esc(new Date(q.created_at).toLocaleDateString('en-IN')) + '</div>' + (q.message ? '<div style="font-size:13px;white-space:pre-wrap">' + esc(String(q.message).slice(0, 200)) + '</div>' : '') + '</div>';
       }).join('') : '<p style="color:var(--mut)">' + t('noEnq') + '</p>') + '</div>';
-    $('#acOut').onclick = async function () { try { await SP.rpc('crm_logout', { p: { token: ctok() } }); } catch (e) {} SP.ls.del('sp_ctok'); SP.ls.del('sp_cme'); ACC.me = null; ACC.mode = 'login'; accDot(); toast(t('loggedOut')); renderAccount(); };
+    $('#acOut').onclick = async function () { try { await SP.rpc('crm_logout', { p: { token: ctok() } }); } catch (e) {} SP.ls.del('sp_ctok'); SP.ls.del('sp_cme'); ACC.me = null; ACC.mode = 'login'; ACC.email = 0; accDot(); toast(t('loggedOut')); renderAccount(); };
     $('#acEdit').onclick = editProfile;
     $('#acPin').onclick = changePin;
     $('#acAll').onclick = async function () { try { var r = await SP.rpc('crm_auth_logout_all', { p: { token: ctok() } }); if (r && r.error) throw new Error(r.error); toast('✅ ' + t('logoutAllOk')); } catch (e) { toast('⚠️ ' + accMsg(e)); } };
@@ -1296,8 +1388,13 @@ function editProfile() {
   view.innerHTML = '<div class="top"><button class="back" id="pfBack" aria-label="' + t('back') + '">←</button><h1>✏️ ' + t('editProfile') + '</h1></div><form class="card fgrid" id="pf" novalidate>' +
     f('pf-name', t('name'), me.name, 'text', 'maxlength="80" autocomplete="name"') + f('pf-email', t('emailOpt'), me.email, 'email') + f('pf-addr', t('addr'), mt.address, 'text', 'autocomplete="street-address"') +
     f('pf-city', t('city'), mt.city) + f('pf-pin', t('pin'), mt.pincode, 'text', 'inputmode="numeric" maxlength="6"') +
+    (window.SPQID ? '<div class="fld"><label>' + t('photoLbl') + '</label><div style="display:flex;align-items:center;gap:10px"><div class="acc-av" id="pf-av">' + (avatarOf(me) ? '<img alt="" src="' + avatarOf(me) + '">' : esc((me.name || '?').trim().charAt(0).toUpperCase())) + '</div><div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start"><button type="button" class="btn out" id="pf-ph">' + t('photoChg') + '</button>' + (avatarOf(me) ? '<button type="button" class="qid-link" id="pf-phx" style="border:0;background:none;color:var(--red);font-weight:700;text-decoration:underline;cursor:pointer">' + t('photoDel') + '</button>' : '') + '</div><input type="file" id="pf-file" accept="image/*" hidden></div></div>' : '') +
     '<button class="btn full" id="pfSave">💾 ' + t('save') + '</button><div class="note hide" id="pf-msg"></div></form>';
   $('#pfBack').onclick = function () { renderAccount(); };
+  async function savePhoto(d) { try { var r = await SP.rpc('sp_cust_avatar', { p: { token: ctok(), avatar: d } }); if (r && r.error) throw new Error(r.error); await accRefresh(); toast(d ? t('photoOk') : t('saved')); editProfile(); } catch (err) { var m = $('#pf-msg'); m.textContent = '⚠️ ' + accMsg(err); m.classList.remove('hide'); } }
+  var phb = $('#pf-ph'); if (phb) { phb.onclick = function () { $('#pf-file').click(); };
+    $('#pf-file').onchange = function () { var fl = this.files && this.files[0]; if (!fl) return; SPQID.compress(fl).then(savePhoto, function () { var m = $('#pf-msg'); m.textContent = '⚠️ ' + (lang === 'en' ? 'This photo could not be opened — pick another one' : 'यह फ़ोटो नहीं खुल पाई — दूसरी चुनें'); m.classList.remove('hide'); }); };
+    var px = $('#pf-phx'); if (px) px.onclick = function () { savePhoto(''); }; }
   $('#pf').addEventListener('submit', async function (e) {
     e.preventDefault(); var n = $('#pf-name').value.trim(), pin = SP.digits($('#pf-pin').value), msg = $('#pf-msg'); msg.classList.add('hide');
     fieldErr('pf-name', n.length >= 2 ? '' : t('reqName')); fieldErr('pf-pin', !pin || /^\d{6}$/.test(pin) ? '' : t('reqPin'));
@@ -1381,7 +1478,7 @@ function applyChrome() {
   if (/^#[0-9a-f]{6}$/i.test(st.themeColor || '')) { document.documentElement.style.setProperty('--g', st.themeColor); var mt = $('meta[name=theme-color]'); if (mt) mt.setAttribute('content', st.themeColor); }
   document.documentElement.lang = lang === 'en' ? 'en' : 'hi';
   var lb = $('#langBtn'); if (lb) { lb.innerHTML = '<span style="font-size:15px">🌐</span><b style="font-size:12px">' + ({ en: 'EN', hi: 'हिं', hg: 'Hing', bn: 'বাং', pa: 'ਪੰ', mr: 'मरा', gu: 'ગુ' }[(window.SPI18N && !SPI18N.off ? SPI18N.lang : lang)] || 'EN') + ' ▾</b>'; lb.setAttribute('aria-label', 'Language / भाषा'); }
-  $('#storeName').textContent = st.storeName || 'Store';
+  $('#storeName').textContent = /^sunpowers(\.in)?$/i.test(String(st.storeName || '').trim()) ? 'Sunpowers App' : (st.storeName || 'Store');
   $('#logo').innerHTML = '<img src="' + esc(SP.isImg(st.logoImg) ? st.logoImg : 'logo-mark.png') + '" alt="">';
   var loc = $('#loc'); loc.textContent = '📍 ' + (st.location || ''); loc.classList.toggle('hide', !st.location); pinChrome();
   $('#q').placeholder = lang === 'en' ? 'Search solar panels, inverters, batteries' : (st.searchPlaceholder || 'खोजें');
@@ -1432,6 +1529,7 @@ function clearSearch() { searchQ = ''; $('#q').value = ''; $('#qx').classList.ad
 
 /* ---------------- global events ---------------- */
 document.addEventListener('click', function (e) {
+  if (e.target.closest('#accBtn') && !ctok() && window.SPQID && !e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) { e.preventDefault(); quickId({}); return; }
   var a = e.target.closest('a[data-nav]');
   if (a && !e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) {
     e.preventDefault(); var href = a.getAttribute('href');
@@ -1490,17 +1588,39 @@ function start(res) {
   if (ctok() && !start._acc) { start._acc = 1; accRefresh().catch(function () {}); }
   var off = $('#offline'); off.classList.toggle('hide', SOURCE !== 'cache'); off.textContent = t('offline');
 }
-var cached = SP.ls.get(SP.CACHE_KEY, null), started = false;
+var cached = SP.ls.get(SP.CACHE_KEY, null), started = false, lastCheck = Date.now(), checking = false, PEND = null;
 if (cached && Array.isArray(cached.layout)) { try { start({ data: SP.normalize(cached), source: 'cache-fast' }); started = true; } catch (e) { console.error(e); } }
-SP.loadStore().then(function (res) {
+function sameData() { pinHandoff().then(function () { return pinSync(false); }).then(function (ch) { if (ch) route(); }).catch(function () {}); }   /* website → store hand-off (?add=…) still runs when nothing changed */
+function onRes(res) {
   if (res.error) console.warn('Store load:', res.error.message);
   if (started && res.source === 'cache') { var ob = $('#offline'); ob.textContent = t('offline'); ob.classList.remove('hide'); }
   if (!started || res.source === 'db' || res.source === 'demo') {
-    if (started && res.source === 'db' && JSON.stringify(res.data) === JSON.stringify(S)) return;
+    if (started && res.source === 'db' && JSON.stringify(res.data) === JSON.stringify(S)) { sameData(); return; }
     var y = window.scrollY; start(res); if (started) window.scrollTo(0, y);
   }
   started = true;
-});
+}
+/* the phone already has the store: one tiny question ("changed?"); the full data is downloaded only when something really changed */
+(started ? SP.storeChanged().then(function (ch) { if (ch === false) { sameData(); return; } return SP.loadStore().then(onRes); }) : SP.loadStore().then(onRes));
+/* keeps an open app / tab up to date by itself (when it comes back to the screen, when internet returns, and every minute while it is open) */
+function busyNow() {
+  var a = document.activeElement, v = curView();
+  return !!(placing || $('#pinDlg') || $('#qidOv') || v === 'cart' || v === 'done' || (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.id !== 'q'));
+}
+function applyPend() { if (PEND && !busyNow()) { var r = PEND; PEND = null; var y = window.scrollY; start(r); window.scrollTo(0, y); } }
+function liveRefresh(force) {
+  if (checking || document.hidden || !started) return;
+  if (!force && Date.now() - lastCheck < 25000) { applyPend(); return; }
+  checking = true; lastCheck = Date.now();
+  SP.storeChanged().then(function (ch) {
+    if (ch === false) return;
+    return SP.loadStore().then(function (res) { if (res.source !== 'db') return; if (JSON.stringify(res.data) === JSON.stringify(S)) return; PEND = res; });
+  }).catch(function () {}).then(function () { checking = false; applyPend(); });
+}
+document.addEventListener('visibilitychange', function () { if (!document.hidden) liveRefresh(false); });
+window.addEventListener('online', function () { liveRefresh(true); });
+setInterval(function () { liveRefresh(false); }, 60000);
+window.addEventListener('popstate', function () { setTimeout(applyPend, 400); });
 })();
 </script>
 <script>
@@ -1509,5 +1629,5 @@ window.addEventListener('load', function () {
   SPPlant.init({ getToken: function () { var t = SP.ls.get('sp_ctok', null); if (!t && window.SPGate) t = SPGate.cookie.get(); return t || null; }, rpc: function (fn, p) { return SP.rpc(fn, { p: p }); }, after: function () { return document.querySelector('header.hdr'); } });
 });
 </script>
-</body>
+<script src="sp-switch.js"></script><script>if (window.SPSwitch) SPSwitch.mount("public", "store");</script></body>
 </html>

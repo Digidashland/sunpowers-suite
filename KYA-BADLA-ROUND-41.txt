@@ -1,0 +1,26 @@
+ROUND 41 — CUSTOMER FLOW PATTI, PERMISSION, NET METERING (STAGING PEHLE)
+
+1. Customer flow patti: sirf "All Customers" page par dikhti hai. Customer list se chuna jata hai (dropdown). ✕ aur "Sabhi steps" button nahi.
+   Sab 19 steps ek saath dikhte hain.
+2. Patti ka koi bhi step kholne par jo popup / form aata hai, wo PATTI KE NEECHE khulta hai — patti dhakti nahi.
+3. Har step ki alag permission: Team > Permission me "Customer flow" group (Step 1 se 19 tak).
+   Jis user ko step ki permission nahi, uska step par click karne par: "Permission not allowed — Admin se baat karein".
+4. Net Metering: Projects list me sirf project customers dikhte hain (per-user, jo unka apna / jo dekh sakte hain).
+   Har project row ke neeche "Net Metering" button — sirf us user ko jiske paas "Projects me Net Metering step khole" (projects.netmetering) permission hai.
+5. Naye permission keys: flow.step.1 ... flow.step.19, projects.netmetering.
+
+SQL (STAGING pe pehle, phir live backup ke baad, aapke kehne par):
+  - ROUND-40-SQL-ONLY.sql  (ya SQL-PARTS/2-UPDATE/U13.sql)
+  - Purane manager / staff ko sab step + Net Metering default ON (pehle jaisa).
+  - Admin ko sab kuch ('*').
+
+Code:
+  - crm/modules/flowbar.js  (permission check, popup placement, stepKey, placeBelow)
+  - crm/modules/workflow.js (projRow -> nmRow + projRowA, Net Metering click handler)
+  - MASTER-UPDATE.sql (catalog), MASTER-FRESH.sql, SQL-PARTS F02 / U03 (catalog same), U13 (new)
+
+Test: /tmp/q/m/r70.py (band 1280 + 390, errors 0), /tmp/q/m/r80.py (popup placement, projects page, Net Metering button).
+
+Abhi nahi hua (agle round me):
+  - Dropdown me "Download & Share" ek button (abhi do alag hain).
+  - Band ke andar kisi step par "naya Project kaam" ka flow — purana hi hai.

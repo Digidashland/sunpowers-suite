@@ -9,23 +9,28 @@
     return '<div class="li click" data-act="popen" data-id="' + x.id + '"><span class="av ' + (x.status === 'verified' ? '' : x.status === 'rejected' ? 'r' : 'o') + '">' + C.ic('plant') + '</span><span class="grow"><span class="t">' + esc(x.title) + ' ' + C.pill(s[0], s[1]) + '</span><span class="m"><span class="b">' + esc(d.kw || 0) + ' kW</span><span>' + esc(x.ref || '') + '</span>' + (d.city ? '<span>' + esc(d.city) + '</span>' : '') + (x.due_at ? '<span>' + C.ic('clock') + esc(C.fd(x.due_at)) + '</span>' : '') + '<span>' + C.ic('user') + esc(x.owner_name || '') + (d.ref ? ' · ' + esc(d.ref) : '') + '</span></span></span>' + (num(x.amount) && C.canAny('plants.view_all', 'plants.verify') ? '<span class="amt">' + money(x.amount) + '</span>' : '') + '</div>';
   };
 
-  C.plantForm = function (rec, pre) {
-    rec = rec || { data: {} }; var d = Object.assign({}, pre || {}, rec.data || {}), isNew = !rec.id, ver = C.can('plants.verify');
+  /* Round 38: plant kisi CRM customer ka ho to uski details (naam, mobile, shahar, pata) dobara nahi — Customer card. Sirf referral (anjaan) plant me ye box rehte hain. */
+  C.plantForm = async function (rec, pre) {
+    rec = rec || { data: {} }; var d = Object.assign({}, pre || {}, rec.data || {}), isNew = !rec.id, ver = C.can('plants.verify'), pid = rec.party_id || d.party_id || null, party = null;
+    if (pid) { try { party = await C.get(pid); } catch (e) { party = null; } }
+    var pdd = party ? party.data || {} : {};
     return new Promise(function (res) {
-      var body = '<form id="plf" class="fg">' + C.f('Customer ka naam *', C.inp('name', d.name || (isNew ? '' : rec.title))) + C.f('Mobile *', C.inp('mobile', d.mobile || rec.mobile, 'inputmode="tel"')) +
-        C.f('Plant size (kW) *', C.inp('kw', d.kw, 'inputmode="decimal"')) + C.f('Prakar', C.sel('ptype', ['On-grid', 'Off-grid', 'Hybrid', 'Water pump', 'Street light', 'Other'], d.ptype || 'On-grid')) +
+      var body = '<form id="plf" class="fg">' + (party ? '<div class="f full"><label>Customer</label><div id="plCust"></div></div>' : C.f('Customer ka naam *', C.inp('name', d.name || (isNew ? '' : rec.title))) + C.f('Mobile *', C.inp('mobile', d.mobile || rec.mobile, 'inputmode="tel"'))) +
+        C.f('Plant size (kW) *', C.inp('kw', d.kw || (parseFloat(pdd.kw) > 0 ? pdd.kw : ''), 'inputmode="decimal"')) + C.f('Prakar', C.sel('ptype', ['On-grid', 'Off-grid', 'Hybrid', 'Water pump', 'Street light', 'Other'], d.ptype || 'On-grid')) +
         C.f('Lagne ki tareekh', C.inp('install', d.install || C.today(), 'type="date"')) + C.f('Deal value (₹)', C.inp('deal_value', d.deal_value, 'inputmode="decimal"')) +
         C.f('Panel (brand / watt)', C.inp('panel', d.panel)) + C.f('Inverter', C.inp('inverter', d.inverter)) +
-        C.f('Shahar / Gaon', C.inp('city', d.city)) + C.f('Discom / Consumer no.', C.inp('consumer_no', d.consumer_no)) +
+        (party ? '' : C.f('Shahar / Gaon', C.inp('city', d.city))) + C.f('Discom / Consumer no.', C.inp('consumer_no', d.consumer_no || pdd.consumer_no)) +
         C.f('Subsidy status', C.sel('subsidy', ['Nahi', 'Apply kiya', 'Mil gayi', 'Lagu nahi'], d.subsidy || 'Nahi')) + C.f('Referral code <span class="o">(Dealer / Influencer)</span>', C.inp('ref', d.ref || (isNew && C.me.ref_code ? C.me.ref_code : ''), 'style="text-transform:uppercase"' + (C.isPartner() ? ' readonly' : ''))) +
-        C.f('Pata', C.ta('address', d.address, 'rows="2"'), 'full') + C.f('Note', C.ta('note', d.note, 'rows="2"'), 'full') +
+        (party ? '' : C.f('Pata', C.ta('address', d.address, 'rows="2"'), 'full')) + C.f('Note', C.ta('note', d.note, 'rows="2"'), 'full') +
         (ver ? C.f('Status', C.sel('status', [['pending', 'Verify baaki'], ['verified', 'Verified'], ['rejected', 'Reject']], rec.status || 'verified'), 'full') : '<div class="note full">Plant Admin ke verify karne ke baad hi commission banega.</div>') + '</form>';
       var m = C.modal({ title: isNew ? 'Plant jodein' : 'Plant badlein', body: body, foot: '<button class="btn btn-o" data-close>Cancel</button><button class="btn btn-p" data-ok>' + C.ic('check') + ' Save</button>', onClose: function () { res(null); } });
+      var cc = party ? C.custCardMount($('#plCust', m.el), party, {}) : null;
       $('[data-ok]', m.el).onclick = async function () {
-        var f = $('#plf', m.el), o = C.form(f); if (!C.need(f, ['name', 'mobile', 'kw'])) return;
+        var f = $('#plf', m.el), o = C.form(f); if (!C.need(f, cc ? ['kw'] : ['name', 'mobile', 'kw'])) return;
+        if (cc) { var cp = cc.party, cd = cp.data || {}; o.name = cp.title; o.mobile = cp.mobile || ''; o.city = cd.city || ''; o.address = C.addrText(cd) || cd.address || ''; }
         if (!C.validMob(o.mobile)) return C.toast('Sahi mobile likhein', true);
         var st = o.status; delete o.status; o.ref = (o.ref || '').toUpperCase();
-        try { var r = await C.run('crm_save', { kind: 'plant', id: rec.id || null, status: st || '', party_id: rec.party_id || d.party_id || null, data: Object.assign({}, rec.data || {}, o) }, 'Plant save ho gaya ✔'); m.el.remove(); document.documentElement.style.overflow = ''; res(r); } catch (e) {}
+        try { var r = await C.run('crm_save', { kind: 'plant', id: rec.id || null, status: st || '', party_id: pid, data: Object.assign({}, rec.data || {}, o) }, 'Plant save ho gaya ✔'); m.el.remove(); document.documentElement.style.overflow = ''; res(r); } catch (e) {}
       };
     });
   };

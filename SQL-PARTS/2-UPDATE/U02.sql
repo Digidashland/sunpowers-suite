@@ -1,9 +1,26 @@
 -- ============================================================================
--- SUNPOWERS — DATABASE UPDATE — part 2 of 9
+-- SUNPOWERS — DATABASE UPDATE — part 2 of 12
 -- Purane project par update (naya ya purana, dono par chalega).
--- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (U01 -> U09). Safe to re-run.
+-- Supabase -> SQL Editor: paste the WHOLE part and press Run. Run the parts in order (U01 -> U12). Safe to re-run.
 -- ============================================================================
 
+-- ============================================================================
+-- Grants
+-- ============================================================================
+do $g$
+declare f text;
+begin
+  foreach f in array array['public.sp_blueprint_submit(jsonb)', 'public.sp_tool_use(jsonb)', 'public.crm_blueprint_save(jsonb)', 'public.crm_blueprint_list(jsonb)', 'public.crm_blueprint_get(jsonb)', 'public.crm_blueprint_delete(jsonb)',
+    'public.crm_blueprint_cfg(jsonb)', 'public.crm_conn_get(jsonb)', 'public.crm_conn_save(jsonb)', 'public.crm_items_bulk_delete(jsonb)', 'public.crm_items_bulk_update(jsonb)', 'public.crm_to_store(jsonb)']
+  loop
+    execute 'revoke all on function ' || f || ' from public';
+    execute 'grant execute on function ' || f || ' to anon, authenticated';
+  end loop;
+  execute 'revoke all on function public.crm_conn_val(text, text) from public, anon, authenticated';
+  execute 'revoke all on function public.crm_conn_on(text) from public, anon, authenticated';
+  execute 'revoke all on function public.crm_alert(text, jsonb) from public, anon, authenticated';
+  execute 'revoke all on function public.crm_bp_role_ok(public.crm_ses) from public, anon, authenticated';
+end $g$;
 -- ============================================================
 -- Sunpowers — Website Admin (edit the website without code)
 -- Safe to run more than once. Stores everything in ONE extra row (id = 'web') of sp_store;
@@ -43,40 +60,6 @@ exception when undefined_object then null; end $$;
 -- ============================================================================
 
 -- (1) --------------------------------------------------------------------------------
-create or replace function public.sp_place_order(p_order jsonb)
-returns bigint language plpgsql security definer
-set search_path = public as $$
-declare new_id bigint; u public.crm_users; o jsonb;
-begin
-  if p_order is null or jsonb_typeof(p_order) <> 'object' then raise exception 'Invalid order'; end if;
-  if length(p_order::text) > 30000 then raise exception 'Order too large'; end if;
-
-  -- login is mandatory
-  u := public.crm_csession(p_order ->> 'token');   -- raises if not logged in / expired
-
-  if jsonb_typeof(p_order->'items') <> 'array' or jsonb_array_length(p_order->'items') = 0 then
-    raise exception 'Cart is empty';
-  end if;
-
-  -- identity always comes from the account, never from the browser
-  o := (p_order - 'token' - 'customer_id')
-       || jsonb_build_object(
-            'name', left(coalesce(nullif(trim(u.name), ''), trim(p_order->>'name')), 80),
-            'phone', coalesce(u.mobile, ''),
-            'customer_id', u.id::text,
-            'login_method', 'email_otp',
-            'payment_status', 'awaiting_payment');
-
-  if coalesce(trim(o->>'name'), '') = '' or coalesce(trim(o->>'phone'), '') = '' then
-    raise exception 'Naam aur mobile account mein save karein';
-  end if;
-
-  o := o || jsonb_build_object('order_no', public.crm_next_no('order'));
-  insert into public.sp_orders(data) values (o) returning id into new_id;
-  perform public.sp_notify_admin('Naya order ' || (o->>'order_no') || ' — ' || (o->>'name'),
-    '<p>Naya order aaya hai: <b>' || (o->>'order_no') || '</b></p><p>' || (o->>'name') || ' · ' || (o->>'phone') || '</p><p>Total: ₹' || (o->>'total') || ' — payment ka UTR aane par dobara notification milega. Admin panel mein dekhein.</p>');
-  return new_id;
-end $$;
 
 create or replace function public.sp_order_no(p_id bigint, p_token text) returns text
 language plpgsql stable security definer set search_path = public as $$
@@ -104,6 +87,7 @@ end $$;
 create or replace function public.crm_lines_guard() returns trigger language plpgsql as $$
 declare l jsonb;
 begin
+  if coalesce(current_setting('sp.restoring', true), '') = 'on' then return new; end if;
   if new.kind in ('quote', 'invoice', 'purchase') and new.deleted_at is null and jsonb_typeof(new.data -> 'lines') = 'array' then
     for l in select * from jsonb_array_elements(new.data -> 'lines') loop
       if coalesce(l ->> 'kind', 'product') <> 'project' and coalesce(l ->> 'item_id', '') = '' then
@@ -145,7 +129,7 @@ exception when undefined_object then null; end $$;
 do $$ begin
   begin
     update storage.buckets set file_size_limit = 52428800,
-      allowed_mime_types = array['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm']
+      allowed_mime_types = array['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm','application/pdf']
     where id = 'sp-images';
   exception when others then null; end;
   begin
@@ -382,7 +366,7 @@ create or replace function public.crm_admin_keep(p jsonb) returns jsonb language
 declare s public.crm_ses := public.crm_session(p ->> 'token'); pe text; on_ boolean := coalesce((p ->> 'on')::boolean, false);
 begin
   if not public.crm_is_admin(s) or (s).uid <> 0 then raise exception 'Ye option sirf Admin ke liye hai'; end if;
-  pe := public.crm_auth_pin_check(public.crm_auth_find('crm', 'admin'), p ->> 'pin');
+  pe := public.crm_auth_pin_check(public.crm_auth_find('admin', 'admin'), p ->> 'pin');
   if pe is not null then return jsonb_build_object('error', pe); end if;
   update public.crm_sessions set keep = on_, expires_at = now() + case when on_ then interval '365 days' else interval '12 hours' end where token = p ->> 'token' and user_id = 0;
   perform public.crm_log(s, 'settings', null, null, case when on_ then 'Admin login is device par yaad rakha' else 'Admin login yaad rakhna band' end);
@@ -424,7 +408,7 @@ revoke all on public.crm_expenses from anon, authenticated;
 create or replace function public.crm_exp_list(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
 declare s public.crm_ses := public.crm_session(p ->> 'token'); fr date := coalesce(nullif(p ->> 'from', '')::date, date '2000-01-01'); t date := coalesce(nullif(p ->> 'to', '')::date, date '2999-12-31');
 begin
-  perform public.crm_need(s, 'accounts.manage');
+  if not (public.crm_can(s, 'accounts.manage') or public.crm_can(s, 'accounts.view')) then raise exception 'Aapko is kaam ki permission nahi hai'; end if;
   return coalesce((select jsonb_agg(to_jsonb(e) - 'deleted_at' - 'deleted_by' - 'delete_reason' order by e.spent_on desc, e.id desc)
     from public.crm_expenses e where e.deleted_at is null and e.spent_on between fr and t), '[]'::jsonb);
 end $$;

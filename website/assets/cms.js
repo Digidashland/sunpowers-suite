@@ -8,7 +8,15 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function lang() { return window.SPI18N && (SPI18N.lang === 'hi' || SPI18N.lang === 'hg') ? 'hi' : 'en'; }
-  function pick(o) { if (!o) return ''; if (typeof o === 'string') return o; var l = lang(), v = (o[l] || o.en || o.hi || ''); if (l === 'hi' && window.SPI18N && SPI18N.lang === 'hg' && SPI18N.xlit && /[\u0900-\u097F]/.test(v)) v = SPI18N.xlit(v); return v; }
+  /* Round 27: content is stored in English (+ an old hand-typed Hindi only if it still exists). Any other language is made on the fly: dictionary first, then machine translation (cached). */
+  function pick(o) {
+    if (!o) return ''; if (typeof o === 'string') return o;
+    var I = window.SPI18N, L = I && !I.off ? I.lang : 'en', v;
+    if ((L === 'hi' || L === 'hg') && o.hi) { v = o.hi; if (L === 'hg' && I.xlit && /[\u0900-\u097F]/.test(v)) v = I.xlit(v); return v; }
+    v = o.en || o.hi || '';
+    if (v && I && I.tr && !I.off) { var t = I.tr(v, L); if (t) v = t; }
+    return v;
+  }
   function https(u) { u = String(u || '').trim(); return /^(https:\/\/|http:\/\/(127\.0\.0\.1|localhost)[:\/])/i.test(u) ? u : ''; }
   var SHOP = String(CFG.SHOP_URL || '').replace(/\/+$/, ''), PHONE = String(CFG.WHATSAPP || '9621050636').replace(/\D/g, '').slice(-10);
   var KEY = 'sp_web_cache_v1', W = null;
@@ -195,6 +203,18 @@
     });
   }
   /* ---------- rating, store info, social ---------- */
+  /* App button (header / drawer / footer): link saved in Admin -> store link; otherwise 'Install App' (Store opens its install guide) ; no store address -> 'Coming soon' */
+  function applyApp(S) {
+    var ap = S.app || {}, au = https(ap.android), iu = https(ap.ios), ua = String(navigator.userAgent || ''), isIos = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1), alink = isIos ? (iu || au) : (au || iu);
+    var shopU = https((window.SITE || {}).SHOP_URL), inst = shopU ? shopU.replace(/\/+$/, '') + '/?install=1' : '';
+    $$('a[data-app]').forEach(function (a) {
+      var t = a.querySelector('[data-app-t]') || a, foot = !!a.closest('.ftr');
+      if (!alink && inst) { a.href = inst; a.target = '_blank'; a.rel = 'noopener'; a.removeAttribute('aria-disabled'); a.removeAttribute('title'); a.classList.remove('is-soon'); t.textContent = pick({ en: foot ? 'Install App' : '📲 Install App', hi: foot ? 'ऐप इंस्टॉल करें' : '📲 ऐप इंस्टॉल करें' }); }
+      else if (alink) { a.href = alink; a.target = '_blank'; a.rel = 'noopener'; a.removeAttribute('aria-disabled'); a.removeAttribute('title'); a.classList.remove('is-soon'); t.textContent = pick({ en: foot ? 'Download App' : '📲 Download App', hi: foot ? 'ऐप डाउनलोड करें' : '📲 ऐप डाउनलोड करें' }); }
+      else { a.removeAttribute('href'); a.removeAttribute('target'); a.setAttribute('aria-disabled', 'true'); a.setAttribute('title', pick({ en: 'Our app is coming soon', hi: 'हमारा ऐप जल्द आ रहा है' })); a.classList.add('is-soon'); t.textContent = pick({ en: foot ? 'Download App · Coming soon' : '📲 App · Coming soon', hi: foot ? 'ऐप डाउनलोड · जल्द आ रहा है' : '📲 ऐप · जल्द आ रहा है' }); }
+      a.setAttribute('data-noi18n', ''); if (t !== a) t.setAttribute('data-noi18n', '');
+    });
+  }
   function applySite() {
     var S = W.site || {}, r = S.rating || {};
     if (r.value) $$('[data-rating]').forEach(function (e) { e.textContent = r.value; });
@@ -202,14 +222,7 @@
     if (https(r.url)) $$('a.gbadge').forEach(function (a) { a.href = r.url; });
     var si = pick(S.storeInfo);
 
-    /* App button: 'Coming soon' until an app link is saved in Admin; then Android / iPhone get their own store, other devices get whichever exists */
-    var ap = S.app || {}, au = https(ap.android), iu = https(ap.ios), ua = String(navigator.userAgent || ''), isIos = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1), alink = isIos ? (iu || au) : (au || iu);
-    $$('a[data-app]').forEach(function (a) {
-      var t = a.querySelector('[data-app-t]') || a, foot = !!a.closest('.ftr');
-      if (alink) { a.href = alink; a.target = '_blank'; a.rel = 'noopener'; a.removeAttribute('aria-disabled'); a.removeAttribute('title'); a.classList.remove('is-soon'); t.textContent = pick({ en: foot ? 'Download App' : '📲 Download App', hi: foot ? 'ऐप डाउनलोड करें' : '📲 ऐप डाउनलोड करें' }); }
-      else { a.removeAttribute('href'); a.removeAttribute('target'); a.setAttribute('aria-disabled', 'true'); a.setAttribute('title', pick({ en: 'Our app is coming soon', hi: 'हमारा ऐप जल्द आ रहा है' })); a.classList.add('is-soon'); t.textContent = pick({ en: foot ? 'Download App · Coming soon' : '📲 App · Coming soon', hi: foot ? 'ऐप डाउनलोड · जल्द आ रहा है' : '📲 ऐप · जल्द आ रहा है' }); }
-      a.setAttribute('data-noi18n', ''); if (t !== a) t.setAttribute('data-noi18n', '');
-    });
+    applyApp(S);
     $$('[data-storeinfo]').forEach(function (e) { if (si) { e.innerHTML = si.split('\n').filter(Boolean).map(function (x) { return '<p data-noi18n>' + esc(x) + '</p>'; }).join(''); e.hidden = false; } });
     var so = S.social || {}, map = { youtube: 'a[href*="youtube.com"],a[href*="youtu.be"]', instagram: 'a[href*="instagram.com"]', facebook: 'a[href*="facebook.com"]', gmb: 'a[href*="maps.app.goo.gl"],a[href*="google.com/maps"],a[href*="g.page"]' };
     Object.keys(map).forEach(function (k) { var u = https(so[k]); if (u) $$(map[k]).forEach(function (a) { if (!a.classList.contains('gbadge')) a.href = u; }); });
@@ -291,9 +304,17 @@
       sec.hidden = false;
     });
   }
+  /* Round 22: home video + poster set in Website Admin -> Website Media (W.site.video / W.site.poster). Old values stored in Store Admin keep working as a fallback (site-extra.js). */
+  function applyHomeVideo() {
+    var S = W.site || {}, vid = document.querySelector('.vhero-v'); if (!vid) return;
+    function ok(u) { return typeof u === 'string' && /^(https:\/\/|http:\/\/(127\.0\.0\.1|localhost)[:\/])/i.test(u.trim()) ? u.trim() : ''; }
+    var v = ok(S.video), p = ok(S.poster);
+    if (p) vid.setAttribute('poster', p);
+    if (v) { var src = vid.querySelector('source'); if (src && src.getAttribute('src') !== v) { src.setAttribute('src', v); src.setAttribute('data-cms', '1'); try { vid.load(); var pp = vid.play(); if (pp && pp.catch) pp.catch(function () {}); } catch (e) {} } }
+  }
   function applyAll() {
     if (!W || typeof W !== 'object') return;
-    try { applyHero(); applyMenu(); applyHome(); applySecs(); applyPage(); applyText(); applyImgs(); applyLogo(); applyLinks(); applyCards(); applyBanners(); applySite(); } catch (e) { if (window.console) console.warn('cms', e); }
+    try { applyHero(); applyMenu(); applyHome(); applySecs(); applyPage(); applyText(); applyImgs(); applyLogo(); applyLinks(); applyCards(); applyBanners(); applySite(); applyHomeVideo(); } catch (e) { if (window.console) console.warn('cms', e); }
     document.documentElement.setAttribute('data-cms', '1');
     try { document.dispatchEvent(new Event('sp-cms')); } catch (e) {}
   }
@@ -312,7 +333,17 @@
   function bootPreview() {
     var cur = null; try { cur = JSON.parse(sessionStorage.getItem('sp_pv') || 'null'); } catch (e) {}
     if (cur && typeof cur === 'object') { W = cur; setTimeout(applyAll, 30); }
+    /* only the section that is being added / edited is shown (header, footer and the other sections are hidden) */
+    function pvFocus(sid) {
+      var de = document.documentElement; Array.prototype.forEach.call(document.querySelectorAll('[data-pvon]'), function (x) { x.removeAttribute('data-pvon'); });
+      if (!sid) { de.removeAttribute('data-pvf'); return; }
+      var t = null; Array.prototype.forEach.call(document.querySelectorAll('main [data-sid]'), function (x) { if (x.getAttribute('data-sid') === sid) t = x; });
+      if (t) { t.setAttribute('data-pvon', '1'); de.setAttribute('data-pvf', '1'); try { window.scrollTo(0, 0); } catch (e) {} } else de.removeAttribute('data-pvf');
+    }
+    function pvApply() { var s = ''; try { s = sessionStorage.getItem('sp_pv_focus') || ''; } catch (e) {} pvFocus(s); }
+    setTimeout(pvApply, 60); setTimeout(pvApply, 600);
     window.addEventListener('message', function (e) {
+      var d0 = e.data; if (e.source === window.parent && d0 && d0.sp === 'pv-focus') { var sid0 = String(d0.sid || ''); try { sessionStorage.setItem('sp_pv_focus', sid0); } catch (x) {} pvFocus(sid0); return; }
       var d = e.data; if (e.source !== window.parent || !d || d.sp !== 'pv-data' || !d.data || typeof d.data !== 'object') return;
       var rev = String(d.rev || ''), had = ''; try { had = sessionStorage.getItem('sp_pv_rev') || ''; } catch (x) {}
       if (rev && rev === had) return;
@@ -322,13 +353,37 @@
     document.addEventListener('sp-lang', function () { setTimeout(applyAll, 30); });
     try { window.parent.postMessage({ sp: 'pv-ready', h: document.documentElement.scrollHeight }, '*'); } catch (e) {}
   }
+  /* Website texts / photos / order: shown at once from this phone's copy; one tiny "changed?" question (sp_store_ver) decides whether the full data is downloaded again.
+     Also re-checked when the tab comes back to the screen and every 90 s while it is open, so edits made in Admin appear without a manual reload. */
+  var VKEY = 'sp_web_ver_v1', NOVER = false, LASTW = 0, BUSYW = false;
+  function webVer() {
+    if (NOVER) return Promise.resolve(null);
+    var url = String(CFG.SUPABASE_URL || '').replace(/\/+$/, ''), key = String(CFG.SUPABASE_KEY || '').trim(); if (!url || !key) return Promise.resolve(null);
+    var h = { apikey: key, 'Content-Type': 'application/json' }; if (key.indexOf('sb_') !== 0) h.Authorization = 'Bearer ' + key;
+    return fetch(url + '/rest/v1/rpc/sp_store_ver', { method: 'POST', headers: h, body: '{}' }).then(function (r) { if (r.status === 404) { NOVER = true; return null; } return r.ok ? r.json() : null; }).then(function (v) { return v && v.web ? v : null; }, function () { return null; });
+  }
+  function refreshWeb(force) {
+    if (BUSYW || (!force && Date.now() - LASTW < 25000)) return;
+    BUSYW = true; LASTW = Date.now(); var cur = null; try { cur = JSON.parse(localStorage.getItem(VKEY) || 'null'); } catch (e) {}
+    webVer().then(function (v) {
+      if (v && cur && cur.v && cur.v.web === v.web && W && Date.now() - cur.at < 6 * 3600e3) return;              /* nothing changed: what is on the screen is current */
+      return fetchWeb().then(function (d) {                                                                       /* version was read before the data → data is never older than the version we remember */
+        if (!d) { if (!W && $('#cmsBody')) { W = {}; applyAll(); } return; }
+        try { if (v) localStorage.setItem(VKEY, JSON.stringify({ v: v, at: Date.now() })); else localStorage.removeItem(VKEY); } catch (e) {}
+        if (W && JSON.stringify(W) === JSON.stringify(d)) return;
+        W = d; try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} applyAll();
+      });
+    }).then(function () { BUSYW = false; }, function () { BUSYW = false; });
+  }
+  function appFallback() { try { if (!W) applyApp({}); } catch (e) {} }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(appFallback, 1200); }); else setTimeout(appFallback, 1200);
   function boot() {
     if (PV) return bootPreview();
     try { var c = JSON.parse(localStorage.getItem(KEY) || 'null'); if (c && typeof c === 'object') { W = c; setTimeout(applyAll, 30); } } catch (e) {}
-    fetchWeb().then(function (d) {
-      if (!d) { if (!W && $('#cmsBody')) { W = {}; applyAll(); } return; }
-      W = d; try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} applyAll();
-    });
+    refreshWeb(true);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) refreshWeb(false); });
+    window.addEventListener('online', function () { refreshWeb(true); });
+    setInterval(function () { if (!document.hidden) refreshWeb(false); }, 90000);
     document.addEventListener('sp-lang', function () { setTimeout(applyAll, 30); });
   }
   window.SPCMS = { apply: applyAll, data: function () { return W; } };

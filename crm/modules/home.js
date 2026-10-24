@@ -12,7 +12,7 @@
     { k: 'store', t: 'Online Store', lines: [['orders', 'Orders', '#2e7d32'], ['enquiries', 'Enquiry', '#1d4a9b']] },
     { k: 'store', id: 'storeamt', t: 'Store ki bikri', money: true, lines: [['amount', 'Order amount', '#f59e0b']] },
     { k: 'leads', t: 'Leads', lines: [['new', 'Nayi leads', '#1d4a9b'], ['won', 'Won', '#2e7d32']] },
-    { k: 'maintenance', t: 'Maintenance & Audit', lines: [['planned', 'Planned', '#1d4a9b'], ['done', 'Ho gayi', '#2e7d32']] }
+    { k: 'maintenance', t: 'Maintenance & AMC', lines: [['planned', 'Planned', '#1d4a9b'], ['done', 'Ho gayi', '#2e7d32']] }
   ];
   function compact(v, m) { v = Math.round(v); if (!m) return String(v); return v >= 1e7 ? (v / 1e7).toFixed(1).replace(/\.0$/, '') + 'Cr' : v >= 1e5 ? (v / 1e5).toFixed(1).replace(/\.0$/, '') + 'L' : v >= 1e3 ? (v / 1e3).toFixed(1).replace(/\.0$/, '') + 'K' : String(v); }
   C.lineChart = function (months, rows, lines, isMoney) {
@@ -54,7 +54,7 @@
     var V; try { V = (await C.list('reminder', { limit: 3000 })).filter(function (x) { return x.data && x.data.maint && x.status !== 'done'; }); } catch (e) { return; }
     var t0 = C.today(), t7 = C.addDays(t0, 7), due = V.filter(function (x) { return x.due_at && x.due_at <= t7; }).sort(function (a, b) { return String(a.due_at).localeCompare(String(b.due_at)); });
     if (!due.length) return;
-    box.innerHTML = '<div class="card" style="margin-bottom:16px"><div class="hd"><h3>' + C.ic('settings') + ' Maintenance & Audit — agli 7 din</h3><a class="btn btn-g btn-sm" href="#/maintenance">Sab dekhein ' + C.ic('right') + '</a></div><div class="list" style="border:0">' + due.slice(0, 6).map(function (x) {
+    box.innerHTML = '<div class="card" style="margin-bottom:16px"><div class="hd"><h3>' + C.ic('settings') + ' Maintenance & AMC — agli 7 din</h3><a class="btn btn-g btn-sm" href="#/maintenance">Sab dekhein ' + C.ic('right') + '</a></div><div class="list" style="border:0">' + due.slice(0, 6).map(function (x) {
       var nm = x.data.party_name || x.title, late = x.due_at < t0;
       return '<div class="li' + (late ? ' over' : '') + '"><span class="grow"><span class="t">' + esc(nm) + (late ? ' ' + C.pill('Overdue', 'r') : '') + '</span><span class="m"><span>' + esc(x.data.plan_name || '') + '</span><span>' + C.fd(x.due_at) + '</span></span></span>' +
         (x.mobile ? '<a class="btn btn-o btn-sm" target="_blank" rel="noopener" href="' + esc(C.wa(x.mobile, 'Namaste ' + nm + ' ji, aapke solar plant ki ' + (x.data.plan_name || 'maintenance') + ' service ' + C.fd(x.due_at) + ' ko due hai. Kya hum aa sakte hain?')) + '">WhatsApp</a>' : '') + '</div>';
@@ -74,9 +74,9 @@
     h += '<div class="card"><div class="hd"><h3>Leads ki pipeline</h3><a class="btn btn-g btn-sm" href="#/leads">Leads ' + C.ic('right') + '</a></div>' + ch.donut((D.leads_by_status || []).map(function (x) { return { l: x.s, v: x.n }; }), { label: 'Lead pipeline' }) + '</div>';
     var bars = day.map(function (x) { return { l: x.d.slice(8), vs: D.money ? [x.leads, x.quotes, +x.sales || 0] : [x.leads, x.quotes] }; });
     if (D.money) {
-      var cum = 0; h += '<div class="card"><div class="hd"><h3>Sale — pichhle 14 din (stair)</h3></div>' + ch.stair(day.map(function (x) { cum += +x.sales || 0; return { l: x.d.slice(8), v: cum }; }), { color: '#f2a900', label: 'Cumulative sale' }) + '</div>';
+      var cum = 0; h += '<div class="card"><div class="hd"><h3>Sale — pichhle 14 din</h3></div>' + ch.stair(day.map(function (x) { cum += +x.sales || 0; return { l: x.d.slice(8), v: cum }; }), { color: '#f2a900', label: 'Cumulative sale' }) + '</div>';
     } else {
-      var c2 = 0; h += '<div class="card"><div class="hd"><h3>Leads — pichhle 14 din (stair)</h3></div>' + ch.stair(day.map(function (x) { c2 += +x.leads || 0; return { l: x.d.slice(8), v: c2 }; }), { color: '#7b4fd1', label: 'Cumulative leads' }) + '</div>';
+      var c2 = 0; h += '<div class="card"><div class="hd"><h3>Leads — pichhle 14 din</h3></div>' + ch.stair(day.map(function (x) { c2 += +x.leads || 0; return { l: x.d.slice(8), v: c2 }; }), { color: '#7b4fd1', label: 'Cumulative leads' }) + '</div>';
     }
     h += '<div class="card"><div class="hd"><h3>Roz ka kaam — 14 din</h3></div>' + ch.bars(day.map(function (x) { return { l: x.d.slice(8), vs: [x.leads, x.quotes] }; }), { series: [{ n: 'Leads', c: '#7b4fd1' }, { n: 'Quotation', c: '#2f6fdb' }], label: 'Daily leads and quotes' }) + '</div>';
     h += '<div class="card"><div class="hd"><h3>Quotation ki halat</h3><a class="btn btn-g btn-sm" href="#/quotes">Quotation ' + C.ic('right') + '</a></div>' + ch.donut((D.quotes_by_status || []).map(function (x) { return { l: x.s, v: x.n }; }), { label: 'Quotes by status' }) + '</div>';
@@ -109,6 +109,7 @@
       var over = t.filter(function (x) { return x.overdue; }).length;
       var h = '<div class="hero-card"><h2>' + greet + ', ' + esc(me.name.split(' ')[0]) + ' 👋</h2><p>' + (t.length ? 'Aaj ' + t.length + ' kaam hain' + (over ? ' — <b style="color:var(--sun)">' + over + ' overdue</b>' : '') : 'Aaj ka koi kaam baaki nahi — badhiya!') + '</p><div class="row wrap">' +
         '<a class="btn btn-s" href="#/today">' + C.ic('today') + ' Aaj ke kaam</a>' +
+        ((C.canAny('customers.create', 'customers.view_all') || C.isPartner()) ? '<a class="btn btn-o" href="#/customers">' + C.ic('users') + ' All Customers</a>' : '') +
         (C.storeUrl() ? '<a class="btn btn-o" href="' + esc(partner ? C.refLink() : C.storeUrl()) + '" target="_blank" rel="noopener">' + C.ic('store') + ' Visit Store</a>' : '') +
         (C.siteUrl() ? '<a class="btn btn-o" href="' + esc(C.siteUrl()) + '" target="_blank" rel="noopener">' + C.ic('globe') + ' Visit Website</a>' : '') +
         (partner && me.ref_code ? '<button class="btn btn-o" data-act="ref">' + C.ic('share') + ' Mera store link</button>' : '') + '</div></div>';
@@ -136,14 +137,6 @@
       if (tgt > 0) { var done = partner ? num(d.quotes_month) : num(d.sales_month), pc = Math.min(100, Math.round(done * 100 / tgt)); h += '<div class="card" style="margin-bottom:16px"><div class="hd"><h3>Is mahine ka target</h3><span class="b">' + money(done) + ' / ' + money(tgt) + '</span></div><div style="height:10px;border-radius:6px;background:var(--mint);overflow:hidden"><div style="height:100%;width:' + pc + '%;background:linear-gradient(90deg,var(--leaf),var(--sun))"></div></div><p class="xs mute" style="margin-top:6px">' + pc + '% poora</p></div>'; }
 
       h += '<div id="dbox"></div><div id="sbox"></div><div id="gbox"></div><div id="mbox"></div>';
-      var qa = [];
-      if (C.can('leads.create')) qa.push('<button class="btn btn-o" data-act="lead">' + C.ic('lead') + ' Nayi lead</button>');
-      if (C.can('customers.create')) qa.push('<button class="btn btn-o" data-act="party">' + C.ic('users') + ' Naya customer</button>');
-      if (C.can('quotes.create')) qa.push('<a class="btn btn-o" href="#/quote/new">' + C.ic('quote') + ' Nayi quotation</a>');
-      if (C.can('plants.create')) qa.push('<button class="btn btn-o" data-act="plant">' + C.ic('plant') + ' Plant jodein</button>');
-      qa.push('<button class="btn btn-o" data-act="rem">' + C.ic('clock') + ' Reminder</button>');
-      h += '<div class="card" style="margin-bottom:16px"><div class="hd"><h3>Jaldi karein</h3></div><div class="row wrap">' + qa.join('') + '</div></div>';
-
       if (C.can('marketing.leads') && !partner) {
         try { var MS = await C.call('crm_mkt_stats', {}); if ((MS.sources || []).length) h += '<div class="card" style="margin-bottom:16px"><div class="hd"><h3>' + C.ic('megaphone') + ' Lead kahan se aayi</h3><a class="btn btn-g btn-sm" href="#/marketing">Poori report ' + C.ic('right') + '</a></div>' + C.sourceReport(MS, (C.cache.settings || {}).marketing || {}, true) + '</div>'; } catch (e) {}
       }
@@ -156,10 +149,6 @@
       if (C.canAny('analytics.view', 'dashboard.money')) growthCard($('#gbox', el), partner); maintCard($('#mbox', el), partner);
       C.bind(el, {
         ref: function () { C.copy(C.refLink(), 'Aapka store link copy ho gaya — WhatsApp par bhejein'); },
-        lead: function () { C.leadForm && C.leadForm().then(function (r) { if (r) C.go('#/leads?open=' + r.id); }); },
-        party: function () { C.partyForm().then(function (r) { if (r) C.go('#/customer/' + r.id); }); },
-        plant: function () { C.plantForm && C.plantForm().then(function (r) { if (r) C.go('#/plants'); }); },
-        rem: function () { C.reminderForm().then(function (r) { if (r) C.render(); }); }
       });
     }
   });

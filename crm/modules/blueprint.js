@@ -15,7 +15,7 @@
   function loadLib() {
     return new Promise(function (res, rej) {
       if (window.SPBlueprint) return res();
-      var s = document.createElement('script'); s.src = 'assets/blueprint.js?v=1'; s.onload = function () { res(); }; s.onerror = function () { rej(new Error('Blueprint file load nahi hui')); }; document.head.appendChild(s);
+      var s = document.createElement('script'); s.src = 'assets/blueprint.js?v=8'; s.onload = function () { res(); }; s.onerror = function () { rej(new Error('Blueprint file load nahi hui')); }; document.head.appendChild(s);
     });
   }
 
@@ -59,10 +59,14 @@
 
   async function editor(el, q) {
     el.innerHTML = '<div class="loading"><span class="spin"></span></div>';
-    var initial = null, id = q.open || null, rec = null;
-    try { await loadLib(); if (id) { rec = await C.call('crm_blueprint_get', { id: id }); initial = rec.data; initial.customer = Object.assign({ name: rec.title, mobile: rec.mobile }, initial.customer || {}); } } catch (e) { el.innerHTML = '<div class="note r">' + esc(e.message) + '</div>'; return; }
+    var initial = null, id = q.open || null, rec = null, pty = null, pid = q.party || null; /* Round 37: customer ke flow se khulne par wahi customer judta hai */
+    if (!id && pid) { try { pty = await C.get(pid); } catch (e) { pid = null; } }
+    try { await loadLib(); if (id) { rec = await C.call('crm_blueprint_get', { id: id }); initial = rec.data; initial.customer = Object.assign({ name: rec.title, mobile: rec.mobile }, initial.customer || {}); if (rec.party_id && !pty) { try { pty = await C.get(rec.party_id); pid = pid || rec.party_id; } catch (x) {} } } } catch (e) { el.innerHTML = '<div class="note r">' + esc(e.message) + '</div>'; return; }
+    /* Round 38: customer juda ho to designer me uski saari details (Conversation wali) apne aap — naam, mobile, pata, email, prakar, kW. Dobara likhna nahi. */
+    var pd = pty ? pty.data || {} : {}, cust = pty ? { name: pty.title, mobile: pty.mobile || '', city: pd.city || '', address: C.addrText(pd) || pd.address || '', email: pd.email || '', type: String(pd.project_type || '').toLowerCase(), locked: true } : null;
+    if (cust && initial) cust = Object.assign({}, initial.customer || {}, cust);
     el.innerHTML = '<div class="ph"><div><a class="btn btn-o btn-sm" href="#/blueprint">' + C.ic('left') + ' Back to list</a></div></div><div id="bp-root"></div>';
-    SPBlueprint.mount($('#bp-root', el), { mode: 'crm', pdfLibUrl: 'assets/pdf-lib.min.js', initial: initial, noDraft: !!initial, recordId: id, customer: initial ? initial.customer : undefined,
-      onSave: function (p) { return C.run('crm_blueprint_save', { id: p.id || id, name: p.name, mobile: p.mobile, city: p.city, make_lead: p.make_lead, blueprint: p.blueprint }, p.make_lead ? 'Blueprint saved + lead created ✔' : 'Blueprint saved ✔'); } });
+    SPBlueprint.mount($('#bp-root', el), { mode: 'crm', pdfLibUrl: 'assets/pdf-lib.min.js', initial: initial, noDraft: !!initial, recordId: id, customer: cust || (initial ? initial.customer : undefined), targetKw: !initial && parseFloat(pd.kw) > 0 ? pd.kw : '',
+      onSave: function (p) { return C.run('crm_blueprint_save', { id: p.id || id, name: p.name, mobile: p.mobile, city: p.city, make_lead: p.make_lead, blueprint: p.blueprint, party_id: pid || (rec && rec.party_id) || null }, p.make_lead ? 'Blueprint saved + lead created ✔' : 'Blueprint saved ✔'); } });
   }
 })();
