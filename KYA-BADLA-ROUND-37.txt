@@ -1,0 +1,54 @@
+ROUND 37 — QUOTATION FORM (sirf screen badli, SQL nahi, flow ka koi step/ctype/status nahi badla)
+================================================================================
+
+SQL: koi nayi SQL nahi. Sirf CRM files (billing.js, flowbar.js, ui.js, index.html) badli hain.
+
+Nayi quotation ka tareeka
+1. Sabse pehle CUSTOMER chunein (ya "Naya" se naya banayein).
+2. Customer type aur kW apne aap bhar jaate hain (customer ke project type / kW se).
+   "Naya Kaam" se aaye to wahi type chalta hai.
+3. Title apne aap banta hai: jaise "5 kW Rooftop Solar — Residential" (customer ka naam kabhi nahi).
+   Type ya kW badlo to title badalta hai. Aap khud likh do to wo nahi badlega.
+4. "Template / Project ban sakta hai" wala tick HATA diya. Residential/Commercial/Industrial/VFD = project, baaki nahi.
+5. "Template banayein" ab quotation Confirm (accepted) hone ke BAAD quotation page par aata hai (sirf project types).
+   Template me customer ka naam / mobile nahi jaata.
+6. Template se quotation: items aur kW aate hain, customer dobara chunna padta hai.
+7. Neeche ka alag "Customer ka process" card hata diya. Ab sirf UPAR wali flow patti hai —
+   wo ab quotation page (#/quote/<id>) par bhi dikhti hai.
+8. "Naya customer" form me sab zaroori cheezein hain. Agar mobile pehle se hai to
+   "Ye mobile pehle se hai: <naam>. Usi ko chunein?" poochta hai — dusra customer nahi banta.
+
+Flow par asar: ZERO
+- 8 ctype jaise the waise: Residential, Commercial, Industrial, VFD, Items only, Service, AMC only, Site visit only.
+- Flow steps, quotation status (draft > sent > accepted > converted), party link, ek customer = ek open quotation — sab same.
+- Website/store/inquiry forms pehle se mobile se dedupe karte hain (crm_inbound_lead, crm_order_customer, crm_save,
+  crm_lead_transfer) — cloning ka koi raasta nahi mila.
+
+Test: r50 (sab pass) + poori purani regression.
+
+
+================================================================================
+ROUND 37B — CRM KE SAB MENU CHECK + CLONE BAND (SQL hai!)
+================================================================================
+SQL: ROUND-37-SQL-ONLY.sql  (MASTER-UPDATE.sql aur SQL-1 me bhi jud gayi). Pehle STAGING, phir backup ke baad LIVE.
+Purana clone data saaf: CLONE-CLEANUP.sql  (STEP A ginti dekhein, phir STEP B; STEP C me ek mobile ke 2 customer ki list aati hai — wo aap tay karein).
+Menu-wise poori table: CRM-MENU-FLOW-MAP.txt
+
+Jo clone raaste mile aur band kiye
+1. Lead (manual / Excel import / Marketing / Blueprint): customer ya khuli lead ke mobile par ab nayi lead nahi banti.
+2. Blueprint: customer ho to lead nahi banta; blueprint customer se judta hai aur flow ka step 5 apne aap ho jaata hai.
+   Flow se Blueprint kholne par wahi customer pehle se bhara aata hai.
+3. Site Visit: bina customer ke visit nahi banti; customer ka mobile likhne par apne aap judti hai (step 4 ke liye zaroori).
+4. Purane customer ki website/store/form inquiry pehle chup-chap gayab ho jaati thi; ab customer ke page par "Dobara sampark" me dikhti hai, naya lead nahi.
+5. Referral plant: customer system me nahi ho to ek baar Leads me bhi aata hai.
+6. crm_save: purani won/lost lead nayi lead ko nahi rokti (saaf message milta hai).
+
+Test: r51 (16 pass) + poori regression clean. Deploy: SQL pehle, phir CRM files, Ctrl+F5.
+
+ROUND 37C — Customer ke link / PDF
+- CRM se "Send via Link" me agar PDF nahi ban payi to ab bina-PDF wala link bana hi nahi (pehle chup-chap bana deta tha, isliye customer ko Download nahi dikhta tha).
+- Mobile se bani PDF ka layout A4 jaisa fix (pehle phone ki chhoti screen ke hisaab se bigad sakta tha).
+- Link page par agar PDF na jude to saaf sandesh dikhta hai.
+- sp-share.js (CRM, Store, Website) v2.
+- Staging se bane link ab staging ki apni Website (…-website-git-…vercel.app) par jaate hain. Pehle wo live www.sunpowers.in/d/… par jaate the, jahan ye page abhi hai hi nahi (isliye customer ke phone par ulta-seedha page dikhta tha).
+- Asli kaaran (screenshot se pakda): link www.sunpowers.in/d/<code>?e=s par ja raha tha aur LIVE website par ye /d/ page abhi deploy hi nahi hua, isliye 404 page khula; wo bhi bina design ke (404 page ki CSS /d/ ke andar dhoondh rahi thi) — isse bade kaale icons dikhe. Ab: (1) 404 page ka design nested link par bhi sahi, (2) staging link staging website par, (3) Website prod deploy hote hi /d/ page live ho jayega.

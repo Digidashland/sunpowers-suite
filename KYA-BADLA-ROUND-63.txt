@@ -1,0 +1,19 @@
+ROUND 63 — INVENTORY EK BAAR, ONLINE APNE-AAP, ONLINE ORDER = SEEDHA BILL
+==============================================================================
+1) INVENTORY ME PRODUCT JODNA (CRM)
+- Category pehle chunein: sirf usi category ke zaroori fields (Panel: Wp, type, DCR... / Inverter: kW, phase, MPPT...) dikhte hain. Baaki "Aur technical details" me band.
+- HSN aur GST category se apne-aap. Warranty sirf ek jagah. Title / more / image link / extra categories / store offer hata diye (chhupaye nahi, delete).
+- "Khaas baatein" = online page ke bullet points. Specs ka order fix (zaroori pehle).
+2) ONLINE (Store App, Web Shop, Store Admin) — Inventory se apne-aap
+- Store Admin me dobara naam / brand / model / warranty / specs likhna nahi; wo sab CRM ke hain. Naya product sirf CRM Inventory se. Photo sirf Store Admin me.
+- Stock badalne se store par kuch nahi chhua jata; sirf naam/specs/price/GST/MRP badalne par store update hota hai.
+3) BILL / QUOTATION LAMBE NAHI
+- Bill me har item ki sirf ek line (Brand · Model · 3 key spec · warranty). Poori technical sheet chahiye to "Technical sheet" tick.
+4) FLIPKART JAISA ONLINE STORE
+- Card par "Add to cart" (text button), jodne ke baad "Go to cart"; "Details" link.
+- Product page: bada photo + thumbnails, price, Highlights, Specifications table ("See all"), Add to cart / Buy now. Web Shop me shop.html#p=ID.
+5) ONLINE ORDER: QUOTATION NAHI, SEEDHA BILL
+- Payment (UPI verify) hote hi order ka quotation turant Bill me badal jata hai aur payment jama. COD: advance jama, delivered par baaki jama.
+- Customer ko tab tak "Order bill (payment baaki)" dikhta hai; payment ke baad sirf Bill. Dobara bill nahi banta. Products, projects, services teeno par lagu.
+- Purane (pehle se paid) orders ka bill alag se nahi banaya gaya (stock do baar na ghate).
+6) Store Admin ka Excel sheet tab abhi purane columns ke saath hai.

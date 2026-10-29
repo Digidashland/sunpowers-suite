@@ -1,0 +1,30 @@
+ROUND 66 — PURE MASTER KA UI / RESPONSIVE POLISH (NO SQL)
+==============================================================================
+1) Mera Account page (Store App + Web Shop): upar naam + avatar + mobile/email, phir customer card, fir "My orders", chhoti Settings list (Edit profile, Pin code, Sab orders), sabse last Logout.
+   Dobara "Hello" / alag search nahi. Bade button ki jagah chhoti icon-row.
+2) Search bar sirf wahan jahan zarurat: Home / Category / Section par. Product, Account, Wishlist page par nahi (Store + Web Shop).
+3) Text size: phone / tab / computer ke hisab se. Bahut chhote badge text 10 se 11 px tak badhaye (nayaa, Create ID, Refer, Plant ID, footer brand), Web Shop me tab / computer par bada type scale.
+4) Phone par Shop / Store header me brand naam chhupa (icon + pincode + language + cart + account saaf dikhte hain, "S…" kata naam nahi).
+5) Hara "Sunpowers" switcher: customer ko live site par nahi dikhta; staff ko bottom nav ke upar.  WhatsApp button account page par nahi.
+6) CRM: Home ke KPI cards me sparkline ab sirf bade screen par (mobile / tab par number kat'ta tha). Hero ke buttons phone par chhote. Phone / computer ke liye alag font scale. Chart axis, ribbon, badge text 10 px+.
+7) Admin: header phone par tight (sab icon aaye), dashboard cards phone par 2 column.
+8) Audit: Store / Shop / Website pages 360 / 768 / 1280 par, CRM ke sab 34 screens (360 / 768), Admin ke sab menu screens (360) — koi sideways scroll nahi, koi kata text nahi.
+Files: store/index.html, store/sp-plant.js, website/assets/{cart.js,shopx.css,site.css,sp-plant.js,sp-switch.js}, website/shop.html (+ saare html me version), crm/{index.html,assets/crm.css,assets/sp-switch.js}, admin/{index.html,sp-hdr.js,sp-dash.js,sp-switch.js}.
+9) DOUBLING HATAI (same option do baar nahi):
+   - Store + Web Shop: header ka Cart icon hataya (neeche nav me Cart pehle se hai). Website header ka cart icon bhi hataya (Shop link pehle se hai). Website menu me Products & Services ke andar dobara "All products & services" hataya.
+   - Footer (Store + Shop): WhatsApp button (floating WhatsApp hai), Error-check button (neeche nav me hai), "Sab →" aur "Help" link (nav me hain), phone do baar -> ek hi baar (Call button par number).
+   - Mera Account card: "Dost ko refer" tile hataya (upar Refer icon hai); khali card me dobara Plant ID jodein / Call / WhatsApp buttons hataye (tile + Support pehle se hain).
+   - Website: 20 pages ke banner me "Chat on WhatsApp" hataya (floating / neeche bar me WhatsApp hai). Home par same section me do baar "View all in shop" -> ek.
+   - CRM Accounts: heading ke neeche Reports ka dusra link hataya (upar Reports tab hai).
+   Files: + website/assets/shopx.js, crm/modules/accounts.js.
+10) WHATSAPP BUSINESS NUMBER (CRM):
+   - CRM "Nayi ID banayein" screen (dealer / influencer / staff self-register) par mobile ke neeche notice: "Mobile wahi bharein jo WhatsApp Business par chalta ho. Na ho to pehle WhatsApp Business par account banayein, phir yahi number bharein." (Hindi + English)
+   - Partners -> "Verify baaki": har pending ID par "WhatsApp par check karein" button — usi number par chat khulti hai, Admin dekhkar pakka kare ki Business account hai, phir "Chalu karein".
+   - Pending ID login nahi kar sakti (SQL me status = active check pehle se hai).
+   - Files: crm/assets/auth.js (v5), crm/modules/team.js (v8), crm/assets/crm.css (v15), crm/index.html.
+   ABHI NAHI (agle round me, aapke kehne par): login OTP mobile (WhatsApp/SMS) par — abhi OTP email par jata hai; company WhatsApp number ek jagah se; Store/Admin ka shared password hatakar per-user login.
+11) FAISLE (user ne tay kiye):
+   - Login OTP email par hi rahega (mobile par nahi).
+   - Admin aur Store ka login jaisa hai waisa hi rahega.
+   - Company number: 9621050636 (ye hi rahega).
+   - Ye code seedha production par deploy hoga (staging me nahi), isliye tests pehle hi poore kiye gaye.

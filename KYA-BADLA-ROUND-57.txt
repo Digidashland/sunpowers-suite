@@ -1,0 +1,13 @@
+ROUND 57 — CUSTOMER LINK PAR "PAY YOUR BILL AMOUNT" (QR + Account + Link, teeno ek saath)
+==================================================================================
+Kyun: customer ko shak na ho, aur staff apna alag account na bhej sake.
+1) Bill link par: bill ki rakam, ab tak mili rakam, baaki (Rest) + UPI QR + company Bank account (Copy button) + payment link (agar Settings me daala).
+2) Quotation link par: customer Accept kare to usi page par wahi dabba aata hai.
+3) "Advance" shabd customer ko kahin nahi: sirf "Pay your bill amount". Pehle payment par koi limit nahi — QR me rakam locked nahi, customer jitni chahe de.
+4) Dabba me likha hai: "Part-wise payment ki suvidha available hai" (customer ko lage ki hisson me bhi de sakte hain).
+5) Sab details sirf Settings > Bill (Bank / UPI + Payment link) se. Badlav par Activity me "PAYMENT DETAILS badli" (kisne). Dabba band karne ka checkbox bhi wahi.
+6) Bakaya Tax Invoice PDF par UPI QR bhi chhapta hai.
+7) Reminder / Store Orders / online checkout me "Advance" ki jagah "bill amount / pehla payment".
+NAHI BADLA: staff salary "Advance" (wo alag cheez hai), policy/terms pages ka legal likha text, step numbers, purana data.
+Payment ki entry (Payment Received) ab bhi sirf aap CRM me confirm karke chadhate hain — link par koi paisa apne aap nahi chadhta.
+Sirf STAGING. SQL: ROUND-40-57-SQL-ONLY.sql (dobara chalana safe).

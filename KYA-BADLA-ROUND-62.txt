@@ -1,0 +1,31 @@
+ROUND 62 — "AAPKO KYA MILEGA" (HAR BILL ME FAAYDE) + CUSTOMER KE DOCUMENTS EK JAGAH
+==============================================================================
+1) BILL / QUOTATION ME "AAPKO KYA MILEGA"  (online + offline, ek hi engine)
+- Bill / quotation ke items padhkar section apne aap banta hai — koi item-wise likhna nahi:
+    PROJECT  -> faayde + "kaise kaam karta hai" + roz ki bijli, mahine / saal ki anumanit bachat, kharch wapas aane ka samay, CO2 me kami
+               (On-Grid / Hybrid / Off-Grid, aur Commercial / Industrial / VFD ke alag text)
+    SERVICE  -> AMC, Site visit, Panel safai, Installation / shifting, Net metering ke alag faayde
+    PRODUCT  -> category ke hisaab se (Panel, Inverter, Battery, Structure, ACDB/DCDB, Earthing, Lights, Camera, Home inverter, BOS)
+               Jo item pehchana na jaye uska card nahi banta (galat jankari se behtar kuch nahi).
+- Bachat sirf ANUMAN hai (roz ki unit x bijli daam). Bill ki rakam par koi asar nahi. Wada nahi, "anumanit" likha aata hai.
+- Jahan dikhta hai: CRM quotation / bill preview, PDF, print, customer link, customer ke Profile -> Documents ka print, aur Online order ka bill.
+- Quotation ke upar ek tick: "Bill / quotation me 'Aapko kya milega' dikhayein" — kisi quotation me nahi chahiye to tick hata dein.
+- Save ke samay ka snapshot rakha jata hai (jo bheja wahi dikhe). Purane bill / online order me snapshot na ho to dikhate samay ban jata hai.
+- Text badalna: CRM -> Settings -> Company -> "Faayde ka text dekhein / badlein" (har line = ek point). Bijli daam aur roz ki unit usi page par pehle se hain.
+- Online order ka bill ab item ki category, project ka System type aur order ki subsidy jankari bhi saath le jata hai.
+- Customer ke print me ab Sarkari subsidy ka dabba bhi aata hai (pehle sirf CRM bill me tha).
+
+2) CUSTOMER KE DOCUMENTS — EK JAGAH, APNE AAP
+- Customer ke Profile -> Documents me ab: Final Quotation, Bill, RASID (har payment ki), Maintenance summary, Checkups, Warranty, aapki upload ki files, aur customer ki apni bheji hui files.
+- Link se jo document jaata hai (quotation / bill) wo customer ke Documents me apne aap rehta hai — link expire hone par bhi customer wapas dekh sakta hai. Alag se upload nahi karna.
+- NAYA: customer khud file bhej sakta hai (ID, bijli bill, chhat ki photo, payment screenshot). Photo apne aap chhoti hoti hai (450 KB tak), PDF 3 MB tak, server file ki asli pehchaan jaanchta hai. Wo seedha usi kaam ke step 14 -> Documents me "Customer ne bheja" naam se aapko dikhti hai. Customer sirf apni bheji hui file hata sakta hai.
+- Kya dikhana hai aap tay karein: CRM -> Settings -> Company -> "Customer ko Profile -> Documents me kya dikhe": Quotation / Bill / Rasid / Maintenance / Checkup / Warranty / Staff ki files / Customer upload — tick = dikhega. Aur staff ki files me se koi category (jaise Agreement) customer se chhupa sakte hain. Rasid / file / upload ke liye server bhi rokta hai (browser se bypass nahi).
+- Company ka "Documents & Gallery" alag hi hai (koi badlav nahi).
+
+3) DHYAN DEIN
+- Quotation / Bill ka band karna Settings se sirf customer ke Profile ka dikhna band karta hai; wo document jo customer ko link se bheja gaya hai, link se khulta rahega.
+- Blueprint / Plant photo / Certificate jaisi files abhi bhi step 14 me staff upload karta hai (category chunkar) — ye customer ko wahi apne aap dikhengi.
+- Faayde ka text Hinglish me hai (CRM jaisa). Settings me badal sakte hain.
+
+SQL: ROUND-40-62-SQL-ONLY.sql (U32). Naya table nahi. Dobara chalana safe. Sirf STAGING.
+Naye RPC: crm_consumer_receipt, crm_consumer_doc_upload, crm_consumer_doc_delete. Naye files: sp-benefits.js (crm/assets, store, website/assets).

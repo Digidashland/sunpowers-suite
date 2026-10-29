@@ -1,0 +1,25 @@
+ROUND 43 — Inventory / Purchase price / Discount / Online qty (sirf STAGING)
+==========================================================================
+1) Kharid rate (Purchase price) ZAROORI
+   - Naya product banate waqt "Kharid rate" ab main form me (More Info ke andar nahi). Khali chhodne par save nahi hoga.
+   - Jis user ke paas "Kharid rate dekhna" permission nahi (staff), uske banaye product par "⚠ Kharid rate nahi" nishaan lagta hai;
+     Admin/Manager bharega. Purane / Excel se aaye products par bhi yahi nishaan dikhega.
+   - Bina kharid rate ke koi product Online Store ko bheja nahi ja sakta (server rokta hai).
+2) Online ke liye qty CRM tay karta hai
+   - "Store ko bhejein" dabane par poochta hai: online ke liye kitna maal alag (default = Settings wala hissa, 20%).
+   - Utna maal "Online Store (auto)" naam se hold ho jata hai -> offline quotation ka formula sahi chalta hai. Dobara bhejne par naya qty purane ki jagah.
+3) Preview / Review ho chuka to tick nahi
+   - Jo product "In store review" ya "Live" ho chuka, uske saamne chunne wala tick ab nahi aata (dobara update ke liye uski apni "Store ko bhejein" button rahegi).
+4) Discount limit role ke hisaab se
+   - Manager 5%, Staff 2.5% (default). Settings > Bill / Quotation > "Discount aur Online Store hissa" me Admin badal sakta hai.
+   - Kisi user ki alag limit Team me lagi ho to wahi chalegi.
+   - Admin: koi fixed limit nahi, par rate kharid rate se neeche gaya to line ke neeche chetavni (kharid rate ke saath).
+   - Manager / Staff: rate kharid rate se neeche jaa hi nahi sakta (server rokta hai).
+5) Project Template ka maal alag reserve
+   - Inventory/Stock dashboard me har item ke neeche "Template reserve: N · baaki (templates ke baad): M" dikhta hai.
+   - "Kiske liye" list me Project Template ke naam bhi aate hain. Ye sirf gintI/dikhane ke liye hai — isse quotation rukti nahi.
+6) Kharid rate ke bina Online bhejna / naya product Excel (starter catalog) se aaye to unhe baad me bharna hoga.
+
+SQL (staging Supabase par chalayein): ROUND-40-43-SQL-ONLY.sql  (Round 40 + 43 ek saath, dobara chalana safe)
+Badle code files: crm/modules/items.js, billing.js, settings.js, crm/index.html
+Abhi baaki: Blueprint ka naya flow (customer-first steps, auto-fill, save/exit warning), Store admin se naye product seedha CRM inventory me.

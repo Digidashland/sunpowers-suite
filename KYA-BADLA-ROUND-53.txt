@@ -1,0 +1,35 @@
+ROUND 53 — "HUM KAISE KAAM KARTE HAIN" PAGE + CUSTOMER SAMPLES (STAGING ke liye; live par kuch nahi)
+==================================================================================================
+
+SQL: HAI. Supabase STAGING SQL Editor me ROUND-40-53-SQL-ONLY.sql chalayein (R40..R53 ek saath, dobara chalana safe).
+     Namune sirf pehli baar daalte hain — folder pehle se ho to aapke badlav ko haath nahi lagata.
+WEBSITE: website/api/d.js badla hai (staging deploy master command se). CRM: docs.js v7, service worker v14.
+
+IDEA (aapki baat): Quotation par customer pehle sirf quotation dekhe (options + Accept). Bharosa banane ke liye ek ALAG page: "Hum kaise kaam karte hain" — likhi hui baat nahi, DIKHTA hua namuna.
+
+A) CUSTOMER KE LINK ME
+   Quotation link ke neeche ek button: "Hum kaise kaam karte hain — dekhein". Dabane par alag page khulta hai (Accept / form kuch nahi, sirf dekhna) + "Quotation par wapas".
+   Upar saaf likha: "Ye sab NAMUNA hai — sirf samjhane ke liye. Aapki chhat aur sthiti ke anusaar asli design / report / samay alag ho sakta hai."
+   Har namuna image par bhi "NAMUNA" ka batch, "SAMPLE" halka watermark, aur neeche wahi line likhi hai.
+   Customer ke type ke hisaab se alag topic:
+     Project: Blueprint, Site Visit, Error Detector, Net Metering, Subsidy, AMC.   Service / AMC: Site Visit, Error Detector, AMC.   Product: Error Detector.
+   Button / page tabhi dikhta hai jab quotation link chalu ho (paused / expired link par nahi).
+
+B) NAMUNE KAHAN HAIN (CRM me, aapke control me)
+   Documents & Gallery -> "Customer Samples (namune)" folder -> uske andar 6 topic folder; har me images.
+   8 namune pehle se daale gaye hain: Blueprint kaise banta hai, Error Detector kaise kaam karta hai, Site Visit kaise book hoti hai + Site Visit report, Net Metering process, Subsidy process, AMC saal bhar ki service + Service report.
+   Badalna: folder kholein -> nayi image / PDF upload karein -> purani hata dein. Customer ko turant nayi dikhegi (code / deploy nahi).
+   Topic folder par "Folder" button: kis type ke customer ko dikhe (Project / Product / Service) aur chhota text. Naya topic folder bhi bana sakte hain (Customer Samples ke andar).
+   SURAKSHA: customer ke link me SIRF isi folder (aur uske topic folders) ki files aati hain. Aapke baaki documents (bill, ID, photo) kabhi nahi. Is folder me customer ke asli document na rakhein.
+
+C) IMPORTANT — ye namune CHITRA hain, asli screenshot nahi
+   Inme koi asli customer, rate, ginti ya fixed din nahi likhe (jaise net metering ke din, subsidy ki rakam, AMC ki visit sankhya) — sirf "sthiti par nirbhar" likha hai. Jab aap asli aankde / asli report ki photo dena chahein to folder me unhe upload karke badal dein.
+   Zip me bhi hain: NAMUNE/ folder (SVG + PNG) — WhatsApp, brochure, social media me bhi kaam aayenge.
+
+D) PICHHLA ROUND 52 JAISA HI: options / final lock / Accept (last-4) / Badlav / Call back / link expiry. Link par koi payment nahi.
+
+KYA ABHI NAHI: namuna me video (sirf image / PDF), Accept ke baad ke phases (blueprint approve, site visit date) aur payment-details bhejna — ye agle phase me.
+
+TEST: SQL — folder + 8 files seed, sirf folder ki file hi bahar jati hai (doosre document par null), galat / band link par null, type ke hisaab se topic (project 6, service 3, product 1).
+      Customer page (phone width 400): button, namuna page, sabhi images khulti hain, banner, "wapas" button, scroll nahi.
+      CRM: Documents me folder + topic, Folder button se type / text save, file khulna.

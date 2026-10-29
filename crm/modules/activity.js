@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   var C = window.CRM, $ = C.$, esc = C.esc;
-  var ACT = { login: ['Login', 'g'], create: ['Naya', ''], edit: ['Badla', 'b'], delete: ['Hataya', 'r'], status: ['Status', 'v'], convert: ['Bill bana', 'v'], assign: ['Diya', 'o'], import: ['Import', 'o'], upload: ['Upload', ''], open: ['Khola', 'g'], to_store: ['Store ko bheja', 'o'], commission: ['Commission', 'o'], settings: ['Settings', 'b'], register: ['Nayi ID', 'o'], password: ['Password', 'g'], user_create: ['User', ''], user_edit: ['User', 'b'], user_delete: ['User hataya', 'r'], role_edit: ['Permission', 'v'] };
+  var ACT = { login: ['Login', 'g'], create: ['Naya', ''], edit: ['Badla', 'b'], delete: ['Hataya', 'r'], status: ['Status', 'v'], convert: ['Bill bana', 'v'], assign: ['Diya', 'o'], import: ['Import', 'o'], export: ['Download', 'o'], upload: ['Upload', ''], open: ['Khola', 'g'], to_store: ['Store ko bheja', 'o'], commission: ['Commission', 'o'], settings: ['Settings', 'b'], register: ['Nayi ID', 'o'], password: ['Password', 'g'], user_create: ['User', ''], user_edit: ['User', 'b'], user_delete: ['User hataya', 'r'], role_edit: ['Permission', 'v'] };
   C.mod('activity', {
     title: 'Activity Record',
     allowed: function () { return C.can('activity.view'); },

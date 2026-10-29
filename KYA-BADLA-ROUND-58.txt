@@ -1,0 +1,23 @@
+ROUND 58 — ORDER / ACCEPT SE PEHLE CUSTOMER SE DISCLAIMER (TERMS) BHARWANA
+==================================================================================
+Kahan dikhta hai (tick ke bina aage nahi badh sakte):
+1) Online Store app checkout  2) Website checkout  3) Manual quotation link ka "Accept"
+Server bhi rokta hai: tick ke bina order / Accept chalta hi nahi (browser se bypass nahi).
+
+Do disclaimer:
+ A) PRODUCT — warranty / guarantee / service sirf manufacturer ki; Sunpowers sirf seller; claim manufacturer ke service centre se; galat upyog par warranty nahi.
+ B) INSTALLATION / SITE SAFETY — technician standard tools + poori savdhani se kaam karte hain; chhat me drilling hissa hai; chhat ki quality/halat par nirbhar (aar-paar, daraar, seelan, leakage) = Sunpowers zimmedar nahi;
+    installation area me anadhikrit vyakti (customer, parivar, bachche, padosi) prohibited — current / girna / chot ki zimmedari customer ki; chhat tak safe access; subsidy / net meter DISCOM par nirbhar, guarantee nahi.
+Kab kaun sa: Product only = A. Project (Residential/Commercial/...) = A + B. Service = B. AMC / Site visit only = koi nahi.
+Online: A hamesha; B tab jab installation add-on chuna ho ya complete project order ho.
+
+Part-wise payment (Round 57) sirf MANUAL (offline) ke liye hai; Online Store order ka quotation/bill par wo dabba nahi aata — online me poora paisa ek baar.
+
+Record: order me data.terms (version, kab, kaun se); quotation me data.terms_ok (kab, version). CRM me:
+ - Quotation par "Disclaimer ✔ <tareekh>" pill; Store Orders me "Disclaimer customer ne accept kiya".
+ - Staff manual "Accepted" dabaye (customer ne link par nahi bhara) to chetavni aati hai; manual karne par record me "manual (customer ne nahi bhara)" likha rehta hai.
+Text badalna: Settings > Bill > "Customer Disclaimer" (har line = ek point). Khali = standard text. Badlav Activity me "DISCLAIMER text badla". Purani sahmatiyan waise hi record me.
+
+ZAROORI: ye text aam samajh se likha hai. Kisi vakil (lawyer) se ek baar zaroor jaanch karwa lein, phir Settings me apna final text daal sakte hain.
+Purane (is round se pehle ke) order / quotation me disclaimer record nahi hoga.
+Sirf STAGING. SQL: ROUND-40-58-SQL-ONLY.sql (dobara chalana safe).

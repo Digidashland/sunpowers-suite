@@ -1,0 +1,13 @@
+ROUND 59 — DISCLAIMER CHHOTA + PRAKRITIK AAPDA (AANDHI / OLE / BHOOKAMP) KI LINE
+==================================================================================
+1) Disclaimer ab chhota: sirf ek line "Main Disclaimer / Terms se sahmat hoon" + ek tick. Tick karte hi sahmati ho jati hai.
+   Poora text chhote akshar me, sirf "Disclaimer / Terms" link dabane par khulta hai (Store, Website checkout, quotation link). Padhna zaroori nahi.
+2) Prakritik aapda (aandhi-toofan, ole, bhookamp, baadh, aasmani bijli, tornado) ki line teen jagah, shant shabdon me:
+   a) FINAL bill (Tax Invoice) ke neeche chhoti line — sirf jab bill ka poora payment aa gaya (Balance 0) aur sirf Project / Service. Pehle ke bill par nahi. Product-only par nahi.
+   b) "Kaam poora hua?" wali customer ghoshna (Service) me chhoti line.
+   c) Installation disclaimer ke andar ek point (Project / install order me).
+   Line me saaf likha hai: hamare installation ki apni khami par ye lagu nahi (isse line kanoon me tikti hai).
+3) Settings > Bill me: is line ka text badal sakte hain, aur "sirf final bill par" ka checkbox.
+Bima (insurance) ka koi zikr nahi rakha.
+Part-wise payment ka dabba sirf manual me; online me poora paisa ek baar.
+Sirf STAGING. SQL: ROUND-40-59-SQL-ONLY.sql (dobara chalana safe). Text ek baar vakil se jaanch lein.

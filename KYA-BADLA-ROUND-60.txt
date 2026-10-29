@@ -1,0 +1,34 @@
+ROUND 60 — "KAHAN BECHNA HAI": STATE / DISTRICT-WISE DELIVERY + PAYMENT + EMERGENCY SWITCH
+=========================================================================================
+Customer pin code (ya "meri location") dalte hi, order se PEHLE, ye teen cheezein dikhti hain:
+  1) Available hai ya nahi   2) Anumanit delivery (din + tareekh, jaise "10–15 din (5 – 10 Nov)")   3) Payment: COD bhi / sirf pura payment pehle
+
+ADMIN (Store Admin)
+A) Product / Service / Project ka form (naya ya edit) — neeche naya dabba "🗺️ कहाँ बेचना है":
+   - 🇮🇳 Poora Bharat (tick): ek hi niyam — delivery ke din (kam se kam – zyada se zyada) + payment + ✅ chalu / ⛔ abhi band switch.
+   - ➕ Rajya jodein: rajya chunte hi do raste: "Sab ziley" (poore rajya ka ek niyam) ya "Zilewise" (ziley dropdown me se ek ya kai chunein, har zile ka APNA din + payment + switch).
+   - Jo rajya / zila chuna hi nahi wahan customer ko "Is pin code par uplabdh nahi" dikhta hai.
+   - Niyam jeetne ka kram: Zila > Rajya > Poora Bharat. (Poora Bharat tick karke kisi rajya / zile ko alag niyam ya ⛔ band bhi kar sakte hain.)
+   - Kuch bhi na chunein to item pehle ki tarah sab jagah chalta rahta hai (purane items na tootein).
+B) Naya tab "🗺️ कहाँ बेचना है":
+   - 📦 Kai item ek saath: items tick karein, jagah bharein, "Lagayein" (jodein/badlein ya baaki hataakar sirf yahi).
+   - 📍 Jagah-wise: rajya (aur zila) chunein — wahan kaun se item bik rahe hain; har item ka switch; "is jagah ke sab item band / chalu".
+   - 📋 Sare item: har item par chip (kitni jagah / kitne band) + "jagah badlein".
+   - 🚨 Emergency: ek click me poora Shop page + Store App out of stock. Customer ko seedha nahi dikhta — pin / location dene ke baad dikhta hai; kimat dikhti rahti hai, order nahi ho pata. Chhota sandesh likh sakte hain. Vapas ek click me chalu.
+   - Checkbox "jis item ki koi jagah nahi chuni wo kahin nahi bikega" (shuru me band; chalu karne par naya item tabhi bikega jab jagah chuno).
+C) Products tab ke upar bhi 🚨 Emergency button + har item par chip.
+
+CUSTOMER (Store App + Web Shop)
+- Pin dalne se pehle sab kuch normal "available" dikhta hai. Pin dene ke baad (typing ya "📍 meri location se pin") hi "uplabdh nahi" / delivery tareekh dikhta hai.
+- Product page, shop card aur cart / checkout me: ✅ available + 🚚 delivery tareekh + 💳 payment.
+- Server order ke time dobara check karta hai (browser se bypass nahi): chuni hui jagah ke bahar ya band jagah par order nahi banta; "sirf pura payment" wali jagah par COD ka order rukta hai.
+- "Meri location" ke liye browser ki location permission + photon.komoot.io (wahi jo Designer me hai) se pin nikalta hai; na mile to customer khud pin dalta hai.
+
+PEHLE YE KAREIN (ek baar)
+- 📍 Pincode tab → Master me india-pincodes-clean.csv upload karein (tabhi rajya / ziley ki list dikhegi).
+
+DHYAN DEIN
+- Checkout me abhi sirf ONLINE (pura) payment hai; "COD bhi chalega" ab sirf dikhta aur server me guard hota hai. COD se asli order lena ho to wo agla alag round hoga.
+- "Delivery charge" (paisa) purane Delivery Rate tab se hi chalta hai, isme badla nahi.
+
+SQL: ROUND-40-60-SQL-ONLY.sql (U30). Naye tables sp_sell, sp_sell_cfg. Dobara chalana safe. Sirf STAGING.

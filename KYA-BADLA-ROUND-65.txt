@@ -1,0 +1,12 @@
+ROUND 65 — ACCOUNT ICON SABSE LAST + "MERI LOCATION SE BHAREIN" (NO SQL)
+==============================================================================
+1) Store App aur Web Shop (shop.html) ke header me Account (👤) icon ab sabse last me, Cart (🛒) ke baad.
+2) "📍 Meri location se bharein" — ek hi file sp-geo.js (Store App, Web Shop, Website, CRM).
+   - Button dabate hi phone / browser location ki permission maangta hai. Allow karte hi pin, shahar, (CRM me Country / State / District bhi) aur pata apne-aap bhar jata hai.
+   - Pata wali box me pehle se likha ho to use nahi mitata. Makaan / flat number customer khud jode (message me likha aata hai).
+   - Permission band ho to saaf message: location allow karne ka tareeka. Insecure (http) page ya purane browser ke liye bhi alag message.
+   - Kahan aata hai: Store checkout, Web Shop checkout, Store ka Mera Account -> Profile edit, Store enquiry (shahar), Website contact / site-visit / sab lead forms (shahar),
+     Pin code wale dialog (Store + Shop) me purana button ab isi se (behtar error), CRM me customer / party ka pura address block aur Lead form.
+   - Kahan nahi aata: jahan address / pin bharna nahi hota.
+   - Pata nikalne ke liye photon.komoot.io (na chale to nominatim.openstreetmap.org) — free, koi key nahi.
+3) Files: store/{index.html,sp-geo.js}, website/assets/{sp-geo.js,cart.js}, website/shop.html + saare website pages (script tag), crm/{index.html,assets/sp-geo.js}.

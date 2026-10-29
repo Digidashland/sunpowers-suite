@@ -9,23 +9,28 @@
     return '<div class="li click" data-act="popen" data-id="' + x.id + '"><span class="av ' + (x.status === 'verified' ? '' : x.status === 'rejected' ? 'r' : 'o') + '">' + C.ic('plant') + '</span><span class="grow"><span class="t">' + esc(x.title) + ' ' + C.pill(s[0], s[1]) + '</span><span class="m"><span class="b">' + esc(d.kw || 0) + ' kW</span><span>' + esc(x.ref || '') + '</span>' + (d.city ? '<span>' + esc(d.city) + '</span>' : '') + (x.due_at ? '<span>' + C.ic('clock') + esc(C.fd(x.due_at)) + '</span>' : '') + '<span>' + C.ic('user') + esc(x.owner_name || '') + (d.ref ? ' · ' + esc(d.ref) : '') + '</span></span></span>' + (num(x.amount) && C.canAny('plants.view_all', 'plants.verify') ? '<span class="amt">' + money(x.amount) + '</span>' : '') + '</div>';
   };
 
-  C.plantForm = function (rec, pre) {
-    rec = rec || { data: {} }; var d = Object.assign({}, pre || {}, rec.data || {}), isNew = !rec.id, ver = C.can('plants.verify');
+  /* Round 38: plant kisi CRM customer ka ho to uski details (naam, mobile, shahar, pata) dobara nahi — Customer card. Sirf referral (anjaan) plant me ye box rehte hain. */
+  C.plantForm = async function (rec, pre) {
+    rec = rec || { data: {} }; var d = Object.assign({}, pre || {}, rec.data || {}), isNew = !rec.id, ver = C.can('plants.verify'), pid = rec.party_id || d.party_id || null, party = null;
+    if (pid) { try { party = await C.get(pid); } catch (e) { party = null; } }
+    var pdd = party ? party.data || {} : {};
     return new Promise(function (res) {
-      var body = '<form id="plf" class="fg">' + C.f('Customer ka naam *', C.inp('name', d.name || (isNew ? '' : rec.title))) + C.f('Mobile *', C.inp('mobile', d.mobile || rec.mobile, 'inputmode="tel"')) +
-        C.f('Plant size (kW) *', C.inp('kw', d.kw, 'inputmode="decimal"')) + C.f('Prakar', C.sel('ptype', ['On-grid', 'Off-grid', 'Hybrid', 'Water pump', 'Street light', 'Other'], d.ptype || 'On-grid')) +
+      var body = '<form id="plf" class="fg">' + (party ? '<div class="f full"><label>Customer</label><div id="plCust"></div></div>' : C.f('Customer ka naam *', C.inp('name', d.name || (isNew ? '' : rec.title))) + C.f('Mobile *', C.inp('mobile', d.mobile || rec.mobile, 'inputmode="tel"'))) +
+        C.f('Plant size (kW) *', C.inp('kw', d.kw || (parseFloat(pdd.kw) > 0 ? pdd.kw : ''), 'inputmode="decimal"')) + C.f('Prakar', C.sel('ptype', ['On-grid', 'Off-grid', 'Hybrid', 'Water pump', 'Street light', 'Other'], d.ptype || 'On-grid')) +
         C.f('Lagne ki tareekh', C.inp('install', d.install || C.today(), 'type="date"')) + C.f('Deal value (₹)', C.inp('deal_value', d.deal_value, 'inputmode="decimal"')) +
         C.f('Panel (brand / watt)', C.inp('panel', d.panel)) + C.f('Inverter', C.inp('inverter', d.inverter)) +
-        C.f('Shahar / Gaon', C.inp('city', d.city)) + C.f('Discom / Consumer no.', C.inp('consumer_no', d.consumer_no)) +
+        (party ? '' : C.f('Shahar / Gaon', C.inp('city', d.city))) + C.f('Discom / Consumer no.', C.inp('consumer_no', d.consumer_no || pdd.consumer_no)) +
         C.f('Subsidy status', C.sel('subsidy', ['Nahi', 'Apply kiya', 'Mil gayi', 'Lagu nahi'], d.subsidy || 'Nahi')) + C.f('Referral code <span class="o">(Dealer / Influencer)</span>', C.inp('ref', d.ref || (isNew && C.me.ref_code ? C.me.ref_code : ''), 'style="text-transform:uppercase"' + (C.isPartner() ? ' readonly' : ''))) +
-        C.f('Pata', C.ta('address', d.address, 'rows="2"'), 'full') + C.f('Note', C.ta('note', d.note, 'rows="2"'), 'full') +
+        (party ? '' : C.f('Pata', C.ta('address', d.address, 'rows="2"'), 'full')) + C.f('Note', C.ta('note', d.note, 'rows="2"'), 'full') +
         (ver ? C.f('Status', C.sel('status', [['pending', 'Verify baaki'], ['verified', 'Verified'], ['rejected', 'Reject']], rec.status || 'verified'), 'full') : '<div class="note full">Plant Admin ke verify karne ke baad hi commission banega.</div>') + '</form>';
       var m = C.modal({ title: isNew ? 'Plant jodein' : 'Plant badlein', body: body, foot: '<button class="btn btn-o" data-close>Cancel</button><button class="btn btn-p" data-ok>' + C.ic('check') + ' Save</button>', onClose: function () { res(null); } });
+      var cc = party ? C.custCardMount($('#plCust', m.el), party, {}) : null;
       $('[data-ok]', m.el).onclick = async function () {
-        var f = $('#plf', m.el), o = C.form(f); if (!C.need(f, ['name', 'mobile', 'kw'])) return;
+        var f = $('#plf', m.el), o = C.form(f); if (!C.need(f, cc ? ['kw'] : ['name', 'mobile', 'kw'])) return;
+        if (cc) { var cp = cc.party, cd = cp.data || {}; o.name = cp.title; o.mobile = cp.mobile || ''; o.city = cd.city || ''; o.address = C.addrText(cd) || cd.address || ''; }
         if (!C.validMob(o.mobile)) return C.toast('Sahi mobile likhein', true);
         var st = o.status; delete o.status; o.ref = (o.ref || '').toUpperCase();
-        try { var r = await C.run('crm_save', { kind: 'plant', id: rec.id || null, status: st || '', party_id: rec.party_id || d.party_id || null, data: Object.assign({}, rec.data || {}, o) }, 'Plant save ho gaya ✔'); m.el.remove(); document.documentElement.style.overflow = ''; res(r); } catch (e) {}
+        try { var r = await C.run('crm_save', { kind: 'plant', id: rec.id || null, status: st || '', party_id: pid, data: Object.assign({}, rec.data || {}, o) }, 'Plant save ho gaya ✔'); m.el.remove(); document.documentElement.style.overflow = ''; res(r); } catch (e) {}
       };
     });
   };
@@ -38,31 +43,29 @@
     var b;
     if ((b = $('[data-edit]', m.el))) b.onclick = async function () { m.el.remove(); document.documentElement.style.overflow = ''; await C.plantForm(r); done && done(); };
     if ((b = $('[data-ver]', m.el))) b.onclick = async function () { try { await C.setStatus(r.id, 'verified', {}, 'Verified ✔ — commission apne aap ban gaya'); m.close(); } catch (e) {} };
-    if ((b = $('[data-rej]', m.el))) b.onclick = async function () { var why = await C.ask('Reject ki wajah', 'Kyun reject kar rahe hain?', { min: 3, danger: true, ok: 'Reject' }); if (why == null) return; try { await C.setStatus(r.id, 'rejected', { reject_reason: why }, 'Reject kar diya'); m.close(); } catch (e) {} };
+    if ((b = $('[data-rej]', m.el))) b.onclick = async function () { var why = await C.ask('Reject ki wajah', 'Kyun reject kar rahe hain?', { min: 3, danger: true, ok: 'Reject', tpl: 'reject' }); if (why == null) return; try { await C.setStatus(r.id, 'rejected', { reject_reason: why }, 'Reject kar diya'); m.close(); } catch (e) {} };
     if ((b = $('[data-del]', m.el))) b.onclick = async function () { if (await C.delWithReason(r, r.title)) m.close(); };
   }
 
-  C.mod('plants', {
-    title: 'Plants',
-    allowed: function () { return C.canAny('plants.create', 'plants.view_all'); },
-    render: async function (el, params, q) {
+  C.plantsRender = async function (el, params, q, route, extra) {
+      extra = extra || {};
       var st = q.status || '', uid = q.user || '', all = await C.list('plant', { limit: 3000, user_id: uid || null }), cnt = {};
       all.forEach(function (x) { cnt[x.status] = (cnt[x.status] || 0) + 1; });
       var list = all.filter(function (x) { return !st || x.status === st; }), ver = all.filter(function (x) { return x.status === 'verified'; });
-      var h = '<div class="ph"><div><h1>Plants</h1><p>Lage hue solar plant — verify hone par commission apne aap banta hai.</p></div><div class="row">' + C.reportBtns('Plants', function () { return { head: ['No', 'Customer', 'Mobile', 'kW', 'Prakar', 'Tareekh', 'Shahar', 'Deal value', 'Status', 'Jodne wala', 'Referral', 'Subsidy'], rows: list.map(function (x) { var d = x.data; return [x.ref, x.title, x.mobile || '', num(d.kw), d.ptype || '', C.fd(d.install), d.city || '', num(d.deal_value), (PST[x.status] || [x.status])[0], x.owner_name || '', d.ref || '', d.subsidy || '']; }) }; }) + (C.can('plants.create') ? '<button class="btn btn-p" data-act="add">' + C.ic('plus') + ' Plant jodein</button>' : '') + '</div></div>';
-      h += '<div class="kpis">' + C.kpi('Verified plants', ver.length, '', 'gold') + C.kpi('Kul kW', C.r2(C.sum(ver, function (x) { return x.data.kw; })) + ' kW') + C.kpi('Verify baaki', cnt.pending || 0, '', cnt.pending ? 'warn' : '', '#/plants?status=pending') + '</div>';
+      var h = '<div class="ph"><div><h1>Referral plants</h1><p>Dealer / influencer / staff ke laye hue plant — verify hone par commission apne aap banta hai.</p></div><div class="row">' + C.reportBtns('Plants', function () { return { head: ['No', 'Customer', 'Mobile', 'kW', 'Prakar', 'Tareekh', 'Shahar', 'Deal value', 'Status', 'Jodne wala', 'Referral', 'Subsidy'], rows: list.map(function (x) { var d = x.data; return [x.ref, x.title, x.mobile || '', num(d.kw), d.ptype || '', C.fd(d.install), d.city || '', num(d.deal_value), (PST[x.status] || [x.status])[0], x.owner_name || '', d.ref || '', d.subsidy || '']; }) }; }) + (C.can('plants.create') ? '<button class="btn btn-p" data-act="add">' + C.ic('plus') + ' Plant jodein</button>' : '') + '</div></div>';
+      h += '<div class="kpis">' + C.kpi('Verified plants', ver.length, '', 'gold') + C.kpi('Kul kW', C.r2(C.sum(ver, function (x) { return x.data.kw; })) + ' kW') + C.kpi('Verify baaki', cnt.pending || 0, '', cnt.pending ? 'warn' : '', route + C.qs(Object.assign({}, extra, { status: 'pending' }))) + '</div>';
       h += '<div class="bar">' + C.chips([['', 'Sab', all.length], ['pending', 'Verify baaki', cnt.pending || 0], ['verified', 'Verified', cnt.verified || 0], ['rejected', 'Reject', cnt.rejected || 0]], st, 'st') + '<input class="inp" type="search" data-q placeholder="Khojein">' + (C.can('plants.view_all') ? C.userFilter(uid) : '') + '</div>';
       h += list.length ? '<div class="list" id="pll">' + list.map(C.plantRow).join('') + '</div>' : '<div class="card">' + C.empty('plant', 'Koi plant nahi', C.can('plants.create') ? 'Lage hue plant jodein — verify hone par commission milega' : '') + '</div>';
       el.innerHTML = h;
       var pl = $('#pll', el); if (pl) C.filterList($('[data-q]', el), pl);
-      el.addEventListener('click', function (e) { var c = e.target.closest('[data-st]'); if (c) C.go('#/plants' + C.qs({ status: c.getAttribute('data-st'), user: uid })); });
-      var us = $('[data-user]', el); if (us) us.onchange = function () { C.go('#/plants' + C.qs({ status: st, user: this.value })); };
+      el.addEventListener('click', function (e) { var c = e.target.closest('[data-st]'); if (c) C.go(route + C.qs(Object.assign({}, extra, { status: c.getAttribute('data-st'), user: uid }))); });
+      var us = $('[data-user]', el); if (us) us.onchange = function () { C.go(route + C.qs(Object.assign({}, extra, { status: st, user: this.value }))); };
       C.bind(el, { add: function () { C.plantForm().then(function (r) { if (r) C.render(); }); }, popen: function (id, a, e) { if (e.target.closest('a')) return; plantView(id, function () { C.render(); }); } });
       if (q.open) { C.setQuery({ open: '' }); plantView(q.open, function () { C.render(); }); }
-    }
-  });
+  };
+  C.mod('plants', { title: 'Projects', nav: 'projects', allowed: function () { return C.canAny('plants.create', 'plants.view_all'); }, render: async function (el, params, q) { return C.go('#/projects' + C.qs({ tab: 'referral', status: q.status || '', user: q.user || '', open: q.open || '' })); } });
   /* customer page uses plantRow too */
-  document.addEventListener('click', function (e) { var r = e.target.closest('[data-act=popen]'); if (!r || C.parse().name === 'plants' || e.target.closest('a')) return; plantView(r.getAttribute('data-id'), function () { C.render(); }); });
+  document.addEventListener('click', function (e) { var r = e.target.closest('[data-act=popen]'); if (!r || C.parse().name === 'projects' || e.target.closest('a')) return; plantView(r.getAttribute('data-id'), function () { C.render(); }); });
 
   /* ================================================================ commission */
   C.mod('commission', {
@@ -70,14 +73,18 @@
     allowed: function () { return C.canAny('earnings.view_all', 'earnings.manage') || C.isPartner(); },
     render: async function (el, params, q) {
       var st = q.st || '', uid = q.user || '', mg = C.can('earnings.manage'), all = await C.list('earning', { limit: 3000, user_id: uid || null });
+      var pf = q.all ? '' : (q.party || q.cf || ''), pfp = null; if (pf) { try { pfp = await C.get(pf); } catch (e) { pf = ''; } }
+      /* Round 46: customer ke flow se aaye to us customer ke naam / quotation no. wali commission entries hi (commission me customer ka alag link nahi hota, isliye naam se) */
+      if (pfp) { var key = String(pfp.title || '').toLowerCase(), qr = []; try { qr = (await C.list('quote', { party_id: pfp.id, limit: 50 })).map(function (z) { return String(z.ref || '').toLowerCase(); }).filter(Boolean); } catch (e) {} all = all.filter(function (x) { var t = (String(x.title || '') + ' ' + JSON.stringify(x.data || {})).toLowerCase(); return (key && t.indexOf(key) >= 0) || qr.some(function (r) { return t.indexOf(r) >= 0; }); }); }
       var list = all.filter(function (x) { return !st || x.status === st; }), due = all.filter(function (x) { return x.status === 'due'; }), paid = all.filter(function (x) { return x.status === 'paid'; });
       var me = C.me.meta || {}, rule = me.commission || {};
-      var h = '<div class="ph"><div><h1>Commission</h1><p>' + (C.isPartner() ? 'Aapka incentive — har verified plant par apne aap judta hai.' + (rule.mode ? ' Aapka rate: <b>' + (rule.mode === 'per_kw' ? money(rule.value) + ' / kW' : rule.mode === 'fixed' ? money(rule.value) + ' / plant' : rule.value + '% deal value') + '</b>' : '') : 'Dealer / Influencer / Staff ka commission — rate Team me har user par set karein.') + '</p></div><div class="row">' + C.reportBtns('Commission', function () { return { head: ['Tareekh', 'User', 'Detail', 'kW', 'Amount', 'Status', 'Paid on', 'UTR'], rows: list.map(function (x) { return [C.fd(x.data.date || x.created_at), x.owner_name || '', x.title, x.data.kw || '', num(x.amount), x.status === 'paid' ? 'Paid' : 'Baaki', C.fd(x.data.paid_on), x.data.utr || '']; }) }; }) + (mg ? '<button class="btn btn-p" data-act="add">' + C.ic('plus') + ' Commission / bonus jodein</button>' : '') + '</div></div>';
+      var h = '<div class="ph"><div><h1>Commission</h1><p>' + (C.isPartner() ? 'Aapka incentive — har verified plant par apne aap judta hai.' + (rule.mode ? ' Aapka rate: <b>' + (rule.mode === 'per_kw' ? money(rule.value) + ' / kW' : rule.mode === 'fixed' ? money(rule.value) + ' / plant' : rule.value + '% deal value') + '</b>' : '') : 'Dealer / Influencer / Staff ka commission (Staff ki commission mahine ki salary me apne aap judti hai — All Staffs ▸ Salary &amp; Pay) — rate Team me har user par set karein.') + '</p></div><div class="row">' + C.reportBtns('Commission', function () { return { head: ['Tareekh', 'User', 'Detail', 'kW', 'Amount', 'Status', 'Paid on', 'UTR'], rows: list.map(function (x) { return [C.fd(x.data.date || x.created_at), x.owner_name || '', x.title, x.data.kw || '', num(x.amount), x.status === 'paid' ? 'Paid' : 'Baaki', C.fd(x.data.paid_on), x.data.utr || '']; }) }; }) + (mg ? '<button class="btn btn-p" data-act="add">' + C.ic('plus') + ' Commission / bonus jodein</button>' : '') + '</div></div>';
       h += '<div class="kpis">' + C.kpi('Baaki', money(C.sum(due, 'amount')), due.length + ' entry', 'gold') + C.kpi('Mil chuka', money(C.sum(paid, 'amount')), paid.length + ' entry') + C.kpi('Kul', money(C.sum(all, 'amount'))) + '</div>';
+      if (pfp) h += '<div class="note g" style="margin-bottom:10px">' + C.ic('user') + ' <b>' + esc(pfp.title) + '</b> se jude commission / referral — <a href="#/commission?all=1">Sabhi dekhein</a></div>';
       h += '<div class="bar">' + C.chips([['', 'Sab'], ['due', 'Baaki'], ['paid', 'Paid']], st, 'st') + (C.can('earnings.view_all') ? C.userFilter(uid) : '') + '</div>';
-      h += list.length ? '<div class="list">' + list.map(function (x) { return '<div class="li"><span class="av ' + (x.status === 'paid' ? '' : 'o') + '">' + C.ic('rupee') + '</span><span class="grow"><span class="t">' + esc(x.title) + ' ' + (x.status === 'paid' ? C.pill('Paid') : C.pill('Baaki', 'o')) + (x.data.auto ? C.pill('Auto', 'g') : '') + '</span><span class="m"><span>' + C.ic('user') + esc(x.owner_name || '') + '</span><span>' + esc(C.fd(x.data.date || x.created_at)) + '</span>' + (x.data.kw ? '<span>' + esc(x.data.kw) + ' kW</span>' : '') + (x.data.paid_on ? '<span>Paid ' + esc(C.fd(x.data.paid_on)) + (x.data.utr ? ' · ' + esc(x.data.utr) : '') + '</span>' : '') + (x.data.note ? '<span>' + esc(x.data.note) + '</span>' : '') + '</span></span><span class="amt">' + money(x.amount) + '</span>' + (mg ? '<span class="acts">' + (x.status === 'due' ? '<button class="btn btn-p btn-sm" data-act="paid" data-id="' + x.id + '">Paid</button>' : '') + '<button class="btn btn-g btn-icon btn-sm" data-act="del" data-id="' + x.id + '">' + C.ic('trash') + '</button></span>' : '') + '</div>'; }).join('') + '</div>' : '<div class="card">' + C.empty('rupee', 'Abhi koi commission nahi', C.isPartner() ? 'Plant jodein — Admin verify karega to commission yahan dikhega' : '') + '</div>';
+      h += list.length ? '<div class="list">' + list.map(function (x) { return '<div class="li"><span class="av ' + (x.status === 'paid' ? '' : 'o') + '">' + C.ic('rupee') + '</span><span class="grow"><span class="t">' + esc(x.title) + ' ' + (x.status === 'paid' ? C.pill('Paid') : C.pill('Baaki', 'o')) + (x.data.auto ? C.pill('Auto', 'g') : '') + (x.data.salary_month ? C.pill('Salary ' + x.data.salary_month + ' me gayi', 'b') : '') + '</span><span class="m"><span>' + C.ic('user') + esc(x.owner_name || '') + '</span><span>' + esc(C.fd(x.data.date || x.created_at)) + '</span>' + (x.data.kw ? '<span>' + esc(x.data.kw) + ' kW</span>' : '') + (x.data.paid_on ? '<span>Paid ' + esc(C.fd(x.data.paid_on)) + (x.data.utr ? ' · ' + esc(x.data.utr) : '') + '</span>' : '') + (x.data.note ? '<span>' + esc(x.data.note) + '</span>' : '') + '</span></span><span class="amt">' + money(x.amount) + '</span>' + (mg ? '<span class="acts">' + (x.status === 'due' ? '<button class="btn btn-p btn-sm" data-act="paid" data-id="' + x.id + '">Paid</button>' : '') + '<button class="btn btn-g btn-icon btn-sm" data-act="del" data-id="' + x.id + '">' + C.ic('trash') + '</button></span>' : '') + '</div>'; }).join('') + '</div>' : '<div class="card">' + C.empty('rupee', 'Abhi koi commission nahi', C.isPartner() ? 'Plant jodein — Admin verify karega to commission yahan dikhega' : '') + '</div>';
       el.innerHTML = h;
-      el.addEventListener('click', function (e) { var c = e.target.closest('[data-st]'); if (c) C.go('#/commission' + C.qs({ st: c.getAttribute('data-st'), user: uid })); });
+      el.addEventListener('click', function (e) { var c = e.target.closest('[data-st]'); if (c) C.go('#/commission' + C.qs({ st: c.getAttribute('data-st'), user: uid, all: q.all || '' })); });
       var us = $('[data-user]', el); if (us) us.onchange = function () { C.go('#/commission' + C.qs({ st: st, user: this.value })); };
       C.bind(el, {
         add: function () {

@@ -1,0 +1,62 @@
+ROUND 38 — Customer ki details sirf ek jagah (Conversation) + Online order seedha Customer
+=========================================================================================
+
+NIYAM: customer ki details (naam, mobile, pata, shahar, kW, prakar) SIRF Conversation (customer form) me bharti hain.
+Baaki har form me wahi details "Customer card" me dikhti hain. Card par "Badlein" = wahi ek Conversation form.
+Koi doosra box nahi, koi copy nahi.
+
+1) LEAD -> CONVERSATION -> SAVE & NEXT
+   - Lead kholein: "💬 Conversation — kya baat hui" me baat likhein.
+   - Button "Conversation poori — details bharein": customer form khulta hai, lead ki jaankari (naam, mobile, shahar, kW, bill) pehle se bhari.
+   - "Save & Next": customer banta hai aur SEEDHA uske kaam ka agla step khulta hai
+       Project (Residential / Commercial / Industrial / VFD) -> Quotation (us type ke saath)
+       Product -> Quotation (Items only) | Service -> Quotation (Service) | Maintenance / AMC -> AMC plan
+   - HATAYA: lead par alag "Quotation" button (wahi kaam dobara karta tha).
+   - Customers -> "Add New Customer" bhi Save & Next karta hai.
+   - Customer page ka "Naya Kaam" aur Conversation ka Save & Next ab EK hi code (C.startJob) chalate hain.
+
+2) PURANE BOX HATAYE — CUSTOMER CARD LAGA
+   - Site Visit: naam / mobile / pata / shahar ke box HATE. Customer card dikhta hai. kW + plant prakar customer / plant / quotation se pehle se bhare.
+     Bina customer ke visit nahi (naya ho to list me "Naya" -> Conversation).
+   - Plant jodein (customer page se): naam / mobile / shahar / pata ke box HATE, customer card. kW customer se.
+     (Referral plant — anjaan vyakti ka — me box rehte hain, kyunki wo pehli entry hai.)
+   - Blueprint / Designer: customer ka poora pata, email, prakar (residential / commercial / industrial), kW apne aap.
+     Save box me naam / mobile / shahar sirf padhne ke liye; juda customer ho to "lead banayein" ka tick nahi dikhta.
+   - Store Orders menu: order par "Customer banayein" (form dobara) HATA -> "Customer kholein". Enquiry / App customer par
+     "Lead / Conversation kholein" (pehle se lead ho to wahi khulti hai). Seedha customer form yahan se nahi.
+
+3) ONLINE ORDER = CUSTOMER (SQL)
+   - Store / online order ka buyer hamesha Customers me (stage customer, path Online Store). Leads me nahi.
+   - Pata / shahar / pincode adhura ho to bhi customer — CRM me "Details adhuri" (pill + filter + customer page par note).
+   - Purana customer (same mobile) dobara order kare: naya customer / lead nahi; uske "Dobara sampark" me order judta hai.
+     Pending Inquiry customer order kare to Customers me aa jata hai.
+   - HATAYA: adhura order -> Lead wala purana raasta.
+   - SQL chalne par purane adhure orders ke customer bhi ban jate hain (unki purani open lead "won").
+
+4) CUSTOMERS LIST
+   - Naye filter: "Online order", "Details adhuri". Pills: Online order, Details adhuri.
+
+SQL: ROUND-38-SQL-ONLY.sql (MASTER-UPDATE.sql aur SQL-1-SABSE-PEHLE-CHALAYEIN.sql ke end me bhi jod diya).
+   STAGING: sirf ROUND-38-SQL-ONLY.sql (SQL-1 pehle chal chuka hai).  LIVE: backup -> SQL-1 (37 + 38 dono).
+FILES: crm/assets/ui.js, crm/modules/{flow,leads,customers,sitevisit,plants,blueprint,orders,hints}.js, crm/index.html,
+       crm|website|store/designer.html, crm|website/assets/blueprint.js + store/blueprint.js, website/blueprint.html, store/index.html.
+TEST: r52 (online order SQL) + r53 (screens) + poori purani regression.
+
+5) EK HI FLOW (single flow)
+   - Poore CRM me flow sirf upar wali sticky patti hai (18 steps). Koi alag flow card nahi.
+   - Hataya: Projects page ka flow card, Customer page ka flow card, "Flow dikhayein" button.
+   - Step 1 "Add Customer" patti se hata; step 6 "Confirmation" joda.
+   - Test: r54 screen check (390px + 1280px): patti sticky, Templates/Projects/Customer par koi purana card nahi.
+
+6) FLOW PATTI AB HEADER KE NEECHE (Round 39)
+   - Flow patti top bar ke neeche hamesha dikhti hai (sticky), aur wahi aakhri khula customer dikhati hai.
+   - Customer kholne ke baad Templates / Projects / Quotation / kisi bhi page par patti wahi rehti hai.
+   - Patti ke step par click = us customer ke us kaam ka page (Quotation = us kaam ka quotation).
+   - ✕ se patti band hoti hai; naya customer kholne par wapas aati hai.
+   - Sirf ek customer chuna ho to dropdown; patti ke andar naya customer chunne ka box nahi.
+   - Patti me customer ka naam + mobile, aur ek se zyada kaam ho to "Kaam:" dropdown.
+   - Step chhodne par rok nahi, sirf ek line ki chetavni (Dhyan: pehle "..." step abhi poora nahi hua).
+   - Round 39 (11 suggestions): customer naam+mobile; Kaam dropdown label; Quotation bina quotation ke = naya quotation us kaam ke liye;
+     grey step = ek line ki suchna; note step popup me saaf hidayat; step chhodne par chetavni (rok nahi);
+     ✕ ka tooltip; tab me customer ka naam; mobile par aas-paas ke steps + "Sabhi steps"; sirf customer wali screens par patti;
+     permission na ho to step dhundhla + suchna.

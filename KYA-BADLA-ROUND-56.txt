@@ -1,0 +1,18 @@
+ROUND 56 — POORA AUDIT + SAFAI (koi naya feature nahi; doubling / galat flow theek)
+==================================================================================
+Kya padha: har menu, har route, Product / Project / Service / Online / Offline flow, store + website + admin pages (mobile 400px + desktop).
+
+THEEK KIYA
+1) Online order ab customer ke "Kaam" me apne aap aata hai (Confirmed). Store Orders me "Kaam / Flow kholein" button. Cancel = kaam band, wapas = kaam wapas.
+   Pehle ye Round 54 me sirf aadha dikhta tha.
+2) Stock double-hold hata: online order ka kaam reserve me dobara nahi ginta.
+3) Service flow ka order sahi: Demo/Files baat-cheet ke baad, Finish se pehle nahi.
+4) Customer page par Quotation tab aur "Nayi quotation" button hataya (wahi cheez Kaam tab me thi — doubling).
+5) Final ribbon: sirf tab "Final: brand" jab options hon; warna sirf "Final". Band option ko alag pill.
+6) Online order ke kaam par "Pata, Shahar" jaisa mandatory-details roka nahi lagta (system banata hai).
+7) Tasks tab ka naam "Reminder".
+
+NAHI BADLA: step numbers, purana data, bills, permissions. SQL dobara chalana safe.
+SIRF STAGING pe chalayein. Live par tab jab aap kahen.
+Chalane ka tareeka: ek master PowerShell command (message me). SQL: ROUND-40-56-SQL-ONLY.sql.
+Jaan lein: purani quotation ke PDF Supabase storage se SQL se delete nahi ho sakte (storage ki rok) — ye purani limit hai.

@@ -6,12 +6,12 @@ STEP 1 — pg_net chalu karein (email bhejne ke liye zaroori)
   supabase.com → apna project → Database → Extensions
   → search "pg_net" → switch ON (schema: extensions) → Enable
 
-STEP 2 — Database files RUN karein (isi kram me)
-  SQL Editor → New query
-  a) 2-Main-App zip ke andar  setup.sql      → poora copy → paste → RUN
-  b) New query → 4-CRM zip ke andar crm-setup.sql → poora copy → paste → RUN
-     Neeche "Sunpowers CRM setup complete ✔" aana chahiye.
-  (Dobara chalane se data nahi mitta. Kabhi update aaye to dono phir isi kram me RUN.)
+STEP 2 — Database RUN karein
+  SQL Editor -> New query
+  Naya khali project:  MASTER-FRESH.sql poori copy -> paste -> RUN
+     (badi file na chale to SQL-PARTS/ ke F01..F06 phir U01..U10 order se — SQL-KAISE-CHALAYEIN.txt)
+  Neeche "Sunpowers CRM setup complete" aana chahiye. Dobara chalane se data nahi mitta.
+  (Purana project jahan pehle se chal raha hai: MASTER-UPDATE.sql — 0-LIVE-UPDATE-PEHLE-YAHI-PADHEIN.txt dekhein.)
 
 STEP 3 — Resend key Vault me rakhein (sabse surakshit)
   Resend.com → API Keys → "Create API Key" (Sending access) → copy (re_... se shuru)

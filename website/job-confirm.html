@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Confirm | Sunpowers</title>
+<meta name="theme-color" content="#0b2e1f">
+<link rel="icon" href="favicon.ico" sizes="any">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Figtree,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f3f6f4;color:#12261c;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:20px 14px}
+.card{background:#fff;border-radius:16px;box-shadow:0 6px 28px rgba(11,46,31,.12);max-width:460px;width:100%;overflow:hidden}
+.hd{background:#0b2e1f;color:#fff;padding:18px 20px}.hd b{font-size:18px;display:block}.hd span{font-size:13px;opacity:.8}
+.bd{padding:20px}h2{margin:0 0 6px;font-size:18px}.m{color:#5b6b62;font-size:14px;line-height:1.5}
+.box{background:#f3f6f4;border-radius:10px;padding:12px 14px;margin:14px 0;font-size:14px;line-height:1.55}
+label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px}input,textarea{width:100%;padding:11px 12px;border:1px solid #c9d6ce;border-radius:10px;font:inherit;font-size:16px}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font:inherit;font-weight:700;font-size:16px;cursor:pointer;margin-top:12px}
+.ok{background:#1e8e3e;color:#fff}.no{background:#fff;color:#b3261e;border:1px solid #e3b4b0}.btn[disabled]{opacity:.6}
+.err{color:#b3261e;font-size:14px;margin-top:10px}.done{text-align:center;padding:24px 8px}.done i{font-size:42px;font-style:normal;display:block;margin-bottom:6px}
+</style>
+</head>
+<body>
+<div class="card"><div class="hd"><b>Sunpowers</b><span id="sub">Confirmation</span></div><div class="bd" id="bd"><p class="m">Loading…</p></div></div>
+<script src="config.js"></script>
+<script>
+(function () {
+  var STG = { url: 'https://czthmbezxlkqanbhqplz.supabase.co', key: 'sb_publishable_B0f2LniPY1cR5Jzx-CbYYg_wrUiUfdq' }, DB = new URLSearchParams(location.search).get('e') === 's' ? STG : SP_DB; /* staging se bana link ?e=s = staging database */
+  var bd = document.getElementById('bd'), tok = (new URLSearchParams(location.search).get('t') || '').trim(), data = null;
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function rpc(fn, args) {
+    return fetch(DB.url + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { apikey: DB.key, 'Content-Type': 'application/json' }, body: JSON.stringify(args) })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+  function msg(icon, t, s) { bd.innerHTML = '<div class="done"><i>' + icon + '</i><h2>' + t + '</h2><p class="m">' + s + '</p></div>'; }
+  function draw() {
+    var d = data, job = d.kind === 'job';
+    document.getElementById('sub').textContent = job ? 'Service completion confirmation' : 'Self-installation declaration';
+    if (d.status === 'accepted' || d.status === 'auto') return msg('✅', 'Already confirmed', 'Thank you' + (d.signer ? ', ' + esc(d.signer) : '') + '. Nothing more to do. / धन्यवाद, आपकी पुष्टि दर्ज है।');
+    if (d.status === 'issue') return msg('📨', 'Issue noted', 'We have raised a complaint ticket and our team will contact you. / हमने आपकी शिकायत दर्ज कर ली है।');
+    var h = '<h2>' + (job ? 'Is the work complete? / क्या काम पूरा हो गया?' : 'Self-installation declaration / खुद लगाने की घोषणा') + '</h2>' +
+      '<p class="m">' + esc(d.customer) + (d.ref ? ' · ' + esc(d.ref) : '') + '</p><div class="box">' +
+      (job ? '<b>' + esc(d.title || 'Service') + '</b>' + (d.summary ? '<br>' + esc(d.summary) : '') + (d.parts ? '<br>Parts: ' + esc(d.parts) : '') + (d.done_date ? '<br>Date: ' + esc(d.done_date) : '') +
+              '<br><span class="m">If we do not hear from you within 48 hours the work is treated as accepted. / 48 घंटे में जवाब न मिले तो काम स्वीकार माना जाएगा।</span>' + '<br><span class="m" style="font-size:11px">After completion, damage from natural disasters (storm, hail, earthquake, flood, lightning) is not covered; this does not apply to defects in our own work. / काम पूरा होने के बाद प्राकृतिक आपदा से हुआ नुकसान शामिल नहीं; हमारे काम की ख़राबी पर यह लागू नहीं।</span>'
+            : 'I have watched the installation video and I will install the product myself. I understand that Sunpowers is not responsible for damage caused by wrong installation, and that I can book an installation service if I need help.<br><span class="m">मैंने इंस्टॉलेशन वीडियो देख ली है और मैं प्रोडक्ट खुद लगाऊँगा। गलत इंस्टॉलेशन से हुए नुकसान की जिम्मेदारी कंपनी की नहीं होगी।</span>') +
+      '</div><label for="nm">Your name / आपका नाम</label><input id="nm" autocomplete="name" maxlength="80">' +
+      '<button class="btn ok" id="yes">' + (job ? '✔ Yes, all good / हाँ, सब ठीक है' : '✔ I agree / मैं सहमत हूँ') + '</button>' +
+      (job ? '<div id="isw" hidden><label for="is">What is the problem? / क्या दिक्कत है?</label><textarea id="is" rows="3" maxlength="300"></textarea><button class="btn no" id="send">Report problem / दिक्कत भेजें</button></div><button class="btn no" id="bad">There is a problem / दिक्कत है</button>' : '') +
+      '<div class="err" id="er"></div>';
+    bd.innerHTML = h;
+    var er = document.getElementById('er'), nm = document.getElementById('nm');
+    function go(ok) {
+      var name = nm.value.trim(); er.textContent = '';
+      if (name.length < 2) { er.textContent = 'Please enter your name / अपना नाम लिखें'; nm.focus(); return; }
+      var btns = bd.querySelectorAll('button'); btns.forEach(function (b) { b.disabled = true; });
+      rpc('sp_decl_submit', { p_token: tok, p_name: name, p_ok: ok, p_issue: ok ? '' : document.getElementById('is').value }).then(function (r) {
+        if (!r || !r.ok) { btns.forEach(function (b) { b.disabled = false; }); er.textContent = (r && r.error) || 'Try again'; return; }
+        if (r.status === 'issue') return msg('📨', 'Issue noted', 'Ticket ' + esc(r.ticket || '') + ' raised. Our team will contact you. / हमारी टीम आपसे संपर्क करेगी।');
+        msg('✅', 'Thank you!', 'Your confirmation is recorded. / आपकी पुष्टि दर्ज हो गई।');
+      }).catch(function () { btns.forEach(function (b) { b.disabled = false; }); er.textContent = 'Network problem — please try again / नेटवर्क दिक्कत, दोबारा कोशिश करें'; });
+    }
+    document.getElementById('yes').onclick = function () { go(true); };
+    var bad = document.getElementById('bad'); if (bad) { bad.onclick = function () { document.getElementById('isw').hidden = false; bad.hidden = true; document.getElementById('is').focus(); }; document.getElementById('send').onclick = function () { go(false); }; }
+  }
+  if (tok.length < 20) return msg('⚠️', 'Link not valid', 'Please use the link we sent you. / कृपया भेजा गया लिंक खोलें।');
+  rpc('sp_decl_get', { p_token: tok }).then(function (r) { if (!r || !r.ok) return msg('⚠️', 'Link not valid', 'Please use the link we sent you. / कृपया भेजा गया लिंक खोलें।'); data = r; draw(); })
+    .catch(function () { msg('⚠️', 'Could not load', 'Check your internet and refresh. / इंटरनेट जाँचकर दोबारा खोलें।'); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+ROUND 54 — KYA BADLA (customer flow ka naya kram + anumanit quotation)
+=====================================================================
+1) FLOW KA NAYA KRAM (Project customer)
+   Add Customer -> Conversation -> Demo/Files -> Quotation -> CONFIRMATION -> Site Visit -> Blueprint -> Apply Process
+   -> Loan -> Hand Over -> Installation -> Commissioning -> Net Metering -> Finish -> Subsidy -> Referral -> AMC -> Complaint
+   * Step ke number / permissions nahi badle — sirf kram badla. Purane customers ke ticks waise hi rehte hain.
+   * Site Visit kabhi bhi tick ho sakta hai (Confirmation se pehle bhi, baad bhi). Calendar me visit "done" hote hi apne aap tick.
+   * Pehle jaisi suraksha: Apply Process se pehle Confirmation zaroori; Installation ke steps se pehle Apply Process.
+2) CONFIRMED ORDER (phone / follow-up / online)
+   * Phone ya follow-up se pakka hua: quotation "Accepted" karte hi Confirmation tick (pehle jaisa).
+   * Online Store order se aaya customer: Confirmation apne aap tick; Conversation, Quotation, Demo/Files "lagu nahi" (skip) dikhte hain.
+     Cancelled online order par ye apne aap nahi lagta.
+3) ANUMANIT (ESTIMATE) QUOTATION — sirf Project (Residential / Commercial / Industrial / VFD)
+   * Site visit se pehle: PDF aur customer link dono me "Yah anumanit quotation hai ... antim quotation site visit ke baad milegi".
+   * Accept ke paas: "Accept ka matlab aap aage badhna chahte hain; antim keemat site visit ke baad tay hogi."
+   * Site visit ke baad: "Antim (Final) quotation" nishaan. Product / Service / online order par ye kuch nahi dikhta.
+   * Koi naya figure ya percentage nahi likha gaya.
+KAHAN CHALAYEIN: ek hi master command (ROUND-41-APPLY.ps1 + SUNPOWERS-DEPLOY.ps1 -Mode stage). SQL: ROUND-40-54-SQL-ONLY.sql (staging).
+SEEMA: purani, pehle se bani PDF file me banner nahi hoga — quotation dubara "Send" karne par naya PDF banta hai.

@@ -9,9 +9,13 @@
   function money(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
   function toast(msg) { var t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = msg; document.body.appendChild(t); setTimeout(function () { t.remove(); }, 3200); }
 
+  /* ---------- marketing channel (?src=CODE / utm_source) — enquiry ke saath jaata hai ---------- */
+  var CHANNEL = '';
+  try { var qs = new URLSearchParams(location.search), sc = (qs.get('src') || qs.get('utm_source') || '').replace(/[^\w .-]/g, '').slice(0, 40); if (sc) sessionStorage.setItem('sp_src', sc); CHANNEL = sc || sessionStorage.getItem('sp_src') || ''; } catch (e) {}
+
   /* ---------- links from config ---------- */
   var SHOP = String(CFG.SHOP_URL || '').replace(/\/+$/, '');
-  $$('[data-shop]').forEach(function (a) { if (SHOP) a.href = SHOP + (a.getAttribute('data-shop') || ''); });
+  $$('[data-shop]').forEach(function (a) { a.href = 'shop.html'; });
   var LOGIN = String(CFG.LOGIN_URL || '').trim();
   $$('[data-login]').forEach(function (a) { if (LOGIN) { a.href = LOGIN; a.hidden = false; } else a.hidden = true; });
   var PW = String(CFG.POWERED_BY == null ? 'Powered by DigiDashLand' : CFG.POWERED_BY).trim(), PWU = String(CFG.POWERED_URL || '').trim();
@@ -22,8 +26,8 @@
   /* ---------- optional photos: show when the file exists, keep the drawn art when it doesn't ---------- */
   $$('img[data-photo]').forEach(function (img) {
     var host = img.closest('[data-photo-host]') || img.parentNode;
-    function ok() { if (img.naturalWidth > 2) host.classList.add('has-photo'); else bad(); }
-    function bad() { img.remove(); }
+    function ok() { if (img.naturalWidth > 2) { img.style.display = ''; img.removeAttribute('data-bad'); host.classList.add('has-photo'); } else bad(); }
+    function bad() { img.style.display = 'none'; img.setAttribute('data-bad', '1'); }
     if (img.complete) { if (img.naturalWidth > 2) host.classList.add('has-photo'); else if (img.naturalWidth === 0 && img.currentSrc) bad(); }
     img.addEventListener('load', ok); img.addEventListener('error', bad);
   });
@@ -42,7 +46,7 @@
   /* ---------- hero slider ---------- */
   (function () {
     var hero = $('#hero'); if (!hero) return;
-    var slides = $$('.slide', hero), dots = $$('.dots button', hero), cur = 0, timer = null, DUR = 6500;
+    var slides = $$('.slide', hero), dots = $$('.dots button', hero), cur = 0, timer = null, DUR = 4500;
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     hero.style.setProperty('--dur', DUR + 'ms');
     function show(i) {
@@ -65,6 +69,37 @@
     stage.addEventListener('touchend', function (e) { if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50 && !e.target.closest('.qcard')) show(cur + (dx < 0 ? 1 : -1)); x0 = null; });
     show(0);
   })();
+
+  /* ---------- count-up numbers (0 -> 500) ---------- */
+  (function () {
+    var els = $$('[data-count]'); if (!els.length) return;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function run(el) {
+      if (el._done) return; el._done = 1; var to = +el.getAttribute('data-count') || 0, t0 = null, D = 1600;
+      if (reduce) { el.textContent = to; return; }
+      function step(ts) { if (!t0) t0 = ts; var k = Math.min(1, (ts - t0) / D), e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(to * e); if (k < 1) requestAnimationFrame(step); }
+      el.textContent = '0'; requestAnimationFrame(step);
+    }
+    if (!('IntersectionObserver' in window)) { els.forEach(run); return; }
+    els.forEach(function (el) { el.textContent = '0'; });
+    var io = new IntersectionObserver(function (en) { en.forEach(function (x) { if (x.isIntersecting) { run(x.target); io.unobserve(x.target); } }); }, { threshold: 0.3 });
+    els.forEach(function (el) { io.observe(el); });
+  })();
+
+  /* ---------- quick cards slider ---------- */
+  $$('[data-qslider]').forEach(function (sl) {
+    var tr = $('.qtrack', sl), cards = $$('.qc', sl), dots = $$('.qdots button', sl), cur = 0, tm = null, hold = false;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function visible() { return Math.max(1, Math.round(tr.clientWidth / (cards[0].getBoundingClientRect().width + 1))); }
+    function go(i, smooth) { var max = Math.max(0, cards.length - visible()); cur = i > max ? 0 : i < 0 ? max : i; tr.scrollTo({ left: cards[cur].offsetLeft - tr.offsetLeft - 2, behavior: smooth === false ? 'auto' : 'smooth' }); mark(); }
+    function mark() { dots.forEach(function (d, k) { d.classList.toggle('on', k === cur); d.setAttribute('aria-current', k === cur ? 'true' : 'false'); }); }
+    function loop() { clearInterval(tm); if (reduce) return; tm = setInterval(function () { if (!hold && !document.hidden && visible() < cards.length) go(cur + 1); }, 3500); }
+    dots.forEach(function (d, k) { d.addEventListener('click', function () { go(k); loop(); }); });
+    var st = null; tr.addEventListener('scroll', function () { clearTimeout(st); st = setTimeout(function () { var x = tr.scrollLeft, best = 0, bd = 1e9; cards.forEach(function (c, k) { var d = Math.abs(c.offsetLeft - tr.offsetLeft - x); if (d < bd) { bd = d; best = k; } }); cur = best; mark(); }, 80); }, { passive: true });
+    ['mouseenter', 'touchstart', 'focusin'].forEach(function (ev) { sl.addEventListener(ev, function () { hold = true; }, { passive: true }); });
+    ['mouseleave', 'touchend', 'focusout'].forEach(function (ev) { sl.addEventListener(ev, function () { setTimeout(function () { hold = false; }, ev === 'touchend' ? 4000 : 0); }, { passive: true }); });
+    mark(); loop();
+  });
 
   /* ---------- tabs ---------- */
   $$('[role=tablist]').forEach(function (tl) {
@@ -111,12 +146,8 @@
     bill.addEventListener('input', function () { var b = parseFloat(bill.value.replace(/[^\d.]/g, '')) || 0; if (b > 0) run(setKw(Math.ceil(b / CALC.rate / CALC.unitsPerKw))); });
     rng.addEventListener('input', function () { bill.value = ''; run(); });
     $$('input[name=ctype]', box).forEach(function (r) { r.addEventListener('change', function () { var dflt = { res: 5, com: 50, ind: 200 }[r.value]; if (!bill.value) run(setKw(dflt)); else run(); }); });
-    var q = $('#cQuote'); if (q) q.addEventListener('click', function (e) {
-      var f = $('#contact form[data-lead]'); if (!f) return; e.preventDefault();
-      var kwEl = $('[name=kw]', f), billEl = $('[name=bill]', f), tyEl = $('[name=type]', f);
-      if (kwEl) kwEl.value = box.dataset.kw; if (billEl && bill.value) billEl.value = bill.value.replace(/[^\d]/g, '');
-      if (tyEl) tyEl.value = { res: 'Residential (Ghar)', com: 'Commercial (Dukaan / Office)', ind: 'Industrial (Factory)' }[box.dataset.type];
-      document.getElementById('contact').scrollIntoView({ behavior: 'smooth' }); setTimeout(function () { var n = $('[name=name]', f); if (n) n.focus({ preventScroll: true }); }, 600);
+    var q = $('#cQuote'); if (q) q.addEventListener('click', function () {
+      window.SPPREFILL = { kw: box.dataset.kw, bill: bill.value.replace(/[^\d]/g, ''), type: { res: 'Residential (Ghar)', com: 'Commercial (Dukaan / Office)', ind: 'Industrial (Factory)' }[box.dataset.type] };
     });
     var qw = $('#cWa'); if (qw) qw.addEventListener('click', function () { qw.href = waLink('Namaste, mujhe ' + out.textContent + ' solar ka quote chahiye' + (bill.value ? ' (bijli bill ₹' + bill.value + '/mahina)' : '')); });
     run(setKw(10));
@@ -152,9 +183,10 @@
       var lines = [];
       if (o.bill) lines.push('Bijli bill: ₹' + o.bill.replace(/[^\d]/g, '') + '/mahina');
       if (o.kw) lines.push('Plant size: ' + o.kw + ' kW');
+      $$('[data-label]', f).forEach(function (el) { var fld = el.closest('.field'); if (el.value.trim() && !(fld && fld.hidden)) lines.push(el.getAttribute('data-label') + ': ' + el.value.trim()); });
       if (o.message) lines.push(o.message);
       lines.push('Page: ' + (document.title.split('|')[0].trim() || location.pathname));
-      var data = { name: o.name.slice(0, 80), phone: ph, city: (o.city || '').slice(0, 80), type: o.type || 'Solar enquiry', subject: '🌐 Website — ' + src, message: lines.join('\n').slice(0, 1500), source: 'website', bill: o.bill || '', kw: o.kw || '', page: location.pathname, lang: 'hinglish' };
+      var data = { name: o.name.slice(0, 80), phone: ph, city: (o.city || '').slice(0, 80), type: o.type || 'Solar enquiry', subject: '🌐 Website — ' + src, message: lines.join('\n').slice(0, 1500), source: 'website', channel: CHANNEL, bill: o.bill || '', kw: o.kw || '', page: location.pathname, lang: (window.SPI18N && SPI18N.lang) || 'en' };
       btn.disabled = true; var old = btn.innerHTML; btn.textContent = 'Bhej rahe hain…';
       var waText = 'Namaste Sunpowers, main ' + data.name + ' (' + ph + ')' + (data.city ? ', ' + data.city : '') + '. ' + data.type + '. ' + lines.slice(0, -1).join(', ');
       $$('.done [data-wa-done]', f).forEach(function (a) { a.href = waLink(waText); a.target = '_blank'; a.rel = 'noopener'; });

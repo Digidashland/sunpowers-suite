@@ -1,0 +1,19 @@
+SQL KAISE CHALAYEIN (Supabase -> SQL Editor)
+=============================================
+Ek badi file paste karna mushkil ho (mobile / editor atakna) to ye chhote parts ek-ek karke, NAAM KE ORDER me chalayein.
+Har part poora copy karke paste karein -> Run. Har part dobara chalana safe hai (kuch nahi bigadta).
+
+A) PURANA project (setup.sql / crm-setup.sql pehle chala chuke hain)  -> sirf folder  2-UPDATE
+   U01, U02, ... U30  (order se). Ya ek hi baar me poori:  MASTER-UPDATE.sql
+
+B) NAYA / khali Supabase project (pehli baar)
+   1) folder 1-FRESH-NAYA-SETUP:  F01 ... F06   (order se)
+   2) phir folder 2-UPDATE:       U01 ... U30   (order se)
+   Ya ek hi baar me poori:  MASTER-FRESH.sql   (badi file - computer se)
+
+C) Starter catalog (optional, sirf agar products/categories chahiye)  -> folder 3-CATALOG-OPTIONAL
+   Pehle A ya B poora ho chuka ho. C01 ... C05  (order se). Ya ek file: STORE-CATALOG-LOAD.sql
+   (Isme beech me ek chhoti temporary table sp_catalog_stage banti hai, aakhri part me apne-aap hat jati hai.)
+
+Koi part chhoot jaye ya beech me error aaye to wahi part dobara chalayein, phir aage badhein.
+Ye parts files se apne-aap bante hain (sqltools/mksql.py) - MASTER-UPDATE.sql ka hi hissa hain, alag kuch nahi.

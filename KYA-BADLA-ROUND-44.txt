@@ -1,0 +1,42 @@
+ROUND 44 — Quotation flow + Online platform (STAGING ONLY, live ko kuch nahi)
+=============================================================================
+
+A. QUOTATION FLOW (CRM)
+1. Order ab: Customer chunein -> Items / Template jodein -> Quotation Title (items ke NEECHE).
+   - Sirf products se quotation: Title likhna ZAROORI (khali hone par Save nahi hota).
+   - Template wali line ho: Title us template ke naam se apne aap aata hai (customer ka naam nahi), badal sakte hain.
+   - Purani quotation edit karte waqt khali title ruka nahi jaata (sirf nayi quotation par zaroori).
+2. Templates list me template par click -> 2 naye button:
+   - "Is template se Quotation banayein": customer chunein (naya bhi bana sakte hain) -> quotation us template ke saath khul jaati hai,
+     type (Residential/...) aur kW template se. Save/WhatsApp wahi individual customer link se.
+   - "Template ka naam badlein": naam badal jaata hai (online ho tab bhi; items / qty / rate lock rehte hain).
+3. Sirf Templates se bani quotation par "Project Template banayein / Save as Template" nahi aata.
+   Mixed (template + product) quotation par aata hai. Template me customer ki detail kabhi nahi jaati (pehle jaisa).
+4. Quotation list me quotation customer ke naam se edit hoti hai; template wali quotation bhi wahin se edit hoti hai.
+   (Template khud badalna ho to Templates list -> Edit.)
+
+B. ONLINE PLATFORM (Round 44b — SQL + CRM + Store App + Web Shop + Admin)
+1. CRM me "Online list" ab main menu me NAHI — Inventory / Stock ka tab hai (Products | Templates | Stock dashboard | Online). Purana #/online link wahin khulta hai.
+   Online list (purane wording): products + templates ek jagah; Web Shop aur Store App ki qty alag; "qty badhao", "Web <-> App move", "Online band".
+2. Ek hi pool: online ke liye jo qty gayi wo Inventory me hold hoti hai. Double selling nahi: order ke waqt last-unit guard (row lock).
+3. Store App / Web Shop par "bacha hua" (left) stock live dikhta hai; Admin me tick/untick se dikhana ya chhupana. Khatam hote hi apne aap Out of stock.
+4. Add more quantity: Inventory ke free stock se sirf qty badhti hai — dobara review / photo ki zaroorat nahi.
+5. Multiple photos / videos / links sirf Online Admin me; CRM me ek photo kaafi.
+6. Online templates ab "Project" kehlate hain; order se customer flow me project apne aap select (products -> product).
+7. Online hote hi template ke items / qty lock (sirf naam badal sakte hain).
+8. Kharid rate (cost) ab product ke main form me zaroori.
+
+C. SQL
+   ROUND-40-44-SQL-ONLY.sql (R40 + R43 + R44, dobara chalane par safe). SQL-1 / MASTER-UPDATE / MASTER-FRESH / U15 me bhi jud gaya.
+   Pehle STAGING Supabase me chalayein.
+
+D. TEST
+   Playwright: template se quotation (1280 + 390), title rule, Save-as-Template hide, rename, products flow, purani quotation views — pass.
+   SQL local Postgres par do baar chalai — error 0.
+
+E. ABHI NAHI HUA (agle round)
+   Blueprint ka naya customer-first flow, "Download & Share" ek dropdown, alag Projects page, store admin se seedha CRM inventory me product,
+   "same price everywhere". Ye is round me nahi hue — jhooth nahi bolunga.
+
+FILES: crm/modules/billing.js (v18), items.js (v11), online.js (v2, naya), core.js (v21, menu se Online hata), settings.js, crm/assets/core.js, crm/index.html,
+       store/core.js, store/index.html, admin/index.html, website/assets/cart.js (v15, sab html me bump).

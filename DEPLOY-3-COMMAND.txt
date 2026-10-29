@@ -1,0 +1,40 @@
+DEPLOY — 3 COMMAND (zip me videos + images dono hain)
+=====================================================
+Pehle: SUNPOWERS-FULL.zip aur SUNPOWERS-DEPLOY.ps1 dono Downloads me rakhein. (Zip extract karne ki zarurat nahi.)
+
+A) STAGING
+   1. PowerShell:  powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\SUNPOWERS-DEPLOY.ps1" -Mode stage
+   2. Supabase STAGING -> SQL Editor: SQL-1-SABSE-PEHLE-CHALAYEIN.sql poori paste karke Run (dobara chalana safe; error aaye to MASTER-UPDATE ke parts: SQL-PARTS/2-UPDATE/U01..U09).
+   3. Staging par check: Admin Emergency login, Shop, Store App, Website, CRM.
+
+B) PRODUCTION (staging sahi lage tab)
+   1. Supabase LIVE: pehle backup, phir wahi SQL-1-SABSE-PEHLE-CHALAYEIN.sql Run.
+   2. PowerShell:  powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\SUNPOWERS-DEPLOY.ps1" -Mode prod
+      (YES likhna padega. Merge se pehle backup tag khud ban jata hai.)
+
+GALTI HO TO:  ... -Mode rollback   (production branch backup tag par wapas)
+Inventory: CRM me Starter catalog ke 133 items me quantity bhar di gayi hai (SQL me CRM-STOCK-STARTER hai). Apni asli quantity CRM -> Products me badal lein.
+Note: production branch ka naam 'main' maana gaya hai. Aapka alag ho to  -ProdBranch <naam>  lagayein.
+
+ROUND 29 ke baad ye bhi karein (Supabase SQL ke baad):
+ - Admin -> Payments: UPI ID, Google Pay / PhonePe link bharein (daalte hi checkout + designer popup me button ban jata hai). "Solar Designer fee" 49 aur GST 5 pehle se default hai.
+ - Admin -> har product me "GST %" bharein (invoice ke liye).
+ - Naya order / designer payment aaye to Admin -> Orders me hara button "Payment & Location genuine hain — Invoice bhejein" dabayein.
+ - SQL chalane ke baad browser me hard refresh (Ctrl+F5); CRM app ek baar band karke kholein (naya service worker).
+
+ROUND 32-33 ke baad:
+ - Supabase me naya SQL zaroori hai: SQL-1-SABSE-PEHLE-CHALAYEIN.sql dobara (ya sirf SQL-PARTS/2-UPDATE/U10.sql). Pehle STAGING, phir LIVE (LIVE par pehle backup).
+ - Vercel: WEBSITE project ka Root Directory 'website' hona chahiye (api/d.js aur /d/ link ke liye). Check: Vercel -> Website project -> Settings -> General -> Root Directory.
+ - Deploy ke baad browser Ctrl+F5; CRM app (PWA) ek baar band karke kholein.
+ - Check: CRM se quotation 'Send' -> link -> WhatsApp card; Admin se CRM -> logout -> Admin page; Customer -> Naya Kaam / Kaam-History / flow patti.
+
+ROUND 34 (Android install): store/pwa.js + store/index.html (pwa.js?v=3). Install dialog ab Chrome ka asli "Install" button dikhata hai jab browser prompt ready ho.
+
+ROUND 34 (abhi live nahi — staging test ke baad)
+ - Supabase SQL Editor (staging pehle): ROUND-34-SQL-ONLY.sql ya MASTER-UPDATE.sql ka ROUND 34 section chalayein.
+ - Phir SUNPOWERS-DEPLOY.ps1 stage; CRM + Website + Store + Designer sab redeploy; Ctrl+F5.
+
+ROUND 35 (abhi live nahi): SQL (ROUND-34-SQL-ONLY.sql me ROUND 35 section) staging -> phir live; CRM, Store, Website redeploy; Ctrl+F5.
+
+ROUND 37: sirf CRM files badli (SQL nahi). Pehle stage, phir prod: wahi 3 command.
+ROUND 37B: SQL hai -> ROUND-37-SQL-ONLY.sql staging me, phir live (backup ke baad). Phir CRM redeploy.

@@ -1,0 +1,10 @@
+ROUND 64 — FOOTER COMPACT + CUSTOMER CARD SIRF HOME PAR (NO SQL)
+==============================================================================
+1) FOOTER (Website, Shop page, Store App): chhota text, kam jagah, seedhi alignment.
+   - Mobile par links 2 column me, CTA ek hi line me, brand + social ek row me, copyright chhoti aur beech me.
+2) CUSTOMER CARD (Profile card): ab header me chipka nahi rehta.
+   - Sirf Shop page ke Home par aur Store App ke Home par dikhta hai (jitni baar Home par aayein, dikhta rahega).
+   - Baaki sab pages (category, search, product, cart, wishlist...) par nahi. Poori Website ke Home (index.html) par pehle bhi nahi tha, abhi bhi nahi.
+   - Customer icon (Account) dabane par customer details page khulta hai aur usi ke upar ye card judkar khulta hai.
+     Store App: Mera Account page me. Shop page: Account icon -> "Account" view (card + naam + My orders + Logout).
+3) Files: store/index.html, store/sp-plant.js, website/assets/{cart.js,gate-init.js,sp-plant.js,shopx.css,site.css}, website/shop.html (+ sab website pages ke version number).

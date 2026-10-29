@@ -1,0 +1,41 @@
+/* Sunpowers Apps page (Round 50) */
+.ap-hero{background:var(--forest);color:var(--on-dark);padding-block:56px 40px}
+.ap-eyebrow{display:inline-block;font-weight:800;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--sun);margin-bottom:10px}
+.ap-hero h1{font-size:clamp(30px,5.2vw,48px);color:#fff}
+.ap-sub{margin-top:12px;max-width:60ch;color:var(--on-dark-mute);font-size:17px}
+.ap-dev{margin-top:16px;display:inline-flex;align-items:center;gap:8px;background:var(--glass);border:1px solid var(--glass-line);border-radius:999px;padding:7px 14px;font-weight:700;font-size:14.5px}
+.ap-body{padding-block:36px 64px}
+.ap-warn{background:var(--sun-l);border:1.5px solid var(--sun);border-radius:var(--r);padding:14px 16px;margin-bottom:22px;font-weight:600;color:var(--ink)}
+.ap-warn ol{margin:8px 0 10px;padding-left:22px;display:grid;gap:4px;font-weight:500}
+.ap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:22px;align-items:start}
+.ap-card{background:var(--white);border:1px solid var(--line);border-radius:var(--r-l);box-shadow:var(--sh-1);padding:22px 20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.ap-card.is-crm{border-color:var(--sun)}
+.ap-hd{display:flex;gap:14px;align-items:center}
+.ap-ic{flex:none;width:54px;height:54px;border-radius:14px;background:var(--mint);display:grid;place-items:center;font-size:28px}
+.ap-hd h2{font-size:22px}
+.ap-who{display:inline-block;margin-top:4px;font-size:12.5px;font-weight:800;letter-spacing:.02em;border-radius:999px;padding:3px 10px;background:var(--mint);color:var(--leaf-d)}
+.is-crm .ap-who{background:var(--sun-l);color:var(--sun-d)}
+.ap-d{color:var(--ink-2);font-size:15.5px}
+.ap-act{display:flex;flex-wrap:wrap;gap:10px}
+.ap-act .btn{flex:1 1 180px}
+.ap-steps{margin:0;padding-left:22px;display:grid;gap:8px;font-size:15px;color:var(--ink-2)}
+.ap-steps b{color:var(--ink)}
+.ap-note{font-size:13.5px;color:var(--mute);border-left:3px solid var(--line);padding-left:10px}
+.ap-ico{display:inline-block;border:1px solid var(--line);border-radius:6px;padding:0 6px;background:var(--paper)}
+.ap-qr{display:flex;gap:14px;align-items:center;flex-wrap:wrap;border-top:1px dashed var(--line);padding-top:14px}
+.ap-qr canvas{width:132px;height:132px;border:1px solid var(--line);border-radius:12px;background:#fff;image-rendering:pixelated}
+.ap-qr-t{flex:1 1 150px;display:grid;gap:8px;font-size:14px;color:var(--mute);min-width:0}
+.ap-qr-t .btn{min-height:40px;font-size:14px;padding:.45em 1em}
+.ap-qrbtn{align-self:flex-start}
+.ap-url{font-size:12.5px;color:var(--mute);word-break:break-all}
+.ap-oth{margin-top:22px;text-align:center}
+.ap-oth button{font-weight:700;color:var(--leaf-d);text-decoration:underline;text-underline-offset:3px;padding:8px}
+.ap-others{margin-top:6px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.ap-others section{background:var(--white);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.ap-others h3{font-size:17px;margin-bottom:8px}
+.ap-priv{margin-top:30px;background:var(--mint);border:1px solid var(--mint-2);border-radius:var(--r);padding:16px 18px}
+.ap-priv h3{font-size:17px;margin-bottom:8px}
+.ap-priv ul{display:grid;gap:6px;font-size:15px;color:var(--ink-2)}
+.ap-priv li{padding-left:22px;position:relative}
+.ap-priv li::before{content:"✓";position:absolute;left:0;color:var(--leaf-d);font-weight:800}
+@media print{.hdr,.drawer,.ftr,.fab,.mbar,.ap-hero,.ap-others,.ap-oth,.ap-priv,.ap-act,.ap-steps,.ap-d,.ap-note,.ap-card:not(.ap-printing){display:none!important}.ap-card.ap-printing{display:flex!important;border:0;box-shadow:none}.ap-card.ap-printing .ap-qr{border:0}.ap-card.ap-printing .ap-qr canvas{width:300px;height:300px}}

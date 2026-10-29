@@ -1,59 +1,67 @@
-SUNPOWERS — POORA PACKAGE (4 alag zip + Logo + Guides)
-=======================================================
-1-Website.zip    → Website           → www.sunpowers.in   (Vercel)
-2-Main-App.zip   → Online Store      → shop.sunpowers.in  (Vercel)
-3-Admin.zip      → Store Admin Panel → admin.sunpowers.in (Vercel)
-4-CRM.zip        → CRM               → crm.sunpowers.in   (Vercel)
-5-Logo-Pack.zip  → Saare logo (Full HD + chhote size + Android icon)
-6-Developer-Kit.zip → SIRF AAPKE LIYE (client ko nahi): License server, auto-deploy, minify
-GUIDE-1-Supabase.txt  → Database + Resend key (aap khud karenge)
-GUIDE-2-DNS.txt       → Domain provider ko dene wale DNS records
-GUIDE-3-Rental.txt    → Doosri company ko kiraye par dena (6-Developer-Kit ke andar bhi)
+SUNPOWERS — POORA SUITE (ek zip, ek GitHub repo, 4 hisse)
+=========================================================
+website/  -> www.sunpowers.in     Website                (Vercel Root Directory: website)
+store/    -> store.sunpowers.in   Online Store           (Vercel Root Directory: store)
+admin/    -> admin.sunpowers.in   Store Admin Panel      (Vercel Root Directory: admin)
+crm/      -> crm.sunpowers.in     CRM (Leads, Customers, Flow, Billing ...)  (Vercel Root Directory: crm)
 
-Har zip ke andar README.txt me us hisse ke simple steps hain.
-Kisi ek hisse me badlav chahiye to sirf usi ki zip bhejein.
+Ek hi database (Supabase) sabke peeche. SQL files: MASTER-FRESH.sql / MASTER-UPDATE.sql / SQL-PARTS/ — SQL-KAISE-CHALAYEIN.txt dekhein.
+Live site par update ho to pehle 0-LIVE-UPDATE-PEHLE-YAHI-PADHEIN.txt. Kya-kya naya aaya: MASTER-COMMAND.txt.
 
-KAAM KA KRAM (isi order me karein)
-  1) Resend.com par account (helpsunpowers@gmail.com se) → Domains → sunpowers.in jodein
-  2) GUIDE-1-Supabase.txt  — database + pg_net + Resend key
-  3) 4 Vercel project banayein (har zip ka README dekhein) — har ek me domain jodein
-  4) GUIDE-2-DNS.txt  — saare records domain provider ko dein
-  5) DNS chalu hone ke baad (1–24 ghante): Resend me "Verified" aaye → CRM me pehla login
+Dusre guides
+  GUIDE-1-Supabase.txt   Database + pg_net + Resend key (aap khud karenge)
+  GUIDE-2-DNS.txt        Domain provider ko dene wale DNS records
+  README-GITHUB.txt      GitHub par daalna (PUSH-TO-GITHUB.bat)
+  ICONS-APP-ICON-KAISE-BADLEIN.txt, WEBSITE-ADMIN-KAISE-CHALAYEIN.txt, WEBSITE-MEDIA-KAISE-BADLEIN.txt
+
+KAAM KA KRAM (naye project par, isi order me)
+  1) Resend.com par account (helpsunpowers@gmail.com se) -> Domains -> sunpowers.in jodein
+  2) GUIDE-1-Supabase.txt — database + pg_net + Resend key
+  3) GitHub par suite push karein (README-GITHUB.txt), phir 4 Vercel project banayein (har ek ka Root Directory upar likha hai) aur har me domain jodein
+  4) GUIDE-2-DNS.txt — saare records domain provider ko dein
+  5) DNS chalu hone ke baad (1-24 ghante): Resend me "Verified" aaye -> CRM me pehla login
+
+CONFIG (har app ke folder me config.js — pehle se bhari hain, domain badle to hi badlein)
+  website  : SHOP_URL, LOGIN_URL, WHATSAPP
+  admin    : STORE_URL, CRM_URL
+  crm      : STORE_URL, SITE_URL
+  sab      : POWERED_BY / POWERED_URL (footer ki chhoti line, '' = nahi dikhegi), SP_LICENSE (khaali rehne dein)
 
 LOGIN KAISE HOGA (sabke liye)
-  • Pehli baar: email par OTP (6 ank) → apna PIN banayein → 2 security sawal
+  * Pehli baar: email par OTP (6 ank) -> apna PIN banayein -> 2 security sawal
       Admin = 6 ank ka PIN, baaki sab (team, dealer, customer) = 4 ank ka PIN
-  • Phir usi phone/computer par: sirf PIN. Login tab tak bana rahega jab tak khud Logout na karein
-  • Naya phone/computer: phir email OTP → PIN
-  • PIN bhool gaye: security sawal ke jawab → naya PIN
-      5 baar galat jawab → email par reset link (15 minute chalega, ek hi baar)
-  • Admin Panel: har baar PIN maangta hai (tab band = logout). Naye computer par pehle OTP
-  • Admin OTP SIRF helpsunpowers@gmail.com par jayega.
-    surajanandpbh@gmail.com = backup — sirf "Backup email par bhejein" dabane par
-  • Emergency (email nahi khul raha): Admin login me "Master password" → purana Store Admin
-    password + 6 ank ka PIN
+  * Phir usi phone/computer par: sirf PIN. Login tab tak bana rahega jab tak khud Logout na karein
+  * Naya phone/computer: phir email OTP -> PIN
+  * PIN bhool gaye: security sawal ke jawab -> naya PIN. 5 baar galat -> email par reset link (15 minute, ek baar)
+  * Admin Panel: har baar PIN maangta hai (tab band = logout). Naye computer par pehle OTP
+  * Admin OTP SIRF helpsunpowers@gmail.com par jayega. surajanandpbh@gmail.com = backup — sirf "Backup email par bhejein" dabane par
+  * Emergency (email nahi khul raha): login me "Master password" -> purana Store Admin password + PIN
+  * Team: CRM -> Team -> har user ka EMAIL zaroor bharein (OTP usi par jata hai). PIN atak jaye: user kholein -> "Login reset"
+  * Profile -> Suraksha: PIN/sawal badlein, apne phone/computer dekhein, sab se logout
 
-SAB EK DOOSRE SE JUDE HAIN (ek hi database)
-  • Website ka form   → Admin "पूछताछ" + CRM "Store Orders → Enquiry"
-  • Main App ka order → Admin "ऑर्डर" + CRM "Store Orders" (ghanti bajegi)
-  • Main App ka customer login → CRM "App customers"
-  • CRM ka product → "Store ko bhejein" → Admin jaanch kar Publish → Main App par live
-  • Admin ka ek hi login: CRM aur Store Admin dono me same (email OTP + 6 ank PIN)
+CRM SHURU KAREIN (Admin)
+  1. Settings -> Company: legal naam, GSTIN, pata, logo, sign
+  2. Settings -> Bill / Quotation: bank, UPI, terms, number series
+  3. Settings -> Accountant: CA ka naam + WhatsApp + email
+  4. Team -> Naya user (email zaroori): Manager / Staff / Dealer / Influencer (commission, discount limit, target)
+  5. Products & Projects -> items jodein (ya Excel se)
+  Dealer / Influencer khud bhi "ID banayein" kar sakte hain -> Team -> Verify baaki -> Chalu karein
+  * Har user ko sirf apna data — Admin ko sab. Permission: Team -> Role permission, ya user kholein -> "alag permission"
+  * Ek mobile = ek customer. Customer kaise banta hai: Leads (har jagah se, path ke saath) -> Customers -> "Add New Customer" (pehle path, phir poori jaankari)
+  * Quotation -> "Bill banayein" -> Payment jodein -> Rasid WhatsApp. Stock apne aap ghatta/badhta hai
+  * Product seedha store par live NAHI hota: CRM "Store ko bhejein" -> Store Admin "CRM se aaye product" -> Google/Meta jaanch -> Publish (ya "Lautayein")
 
-LINKS (config.js me pehle se bhare hain — domain badle to hi badlein)
-  Website  config.js : SHOP_URL, LOGIN_URL
-  Admin    config.js : STORE_URL, CRM_URL
-  CRM      config.js : STORE_URL, SITE_URL
+SAB EK DOOSRE SE JUDE HAIN
+  * Website ka form    -> Admin "poochtaachh" + CRM Leads (path = Website / ad channel)
+  * Online Store order -> Admin "orders" + CRM Store Orders (ghanti bajegi) + CRM Leads (path = Online Store)
+  * Store customer login -> CRM "App customers"
+  * Admin ka ek hi login: CRM aur Store Admin dono me same
+  * Dealer/Influencer ke link (?ref=...) se aaya order/enquiry unke naam se dikhta hai
 
 BACKUP
-  CRM → Settings → Backup → 6 ank PIN → ek .zip (saara data + Excel + documents). Har hafte lein.
-
-FOOTER
-  Website aur Online Store ke neeche "Powered by DigiDashLand" (config.js me POWERED_BY badlein / khaali karein)
+  CRM -> Settings -> Backup -> 6 ank PIN -> ek .zip (saara data + Excel + documents). Har hafte lein.
 
 SURAKSHA
-  • Resend API key kisi bhi file / zip me NAHI hai — sirf Supabase Vault ya
-    CRM → Settings → "Login & Email OTP" me daalein.
-  • Key chat me share ho chuki hai — Resend me nayi key banakar purani "Revoke" kar dein.
-  • Har hisse me .vercelignore hai — .sql aur README website par public nahi honge.
-  • config.js me SP_LICENSE khaali hai = Sunpowers par koi license lock nahi (apni company).
+  * Resend API key kisi bhi file/zip me NAHI hai — sirf Supabase Vault ya CRM -> Settings -> "Login & Email OTP"
+  * .sql aur README files website par public nahi hoti (har folder me .vercelignore)
+  * config.js me SP_LICENSE khaali = Sunpowers par koi license lock nahi
