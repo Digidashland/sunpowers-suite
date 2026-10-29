@@ -1,0 +1,35 @@
+ROUND 51 — KYA BADLA (STAGING ke liye; live par kuch nahi)
+============================================================
+
+SQL: HAI. Supabase STAGING SQL Editor me ROUND-40-51-SQL-ONLY.sql chalayein (R40..R51 ek saath, dobara chalana safe).
+     (Pehle R40-49 chal chuka ho to bhi chalana theek — ya MASTER-UPDATE.sql ka ROUND 51 hissa.) Naya table: crm_services (RLS band).
+     Live Supabase / live deploy tab tak nahi jab tak aap na kahen.
+
+A) CUSTOMER HATAYEIN — sirf ADMIN ko dikhta hai (Customer page -> upar "Manage" -> "Customer hatayein")
+   Kyun: koi customer beech me kaam chhod de to uska faltu data / storage hata sakein.
+   Do raaste:
+   1) CHHUPAYEIN (wapas aa sakta hai): customer Customers list se hat jata hai, uska Store login band, data safe. Settings -> Storage & Safai -> "Chhupaye / hataye hue customers" se "Wapas dikhayein".
+   2) HAMESHA KE LIYE HATAYEIN: delete hota hai -> leads, quotation (jo bill me nahi bani), documents + unki files (storage khaali), plant, reminder / notes, flow (loan, complaint...), declaration, checkup, Store login, Store enquiry.
+   BILL KABHI NAHI CHHUTE: invoice + payment jaise hain waise; All Bills / Payments / bill kholna / print sab pehle jaisa, bill par customer ka naam dikhta rehta hai.
+      Customer ki row me sirf naam, mobile, pata, shahar, pincode, GST, customer ID rakhi jati hai (bill par chhapne ke liye). Bill se judi quotation bhi bill ke saath rehti hai.
+      Store ke sp_orders (online order) aur designer payment bhi nahi chhute (ye bikri ka record hain).
+   Suraksha (hamesha ke liye hatane me): (1) preview — kya-kya jayega ginti ke saath, (2) pehle customer ka BACKUP (.json file, documents samet) download karna padta hai — bina uske button band, (3) wajah likhna zaroori, (4) customer ka naam type karna, (5) Admin ka 6 ank ka PIN, (6) Activity Record me entry. Galat PIN par kuch nahi hota.
+   Server par bhi sirf Admin chal sakta hai (staff / manager ko error).
+
+B) SETTINGS -> "SERVICES & LIMITS" (sirf Admin)
+   Har judi hui service ek card me: Supabase, Vercel, Cloudinary, Resend, GitHub, Domain — official links (Dashboard / Usage / Pricing) ke saath.
+   Har cheez ki asli free limit pehle se bhari hai (Supabase DB 500 MB, files 1 GB, egress 5 GB, 50,000 users; Vercel 100 GB transfer, 10 lakh requests, 10 lakh function calls, 100 deploy/din; Cloudinary 25 credits/mahina; Resend 100 mail/din, 3000/mahina, 3 domain; GitHub Actions 2000 min). Aap kabhi bhi Edit se badal sakte hain.
+   APNE-APNE (Auto): Supabase database size, CRM documents/files size, Resend ke mail (jo CRM ne bheje) — bar aur % apne aap.
+   MANUAL (aap bharenge): Vercel, Cloudinary, Supabase egress / users, domain expiry jaise — inka use browser se surakshit tareeke se nahi nikal sakte (unki secret API key chahiye jo yahan rakhna theek nahi). Card ki link se unka dashboard kholein, number yahan likhein, Save — bar aur alert chalu. Kab bhara tha ye bhi dikhta hai; 35 din se purana ho to "dobara check karein".
+   ALERT: 80% par peela, 100% par laal; domain expiry se 30 din pehle. Settings ke "Services & Limits" tab par laal ginti + Admin ki bell me notification.
+   FUTURE: "Nayi service jodein" — koi bhi nayi website / storage / tool ka card naam, links, limit, auto ya manual ke saath; wo bhi isi tarah bar + alert deta hai. Service / link / limit hatana bhi Edit se. "Default limits wapas" se shuru wali list.
+   Suraksha: yahan password / API key likhne ko mana hai (note me likha); links sirf https:// hi chalte hain.
+
+C) PURANI BUG THIK KI (SQL me): Admin PIN wale 3 kaam — Backup se Restore, Login settings save, Admin-keep — "Ye ID nahi mili" error dete the (PIN check ka lookup galat tha). Ab sahi.
+
+D) VERSION: CRM core v25, settings v11, customers v18, naya svc.js v1, crm.css v13, service worker v12.
+
+TEST (staging copy par): SQL — fixture customer (leads, quote, bill, payment, document+file, flow, checkup, Store login, enquiry): preview, backup, galat naam / galat PIN / bina backup par ruk gaya, hide -> list se gayab + bill list me naam ke saath, unhide, erase -> bill + payment + bill ki quotation bache, baaki sab gaya, dobara erase / unhide erased par error.
+        Staff session se saare naye function "Sirf Admin" error. Services: save / reload, galat number / date / javascript: link reject, 80% par alert + bell, custom service.
+        UI (Playwright): Services tab bar + % + save + reload, tab par laal ginti, Customer hatayein popup (hide / erase), backup download, button tab tak band jab tak backup + naam + PIN na ho, erase ke baad All Bills / bill / payment / Storage list.
+KAISE LIMIT: asli Vercel / Cloudinary / Supabase dashboard se numbers aur free limits ka aakhri milan aap hi kar sakte hain (company plan badalte rehte hain). Bill kitne saal rakhna kanoonan zaroori hai ye aapke CA ki salah par hai.

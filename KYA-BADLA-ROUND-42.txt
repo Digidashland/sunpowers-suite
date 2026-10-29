@@ -1,0 +1,17 @@
+ROUND 42 — QUOTATION SE PROJECT TEMPLATE (CRM, koi SQL nahi)
+
+1. Quotation ke NEECHE ab "Project Template me save karein" card hai (project wali quotation: Residential / Commercial / Industrial / VFD).
+   Upar ka button bhi ab har status me aata hai (pehle sirf Maan li / Bill bana ke baad).
+2. Quotations list me har project quotation par "Convert to Template" button.
+3. Ek click = apne aap NAYA Project Template: title quotation ka (customer ka naam / mobile nahi), price quotation ka, kW, GST, saare items.
+   Purana template kabhi overwrite nahi hota (pehle "Update:" ka option tha — hata diya).
+4. Same quotation se dobara dabane par chetavni: "Pehle hi ban chuka hai — phir bhi naya?" (galti se double na bane).
+5. Quotation jaisi thi waisi rehti hai — edit aur expiry us par alag chalte hain. Template list: Quotations & Templates -> Templates.
+
+Test: /tmp/q/m/r100.py, r103.py, r104.py (1280 aur 390 px, errors 0, customer ka naam template me 0).
+Code: crm/modules/billing.js (v=16), crm/index.html.
+
+AGLE ROUND (abhi nahi hua — plan):
+ A. Template ke products ka alag "Template reserve" inventory me (SQL — crm_stock_report) — ek template = 1 set, template live/active rehne tak.
+ B. Purchase price zaroori (CRM + online se aaya naya product), discount: Admin no limit (purchase se neeche warning), Manager 5%, Staff 2.5% (admin panel se badle), CRM = online ek hi price.
+ C. Blueprint: customer flow se guzarna, area (direction ke saath) ek baar, duplicate form hata, wiring/ACDB-DCDB/earthing/LA/cable tray skip option, bahar nikalte waqt save/clear chetavni, CRM me design dikhe + delete.

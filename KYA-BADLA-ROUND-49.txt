@@ -1,0 +1,67 @@
+ROUND 49 — KYA BADLA (STAGING ke liye; live par kuch nahi)
+============================================================
+
+Pehle SQL (Supabase STAGING SQL editor): ROUND-40-49-SQL-ONLY.sql  (ya MASTER-UPDATE.sql). Dobara chalana safe hai.
+Phir ek master command (neeche). Live Supabase / live deploy tab tak nahi jab tak aap na kahen.
+
+1) CUSTOMER PROFILE CARD ("Hello, <naam> 👋") — Website ke Shop page aur Store app, dono me HEADER ke theek neeche
+   - Sirf registered mobile / email se login hone par apne aap khulta hai; logout par gayab. Neeche dono pages ka apna default page jaisa tha waisa hi.
+   - Pehle ka alag "My Plant" ab isi card me mila diya (doosra card nahi bana).
+   - Upar: Hello naam, hara "Live" chip (Plant Live / Kaam chal raha hai / Order Dispatch ho gaya ...), Plant ID, "Dost ko refer karein".
+     Kone me 2 button: Routine Checkups (sirf Project) aur Switch / Add Plant.
+   - Switch: agar customer ke kai Project / Service / Products hain to chip se badal sakta hai — har ek ka apna status, apne documents.
+   - 5 tile: Project = Documents, Savings, AMC Plan, Find Error, Support.
+             Service = Documents, AMC Plan, Find Error, Support.
+             Product = Mere Orders, Bills, Warranty, Find Error, Support.
+   - Neeche status patti (kaam kahan tak pahuncha). Pending bill ho to alag peela card (Non-refundable likha).
+   - Naya customer jiske paas abhi kuch nahi: khali nahi — "Aapka account taiyar hai" + Plant ID jodein / Call / WhatsApp.
+
+2) DOCUMENTS (customer ke liye alag; Company ke "Documents & Gallery" se koi lena-dena nahi)
+   - Customer sirf DEKH aur DOWNLOAD kar sakta hai (aur "Bhejein"). Upload / badalna / delete sirf CRM / Admin.
+   - CRM me us customer ke kaam ke Step "Send Demo / Files" ab "Customer Documents" panel hai:
+     Category chunkar upload (Blueprint, Plant photo, Quotation, Bill, Certificate, Warranty, Agreement, Other),
+     File badlein (Replace), Category badlein, Delete (Delete ki permission wale ko). Category ke hisaab se customer ko alag-alag heading me dikhta hai.
+   - Customer ke Documents me: Final Quotation, Bill, Maintenance summary, apne bheje Routine Checkup, team ki upload ki hui files, Warranty.
+
+3) ROUTINE CHECKUP (sirf Project, install ke baad) — mahine ka chhota form
+   - 10 sawal (panel saaf, inverter theek / koi error ya deactivation nahi, wiring, ACDB-DCDB, wire jude, connector, structure ke bolt, chhaya, awaaz-garmi, earthing).
+     Har ek: Theek / Dikkat / Lagu nahi. Saath me is mahine ki generation (kWh, optional) aur note.
+   - "Publish" dabate hi save + customer ke Documents me jud jata hai. Mahine me dobara bharo to wahi update hota hai.
+   - Koi "Dikkat" chuni to complaint apne aap darj (TKT number) + CRM me "Aaj ke kaam" me aati hai.
+
+4) SAVINGS (sirf Project, sirf dikhane ke liye — koi edit nahi)
+   - Mahine / saal ki lagbhag bachat. Saaf likha: "anumaan hai, asli data nahi — asli generation ke liye inverter ki screen dekhein".
+   - Maan: ₹7 / unit aur 4 unit per kW per din. CRM -> Settings -> Company -> "Customer Profile — bachat ka anumaan" se badal sakte hain.
+   - Agar customer ne checkup me generation likhi hai to wo alag dikhti hai.
+
+5) AMC PLAN / FIND ERROR / SUPPORT
+   - AMC: CRM ke asli data se (agli visit, pichli visit, kitni poori). Plan nahi hai to "AMC plan maangein" / "Call back chahiye" button (CRM me enquiry + lead banti hai).
+   - Find Error: purana Error Detector hi khulta hai (inverter ka code / photo).
+   - Support: Call / WhatsApp button + nayi complaint (Normal / Urgent) -> CRM ke complaint workflow me TKT number se; apni purani complaints ka status.
+
+6) ORDER PAGE (e-commerce jaisa) — Products me "Mere Orders" -> order dabao
+   - Steps (Order, Confirm, Payment, Dispatch / Pickup, Delivered), courier + tracking number + "Track karein" link, saman ki list, installation add-on, delivery pata, bhugtan.
+   - ADMIN (Store) -> Orders -> har order me naya "Dispatch / Tracking" dabba: tareeka, courier, tracking no., link, bhejne / pahunchne ki tareekh, note, aur status (Bhejaa gaya / Delivered) saath me.
+
+7) AUTO COMPRESS (upload ke samay; download me wahi chhoti file milti hai)
+   - Store / Admin photo: 1400 px tak, lagbhag 300 KB se kam (Product 230 KB, Banner 380 KB tak). Pehle se chhoti JPEG ko dobara bada nahi karte.
+   - CRM customer document ki photo: 1600 px, 450 KB tak. Blueprint category me 2000 px, 700 KB tak (naksha padhne layak).
+   - CRM item (catalog) ki photo: 700 px, 90 KB tak. PDF / doosri file: 3 MB tak (pehle jaisa); Video (Admin): 50 MB tak (pehle jaisa).
+   - Error Detector ki photo kahin upload nahi hoti (sirf phone me padhi jati hai).
+
+8) UI JAANCH (sab menu ek-ek karke)
+   - CRM ke 34 page, Admin ke 33 tab (Store + Website), Website ke 31 page, Store ke 4 view — 1280 aur 390 (mobile) dono par jaanche:
+     side-overflow, bina style ke button / box, "undefined / NaN / null" likha dikhna, JS error.
+   - Mila aur sudhara: Admin -> Delivery me jaanch ke 3 khaane bina style ke the (ab theek).
+   - Website Shop page me Profile card ke button site ki CSS se bigad rahe the — card ki CSS ab alag (scoped) hai.
+
+9) SQL (naya, dobara chalana safe)
+   - crm_checkup table; crm_consumer_hub, crm_checkup_save, crm_consumer_complaint_new, crm_consumer_bill_doc, crm_consumer_request, crm_consumer_refer,
+     crm_consumer_order, sp_admin_order_dispatch; crm_cdoc_save, crm_cdoc_delete; crm__complaint_new (declaration ki complaint isi se banti hai).
+   - File: SQL-PARTS/2-UPDATE/U20.sql (= Round 49).
+
+JO FILES BADLI: website/assets/sp-plant.js, store/sp-plant.js (naya Profile card), website/assets/gate-init.js (Shop header ke neeche), crm/modules/flowx.js,
+settings.js, items.js, crm/assets/core.js + ui.js, admin/index.html, admin/core.js, admin/delivery-admin.js, store/core.js, crm/index.html + store/index.html + website/*.html (version number).
+
+TEST (staging DB + Chromium): Profile card Shop / Website home / Store par, 1280 aur 390; sab tile / panel / form; complaint, checkup, refer, AMC maang;
+Order page + Admin dispatch; CRM upload / replace / category / delete + customer ko dikhna; photo 5.4 MB -> 200 KB.

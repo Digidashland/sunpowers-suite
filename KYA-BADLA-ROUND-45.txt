@@ -1,0 +1,54 @@
+ROUND 45 — Menu chhota (25 -> 15), All Staffs + HR role + Salary & Pay, Partners alag menu (STAGING ONLY, live ko kuch nahi)
+==========================================================================================================================
+
+A. MENU (sidebar)
+   Pehle 25 entries thi, ab 15 (admin ko). Sabke route wahi hain (#/sitevisit, #/commission, #/docs ...) — isliye customer flow patti,
+   flow ke 19 step aur purane link/bookmark jaise the waise chalte hain. Jo pages jude hue hain wo ek entry ke andar tab-strip (goli wale button) me hain:
+   Main            : Home, Aaj ke kaam, Leads, Customers [All Customers | Conversation]
+   Sales & Work    : Quotations & Templates, Projects [Projects | Site Visit | Project blue print | Maintenance & AMC], Billing, Store Orders
+   Stock & Library : Inventory/Stock [Products | Templates | Stock dashboard | Online list], Documents & Gallery (main menu me hi)
+   Money           : Accounts & Reports [Accounts | Reports | Analytics]   (Commission sirf Dealer/Influencer ko apna menu)
+   People & Grow   : All Staffs, Partners [Dealer / Influencer | Commission], Marketing & Grow
+   Company         : Settings [Settings | Roles & Permission | Connections | Activity Record | Help & Hints]
+   - Tab-strip customer flow (?cf=) ke andar nahi dikhti (wahan flow patti pehle se hai).
+   - Menu highlight sahi entry par rehta hai (jaise Site Visit khulne par Projects).
+   - Meri Profile ab sidebar ke neeche apne naam par click karke (alag entry nahi).
+   - Tab sirf wahi dikhta hai jiski permission ho; ek hi tab bacha to strip nahi dikhti.
+
+B. ALL STAFFS (naya main menu)
+   - Staff list (Admin, Manager, Staff, HR, Marketing) — naam, role, designation, mobile. Dealer/Influencer yahan nahi.
+   - Sab staff ko sirf directory dikhti hai (kaun manager hai, mobile). Salary / bank / ID / permission nahi.
+   - Staff par click -> Staff profile: Job (designation, department, kiske neeche, joining, type, jagah, chhodne ki date),
+     Personal (qualification, experience, DOB, gender, blood, address, emergency contact), Bank & ID, Note — sirf HR/Admin.
+   - Salary (monthly, allowance, fixed deduction, salary ka din) + Advance dein — sirf salary.manage (Admin/HR).
+   - "Salary & Pay" tab: mahina chunein -> har staff ki salary, advance baaki, net -> "Pay karein" (bonus, aur deduction, advance katna, date, mode).
+     Pay karte hi Accounts > Kharcha me category "Salary" ki entry apne aap banti hai; Advance "Staff advance" se. Galti ho to wajah likhkar wapas (Kharcha entry bhi hat jaati hai).
+   - Payslip PDF / WhatsApp / link; staff apni payslip Meri Profile me dekhta hai.
+   - "Kaam ka hisab" tab (performance) bhi yahin.
+
+C. HR ROLE (naya)
+   - Role "HR": All Staffs dekhe, Manager/Staff ki ID jode-badle (permission/commission/discount nahi), HR details, salary, advance, pay.
+   - Naye permission (Roles & Permission me "Staff & HR" group): staff.view, staff.manage, staff.hr, salary.manage. Admin kisi ko bhi de sakta hai.
+   - HR Admin ID nahi bana/badal sakta, kisi ki permission nahi badal sakta, Roles & Permission page nahi kholta.
+   - Manager/Staff ko staff.view default.
+   - Salary/KYC server (SQL) par bhi band hai — sirf UI chhupana nahi.
+
+D. PARTNERS (Dealer / Influencer) — staff se alag
+   - Partners menu: list + "Verify baaki" (ID approve/mana) + Commission rate; Commission tab usi menu ke andar.
+   - Dealer/Influencer login par apna "Commission" menu pehle jaisa.
+
+E. ROLES & PERMISSION -> Settings ke andar (sirf Admin). Purane #/team?tab=users/pending/perf links apne aap naye page par chale jaate hain.
+
+F. SQL: ROUND-40-45-SQL-ONLY.sql (R40+R43+R44+R45). Naye table: crm_staff_hr, crm_salary_pay, crm_staff_adv (RLS band). Naye function: crm_staff_get/save, crm_payroll_list, crm_salary_pay/undo, crm_staff_advance, crm_my_pay;
+   crm_users_list, crm_user_save, crm_role_save, crm_perm_catalog badle. Pehle STAGING Supabase me chalayein.
+
+G. DHYAN
+   - Marketing & Grow ke andar "Team" tab (Marketing agency ke log) alag hi hai; wo log All Staffs me bhi (role Marketing) dikhte hain.
+   - Advance/Salary me commission auto nahi judta — Bonus/Incentive khud likhna hota hai.
+
+H. TEST (Playwright, 1280 + 390, error 0): har menu route + highlight + tab-strip; Admin: staff profile save, salary set, advance, pay (Kharcha me Salary aayi); Staff: sirf directory (salary/bank nahi, Naya staff nahi);
+   HR: Manager/Staff form (permission/commission nahi), Salary & Pay, Roles page band; flow patti test (r70/r80), quotations (r104) pass.
+   SQL: HR/staff/manager sessions se permission-wise test pass; dobara chalane par error 0.
+
+I. ABHI NAHI HUA: Blueprint rework, "Download & Share" dropdown, store admin se seedha CRM inventory, "same price everywhere".
+   (Attendance / leave tracking nahi banaya — agar chahiye to agle round me.)

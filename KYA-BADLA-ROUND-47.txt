@@ -1,0 +1,65 @@
+ROUND 47 — KYA BADLA (STAGING ke liye; live par kuch nahi)
+============================================================
+
+Pehle SQL (Supabase STAGING SQL editor): ROUND-40-47-SQL-ONLY.sql  (ya MASTER-UPDATE.sql). Dobara chalana safe hai.
+Phir ek master command (neeche). Live Supabase / live deploy tab tak nahi jab tak aap na kahen.
+
+1) CUSTOMER FLOW — STEP 14 se 18 ab asli kaam karte hain (flowbar / customer flow me step par click)
+   14  Documents        : customer ke saare shared docs ek list me + Download / Share dropdown.
+   15  Loan / Finance   : bank, amount, status. Cash customer ke liye "Lagu nahi". "Disbursed" par
+                          "Bill me payment jodein" -> payment form (loan ki rakam preset), payment_id save.
+   16  Referral         : kisne refer kiya, kisko, reward. Reward dene par earning ban jati hai.
+   17  AMC              : plan banao / renew; "AMC step poora hua" button. Renewal yaad rehta hai.
+   18  Complaint        : ticket banao, status badlo, delete; reminder bhi.
+   (Sab server se: crm_flow_rec, crm_fr_list/save/reward/del. Staff ki permission wahi jo flow step ki hai.)
+
+2) COMMISSION -> SALARY (Team / Staffs -> Salary pay)
+   - Pay modal me "Commission bhi jodein" tick: us staff ki due earnings salary me judti hain.
+   - Payslip me Commission ki alag line + list me Commission column.
+   - Salary pay hone par wo earnings "paid" ho jati hain; salary undo karne par wapas "due".
+   - Plants / profile me "Salary me gayi" pill.
+
+3) HAZRI (ATTENDANCE) + LEAVE
+   - Profile me staff khud Check-in / Check-out kare; chhutti ki arji de (Leave apply).
+   - Team -> "Hazri & Leave" tab: mahine ka grid, pending leaves Approve/Reject, cell edit.
+   - Ravivaar weekly off. Manager = admin / staff.hr / staff.manage.
+   - Salary kaatna sirf SUGGEST hota hai ("deduction suggest" button) — apne aap nahi kat'ta.
+
+4) DOWNLOAD & SHARE DROPDOWN
+   - Quotation / invoice view, ledger, reports, Documents list: alag alag buttons ki jagah ek dropdown
+     (Download / Share / Excel / Accountant ko share). Esc ya bahar click se band; screen ke hisab se khulta hai.
+
+5) STORE ADMIN -> CRM INVENTORY
+   - Admin (store) me naya product banate waqt "CRM inventory me bhi jodein": category, cost, qty,
+     Web / App tick, HSN. Item pehle CRM me bantaa hai, phir store product usse judta hai (dobara click par duplicate nahi).
+
+6) EK HI PRICE HAR JAGAH
+   - CRM item ka incl-GST price hi final. Store / Web ka MRP, offer, GST CRM se judi hone par lock (admin me 🔒 note).
+   - CRM me price/GST badalte hi store ka price apne aap badalta hai.
+   - Order ke waqt server check: cart ka rate purana ho to "PRICE_CHANGED" — Store app / Web checkout
+     me saaf message + Refresh.
+
+7) BLUEPRINT (Project blue print) — naya tareeka
+   - "New blueprint" dabane par PEHLE customer chunna padta hai (list se, naya bhi bana sakte hain).
+     Naam, mobile, pata, email, kW customer se apne aap bhar jaate hain; design usi customer ke flow me save hota hai.
+   - Pehle step me ab: Plant type, Installation area type, Area LAMBAI & CHAUDAI, Area DIRECTION (N-S / E-W / tilted).
+     Ye sab bhare bina aage nahi badh sakte (batata hai kya baaki hai).
+   - Auto design me ye details dobara nahi puchhi jaati: area aur kW customer wale details se pehle se bhare aate hain.
+   - Optional steps: Wiring (9), ACDB/DCDB/Earthing/Lightning arrestor (10), Cable tray (11) — "yeh nahi chahiye, skip karein" tick.
+     Skip design ke saath save hota hai aur step "done" dikhta hai.
+   - Save kiye bina kisi aur menu / "Back to list" par jaane par chetavni ("save nahi kiya, chhodna hai?");
+     browser band/refresh par bhi browser chetavni deta hai.
+   - Save hua design CRM me list me dikhta hai (kW, panels, sq ft), customer ke flow se khulta hai, delete ho sakta hai.
+
+Files badli: crm/modules (flowx, attendance naye; flow, flowbar, workflow, staffhr, profile, team, plants, billing,
+customers, docs, hints, maintenance, blueprint), crm/assets (ui.js, crm.css, blueprint.js), crm/designer.html,
+crm/index.html, store/index.html, store/designer.html, store/blueprint.js, website (blueprint.html, assets/blueprint.js,
+assets/checkout.js, checkout.html), admin/index.html. SQL: SQL-PARTS/2-UPDATE/U18.sql (= R47).
+
+Test (local staging Postgres + browser, 1280 aur 390 wide): flow steps 14-18 (payForm samet), commission->salary + undo,
+hazri/leave rules + permissions, store-admin item add (duplicate nahi), price lock + PRICE_CHANGED, dropdown, blueprint
+(customer-pehle, gate, skip, save/reopen, unsaved warning, auto-design prefill); purane regression (r80, r150 sab routes,
+r202) bina error. SQL ko MASTER-UPDATE se 2 baar chalaya — 0 error.
+
+Dhyan: r201 jaisi purani test me flow step 14/16/17 ab "#/customers" par nahi jaate balki panel kholte hain — ye naya, sahi behaviour hai.
+Live par: SQL-1 / backup / -Mode prod aap bolenge tab hi.

@@ -1,0 +1,31 @@
+ROUND 67 — MASTER BACKUP (CRM me ek click me poora data)
+=========================================================
+
+1) CRM -> Settings -> Backup me ab:
+   - "Master backup download karein" : EK click me poora data ek .zip me
+     (Website, Web Shop page, Store App, Admin & Settings, CRM, Team + HR, Delivery & Subsidy).
+   - "Alag-alag backup" : 6 button, har ek apna hissa hi deta hai:
+        Website + Web Shop page | Store App | Admin & Settings | CRM data | Team + HR | Delivery & Subsidy
+   - Sab ke liye ek hi PIN box. Zip ke andar: backup.json (wapas lane ke liye) + backup.xlsx (Excel) + PADHEIN.txt + files/ (documents).
+   - "Kya-kya shamil hai?" khol kar kuch hatana ho to tick hata sakte hain.
+
+2) Pehle backup me 13 hisse the, ab 32:
+   Naye: services, plant checkup, declaration, customer flow steps, consumer plants, staff HR, chhutti, attendance, salary,
+   advance, share links, sell rules (kahan bechna), subsidy (settings + rajya-wise), delivery areas, pincode rules, product delivery mode, shipping rules.
+
+3) Backup me NAHI jaata (suraksha): password / PIN hash, OTP, login session, device list, analytics log (sp_events),
+   admin ka shared password (sp_admin). Pincode master list (reference data, SQL se dobara banti hai) bhi nahi.
+   Photo / video jo Supabase Storage me hain: unka sirf link aata hai (file nahi). Poore database ke liye Supabase ka apna backup bhi chalu rakhein.
+
+4) Restore: naye hisse bhi wapas aate hain (primary key par update; naya data delete nahi hota).
+   BUG FIX: pehle restore me ek customer ki quotation "pehle se hai" wali rule restore ko rok sakti thi
+   (jis customer ki accepted + open dono quotation ho). Ab restore ke dauraan wo business-rule triggers band rehte hain, galti par sab wapas.
+
+5) SQL: ROUND-67-SQL-ONLY.sql (ya MASTER-UPDATE.sql / SQL-PARTS 2-UPDATE ka aakhri part). Dobara chalana safe. Koi table/data nahi badalta.
+   Bina SQL ke naya button PIN ke baad "Galat hissa" de sakta hai — pehle SQL chalayein, phir files deploy karein.
+
+6) Jo FILES badli: crm/modules/settings.js (?v=18), crm/index.html, MASTER-UPDATE.sql, SQL-PARTS, MASTER-FRESH.sql, ROUND-67-SQL-ONLY.sql.
+
+7) Test: 32 hisse ka backup -> damage -> restore -> har table ka hash same (SQL); UI se Master + 6 alag zip download, galat PIN, restore (Master + Website only).
+
+8) Purane SQL-PARTS/2-UPDATE/U31..U33 ab nahi hain (numbering naye sire se U01..U30). SUNPOWERS-PROD-DIRECT.ps1 SQL-PARTS folder naya kar deta hai.

@@ -1,0 +1,35 @@
+WEBSITE MANAGEMENT — website ko bina code ke kaise badlein  (Round 18)
+=====================================================================
+
+PEHLI BAAR (ek baar)
+ 1. Supabase -> SQL Editor me MASTER-UPDATE.sql chalayein (dobara chalana safe hai). Round 18 me koi naya SQL nahi hai.
+ 2. Admin kholein (admin.sunpowers.in), login karein. Login ke turant baad sirf 2 option:
+       🌐 Website & Shop Management        🛒 Store Management
+ 3. Website & Shop Management ke andar:  🎨 Website Management  |  🛍️ Shop Page Management  |  📊 Analytics.
+    Teeno ka page/menu alag hai — ek ka badlav dusre me nahi jata.
+
+WEBSITE MANAGEMENT  ->  🧱 WEBSITE BUILDER (pehla tab)
+ 1. Upar "कौन-सा पेज?" me page chunein (Home, About, Services, On-Grid …).
+ 2. Neeche us page ke SAARE components ki list aati hai. Har component par:
+       ✏️  badlein  — us section ka har word (English + हिंदी), har photo (upload / link), har button (naam, link, chhupao), banner ka video/slideshow
+       ⬆️⬇️ upar-neeche (order)        👁 chhupao/dikhao        🗑 hatao ("हटाए हुए" se wapas aa sakta hai)
+       ⧉  Duplicate — turant copy banti hai, phir use apne hisab se badal kar naya section bana lein
+ 3. "➕ नया कंपोनेंट जोड़ें": Slideshow, Video, YouTube, Heading+Text, Points, Cards, Photo, Button — "कहाँ जुड़े?" chunkar (kisi section ke baad ya sabse neeche).
+ 4. 💾 "सेव करें" dabayein -> website par live (1-2 minute).
+ 5. Sabse neeche 👁️ LIVE PREVIEW (mobile / desktop): bina save kiye bhi aapka draft dikhta hai. Text badalne ke baad "🔄 बदलाव प्रीव्यू में देखें" dabayein.
+    Preview ke liye Admin ki config.js me SITE_URL = aapki website ka link hona chahiye.
+
+Jin sections me live feature hai (form, calculator, video player, cart/products list, hero slideshow) unki copy nahi banti (⧉ band dikhta hai). Unke badle naya component jodein. Hero slide "होम हीरो स्लाइड" tab se badalti hain.
+
+BAAKI TAB (CMS — alag)
+ 📊 डैशबोर्ड · 🎞️ होम हीरो स्लाइड · 🏷️ लोगो / फ़ोटो · 🛒 स्टोर लिंक · 🃏 कार्ड लिंक / मीडिया · 🧭 मेन्यू · 📄 नए पेज · ⭐ रेटिंग, सोशल व ऐप डाउनलोड लिंक · 🎨 वेबसाइट सेटिंग (रंग/ग्रीटिंग)
+
+SHOP PAGE MANAGEMENT  ->  🧱 Shop Page Builder  (pehle "Page Builder")
+ Shop page ke product sections (Deals, Best Sellers, Raw Category, Slideshow …). Har component me ⧉ Duplicate; "कहाँ दिखे" se Store / Shop / dono me publish.
+ Cart sections, Shop page ka text bhi isi me. Store App ka "🧱 पेज बिल्डर" Store Management me jaisa tha waisa hai (ab ⧉ Duplicate ke saath).
+
+SACHAI
+ - Design/theme wahi rehta hai; builder se words, photos, videos, sections, order badalte hain. Pura naya layout design nahi banta.
+ - Admin se bane pages ke link: page.html?s=<page-ka-naam>.
+ - Rating Google se apne aap nahi aati — sirf asli rating haath se likhein.
+ - Website badalne ke baad (developer) "bash regen_manifest.sh" chalakar words ki list dobara banani hoti hai.

@@ -7,13 +7,13 @@ A) WEBSITE + APPS (Vercel)
    ------  ------------  -----------------------  ---------------------------
    A       @             76.76.21.21              sunpowers.in  (Website)
    CNAME   www           cname.vercel-dns.com     www.sunpowers.in (Website)
-   CNAME   shop          cname.vercel-dns.com     Online Store (Main App)
+   CNAME   store         cname.vercel-dns.com     Online Store (Main App)
    CNAME   admin         cname.vercel-dns.com     Store Admin Panel
    CNAME   crm           cname.vercel-dns.com     CRM
 
    ⚠ Pehle har Vercel project me Settings → Domains me domain jodein:
        Website project → sunpowers.in  aur  www.sunpowers.in
-       Main App project → shop.sunpowers.in
+       Main App project → store.sunpowers.in
        Admin project → admin.sunpowers.in
        CRM project → crm.sunpowers.in
      Vercel jo value dikhaye (kabhi "xxxx.vercel-dns-017.com" jaisi nayi value) — WAHI dein.
@@ -47,7 +47,7 @@ C) CHECK
 
 Subdomain list (yaad rakhne ke liye)
    www.sunpowers.in   → Website
-   shop.sunpowers.in  → Online Store / Main App (customer login bhi yahin)
+   store.sunpowers.in  → Online Store / Main App (customer login bhi yahin)
    admin.sunpowers.in → Store Admin Panel
    crm.sunpowers.in   → CRM (team, dealer, influencer)
    send.sunpowers.in  → sirf email ke liye (koi website nahi)

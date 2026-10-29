@@ -1,0 +1,61 @@
+ROUND 50 — KYA BADLA (STAGING ke liye; live par kuch nahi)
+============================================================
+
+SQL: is round me koi naya SQL nahi hai (ROUND-40-49-SQL-ONLY.sql pehle chal chuka ho to kuch nahi chalana).
+Sirf master command chalayein (neeche). Live Supabase / live deploy tab tak nahi jab tak aap na kahen.
+
+1) PUBLIC "DOWNLOAD APPS" PAGE  (website: apps.html)
+   - Website ke header-menu / drawer / footer me jo purana "Download App · Coming soon" link tha, wahi ab "Download Apps" ban kar is page par jaata hai
+     (naya doosra link nahi banaya). Admin ne Website Admin me Play Store / App Store link bhara ho to wahi pehle jaisa chalega.
+   - Page DEVICE pehchanta hai aur sirf usi device ke steps dikhata hai:
+       Android  -> "Install" button + 3 chhote step.            iPhone / iPad -> "Safari me kholkar install" + Share -> Add to Home Screen.
+       Laptop / PC (Chrome, Edge) -> "Browser me kholein" + address bar ke install icon ke step.   Mac Safari -> File -> Add to Dock.
+       Firefox (computer) -> saaf likha ki install nahi hota, Chrome / Edge me kholein.
+       WhatsApp / Instagram / Facebook ke andar khula ho -> pehle "Safari / Chrome me kholein" ka notice + "Link copy".
+     Neeche chhota "Doosre device ke steps dekhein" link — baaki devices ke steps wahin chhupe rehte hain.
+   - Do card: (1) Store App — "Customers ke liye".  (2) CRM — "Sirf Staff · Dealer · Influencer · Partner ke liye".
+     ADMIN is page par KABHI nahi dikhta (Admin apne address se direct install hota hai).
+   - Har card me QR code: phone ke camera se scan karke seedha install wala page khulta hai. "QR download" (PNG), "QR print", "Link copy" button.
+     QR sirf official link (store.sunpowers.in / crm.sunpowers.in) ka hai; page par koi company ka phone, address ya data nahi.
+   - Link address-bar se badla nahi ja sakta (koi ?url= jaisa jugaad nahi) — koi nakli link bana kar is page ke naam se phaila nahi sakta.
+   - Page search engine me nahi dikhega (noindex) aur sitemap me nahi hai; footer ke link se hi milta hai.
+   - Page ke neeche "Zaroori baatein": ID / OTP kisi ko na den, sirf yahi official link, phone me lock rakhein / khone par turant batayein, shared computer par install na karein + logout karein.
+   - Staging par apne aap staging wale Store / CRM ke link banta hai (live wale nahi).
+
+2) CRM ME APP INSTALL  (Staff / Dealer / Influencer / Partner)
+   - Side menu ke neeche "App install karein" (computer ka sidebar aur mobile ka "Menu" dono) + "Meri Profile" page par bhi button.
+   - Android / Chrome / Edge: browser ka asli Install popup. iPhone: Safari ke steps. Mac Safari: Add to Dock. In-app browser: "Safari / Chrome me kholein" notice.
+   - Install ho chuka ho to button apne aap gayab. CRM ka link ?install=1 ke saath khule to login screen par bhi install box khulta hai (QR isi se kaam karta hai).
+   - iPhone ke liye full-screen app meta tags jode.
+   - Computer par saaf likha: "Shared / office computer par install na karein, kaam ke baad logout".
+
+3) ADMIN ME APP INSTALL  (sirf Admin ke paas)
+   - Admin ke ☰ menu me "App install karein" line (Logout ke upar). Public page par Admin ka koi zikr nahi.
+   - Admin ko service worker (sw.js) aur iPhone full-screen tags mile — ab Android / iPhone / computer par install ho sakta hai.
+
+4) STORE / WEBSITE
+   - Store me pehle se install ki suvidha thi — kuch nahi badla. Store ka install bar naye Profile card ya neeche ke menu ko dhakta nahi (test kiya).
+   - Website khud install nahi hoti (aapne kaha jarurat nahi) — kuch nahi jora.
+
+5) CUSTOMER PROFILE CARD — AB 16:9 HORIZONTAL (mobile, tablet, computer sab par ek jaisa)
+   - Card hamesha 16:9 ki fixed shape me rehta hai aur chhoti / badi screen ke saath poora saath-saath chhota-bada hota hai (mockup jaisa).
+   - Upar: "Hello, naam 👋", Live chip, Plant ID.  Daayen kone me 3 chhote gol button: Checkups (sirf Project), Refer, Switch.
+   - Beech me 5 tile EK hi row me (Project: Documents, Savings, AMC Plan, Find Error, Support. Service / Product ke tile pehle jaise). Tile ke naam chhote: "Mere Orders" -> "Orders".
+     Support / Bills par khuli complaint ya pending bill ki gintee chhote laal badge me.
+   - Neeche status patti (kaam kahan tak pahuncha) — scroll ho sakti hai.
+   - Kisi bhi tile par dabane se panel ab card ke neeche lamba nahi khulta: mobile par POORI SCREEN ka page, tablet / computer par beech me popup.
+     Wapas jaane ke liye ← ya ×, ya bahar dabayein, ya Esc. Panel ke andar scroll kare to card peeche nahi hilta.
+   - Switch bhi isi tarah ek page me khulta hai (Project / Service / Products ki list + "Plant ID jodein").
+   - Pending bill ka peela notice ab card se juda EK LINE ki patli patti hai: "⚠ 1 bill baaki · ₹1,000  [Bills dekhein]". Documents / Bills tile par laal badge bhi (kitne bill pending).
+   - Kya NAHI badla: andar ke saare panel (Documents, Bills, Savings, AMC, Support, Checkup, Orders, Refer) ka kaam, data aur SQL pehle jaisa.
+   - Dhyan: 16:9 me jagah kam hoti hai isliye mobile par tile / likhai chhoti hai (mockup jaisi). Agar bahut chhoti lage to bataiye — size badal denge.
+
+6) PROFILE CARD KAHAN DIKHEGA (badlav)
+   - Card ab SIRF Website ke Shop page aur Store app me dikhta hai. Website ke baaki pages (Home, About, Services ...) par nahi.
+   - Jagah: header ki upar wali row (logo, location, language, login, cart) ke theek NEECHE, phir search bar aur us page ka original layout.
+   - Dhyan: card dikhte waqt header sticky nahi rehta (card ke saath scroll ho jata hai), warna card + search hamesha screen ghere rehte.
+     Logout / card na ho to header pehle jaisa sticky hi rehta hai.
+
+TEST (staging copy par): Apps page 7 browser/device UA par, QR scan se decode, CRM install 6 device UA par, Admin install, Profile card 390 / 768 / 1280 par (aspect ratio 16:9 napa gaya),
+sheet poori screen cover karti hai + scroll lock + Esc + install bar ke upar, purani regression suite.
+Asli phone / iPhone par install ka aakhri test sirf aap hi kar sakte hain — pehle staging link se dekhein.

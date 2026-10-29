@@ -102,20 +102,31 @@
   };
 
   /* image helpers */
-  SP.compressImage = function (file, maxDim, quality) {
+  SP.compressImage = function (file, maxDim, quality, target) {
     return new Promise(function (resolve, reject) {
       if (!file || !/^image\//.test(file.type || '')) return reject(new Error('Sirf image file chunein (JPG/PNG/WebP)'));
       if (file.type === 'image/gif' && file.size < 1.5e6) return resolve(file);
       var url = URL.createObjectURL(file), img = new Image();
       img.onload = function () {
-        try {
-          var w = img.naturalWidth, h = img.naturalHeight, s = Math.min(1, maxDim / Math.max(w, h));
-          var cw = Math.max(1, Math.round(w * s)), ch = Math.max(1, Math.round(h * s));
-          var c = document.createElement('canvas'); c.width = cw; c.height = ch;
-          var ctx = c.getContext('2d'); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, cw, ch); ctx.drawImage(img, 0, 0, cw, ch);
-          URL.revokeObjectURL(url);
-          c.toBlob(function (b) { b ? resolve(b) : reject(new Error('Image process nahi ho payi')); }, 'image/jpeg', quality);
-        } catch (e) { reject(e); }
+        var w = img.naturalWidth, h = img.naturalHeight, s = Math.min(1, maxDim / Math.max(w, h));
+        /* ek baar encode; target (bytes) diya ho to quality / size tab tak ghatate hain jab tak file target se chhoti na ho — storage aur page dono halke rehte hain */
+        function enc(sc, q) {
+          return new Promise(function (ok) {
+            var cw = Math.max(1, Math.round(w * s * sc)), ch = Math.max(1, Math.round(h * s * sc)), c = document.createElement('canvas'); c.width = cw; c.height = ch;
+            var ctx = c.getContext('2d'); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, cw, ch); ctx.drawImage(img, 0, 0, cw, ch); c.toBlob(ok, 'image/jpeg', q);
+          });
+        }
+        (async function () {
+          try {
+            var sc = 1, q = quality, b = await enc(sc, q), n = 0;
+            while (target && b && b.size > target && n < 8 && Math.max(w, h) * s * sc > 480) { if (q > 0.55) q = Math.max(0.5, q - 0.1); else sc *= 0.85; b = await enc(sc, q); n++; }
+            URL.revokeObjectURL(url);
+            if (!b) return reject(new Error('Image process nahi ho payi'));
+            /* pehle se chhoti JPEG ko bada nahi karte */
+            if (s === 1 && sc === 1 && file.type === 'image/jpeg' && b.size >= file.size) return resolve(file);
+            resolve(b);
+          } catch (e) { URL.revokeObjectURL(url); reject(e); }
+        })();
       };
       img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('Image read nahi ho payi')); };
       img.src = url;
@@ -126,36 +137,65 @@
       var r = new FileReader(); r.onload = function () { res(r.result); }; r.onerror = function () { rej(new Error('Image read error')); }; r.readAsDataURL(blob);
     });
   };
+  /* Uploads are allowed only with a short-lived token that the admin panel gets after the admin logs in
+     (sp_admin_upload_token). Nobody else can write to the storage bucket. */
+  SP.getUploadToken = null;
+  async function upTok() {
+    if (SP._ut && Date.now() - SP._utAt < 6 * 3600e3) return SP._ut;
+    var t = '';
+    try { if (SP.getUploadToken) t = await SP.getUploadToken(); } catch (e) { t = ''; }
+    if (t) { SP._ut = t; SP._utAt = Date.now(); }
+    return t || 'img';
+  }
   SP.uploadImage = async function (blob) {
     if (!SP.backendReady()) throw new Error('no backend');
-    var ext = blob.type === 'image/gif' ? 'gif' : blob.type === 'image/png' ? 'png' : blob.type === 'image/webp' ? 'webp' : 'jpg';
-    var path = 'img/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+    var ty = blob.type || 'image/jpeg';
+    var ext = ty === 'image/gif' ? 'gif' : ty === 'image/png' ? 'png' : ty === 'image/webp' ? 'webp' : ty === 'video/mp4' ? 'mp4' : ty === 'video/webm' ? 'webm' : ty === 'application/pdf' ? 'pdf' : 'jpg';
+    var path = 'u/' + (await upTok()) + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
     var res = await fetch(base() + '/storage/v1/object/' + SP.BUCKET + '/' + path, {
       method: 'POST',
-      headers: authHeaders({ 'Content-Type': blob.type || 'image/jpeg', 'x-upsert': 'false', 'cache-control': 'max-age=31536000' }),
+      headers: authHeaders({ 'Content-Type': ty, 'x-upsert': 'false', 'cache-control': 'max-age=31536000' }),
       body: blob
     });
     if (!res.ok) { var t = ''; try { t = await res.text(); } catch (e) {} throw new Error('Upload failed (' + res.status + ') ' + t.slice(0, 120)); }
     return base() + '/storage/v1/object/public/' + SP.BUCKET + '/' + path;
   };
-  /* returns {url, fallback:boolean} */
-  SP.storeImage = async function (file) {
-    var big = await SP.compressImage(file, 1600, 0.85);
+  /* returns {url, fallback:boolean}. purpose: 'product' | 'banner' | 'gallery' (default) — har ek ka apna size target hai */
+  var IMGP = { product: [1200, 0.82, 230 * 1024], banner: [1600, 0.8, 380 * 1024], gallery: [1400, 0.8, 300 * 1024] };
+  SP.storeImage = async function (file, purpose) {
+    var pr = IMGP[purpose] || IMGP.gallery;
+    var big = await SP.compressImage(file, pr[0], pr[1], pr[2]);
     try { return { url: await SP.uploadImage(big), fallback: false }; }
     catch (e) {
-      var small = await SP.compressImage(file, 700, 0.7);
+      var small = await SP.compressImage(file, 700, 0.7, 90 * 1024);
       return { url: await SP.blobToDataUrl(small), fallback: true, error: e.message };
     }
   };
 
   /* ---------------- store load / normalize ---------------- */
-  SP.CACHE_KEY = 'sp_store_cache_v1';
+  SP.CACHE_KEY = 'sp_store_cache_v1'; SP.VER_KEY = 'sp_store_ver_v1';
+  /* tiny "has anything changed?" call (sp_store_ver). null = cannot tell (old database / offline). The page head may already have started it (window.__spVer). */
+  SP.storeVer = function () {
+    var pre = window.__spVer; window.__spVer = null;
+    var p = pre ? pre.then(function (v) { return v; }) : SP.rpc('sp_store_ver', {}, 6000);
+    return p.then(function (v) { return v && v.main ? v : null; }, function (e) { if (e && (e.status === 404 || e.code === 'PGRST202' || /setup baaki/i.test(e.message || ''))) SP.noVer = true; return null; });
+  };
+  /* true = something changed, false = same as what this phone already has, null = unknown (caller then loads everything) */
+  SP.storeChanged = async function () {
+    if (SP.noVer) return null;
+    var cur = SP.ls.get(SP.VER_KEY, null), v = await SP.storeVer();
+    if (!v || !cur || !cur.v || Date.now() - cur.at > 6 * 3600e3) return null;
+    return !(cur.v.main === v.main && (cur.v.web || 0) === (v.web || 0));
+  };
   SP.loadStore = async function () {
     try {
-      var d = await SP.rpc('sp_get_store', {}, 12000);
+      var pre = window.__spPre, d = null, ver = null; window.__spPre = null;
+      if (pre && Date.now() - pre.at < 30000) { try { d = await pre.p; ver = await pre.v.then(function (v) { return v && v.main ? v : null; }, function () { return null; }); } catch (e) { d = null; ver = null; } }
+      if (!d) { ver = await SP.storeVer(); d = await SP.rpc('sp_get_store', {}, 12000); }   /* version is read BEFORE the data, so the data is never older than the version we remember */
       if (d && typeof d === 'object' && !Array.isArray(d) && Array.isArray(d.layout)) {
         var n = SP.normalize(d);
         SP.ls.set(SP.CACHE_KEY, n);
+        if (ver) SP.ls.set(SP.VER_KEY, { v: ver, at: Date.now() }); else SP.ls.del(SP.VER_KEY);
         return { data: n, source: 'db' };
       }
       return { data: SP.normalize(SP.demo()), source: 'demo' };
@@ -165,6 +205,25 @@
       return { data: SP.normalize(SP.demo()), source: 'demo', error: e };
     }
   };
+
+  /* Round 44: online pool — how many are left for THIS channel (Store App = 'app'). 0 left = sold out; "Only N left" shows only when Admin ticked p.showLeft.
+     Stock is shared with the Web Shop through ONE pool in the database, so the same unit can never be sold twice. */
+  SP.applyLeft = async function (data, channel) {
+    var ps = (data && Array.isArray(data.products)) ? data.products : [], ids = ps.map(function (p) { return p.id; }); if (!ids.length) return false;
+    var m = null; try { m = await SP.rpc('sp_online_left', { p_ids: ids }, 4000); } catch (e) { return false; }
+    if (!m || typeof m !== 'object' || Array.isArray(m)) return false;
+    var ch = false;
+    ps.forEach(function (p) {
+      var l = m[p.id], left = l && l[channel] != null ? Number(l[channel]) : null;
+      if (!Object.prototype.hasOwnProperty.call(p, '_rs')) Object.defineProperty(p, '_rs', { value: p.stock, writable: true, enumerable: false });
+      var ns = (p._rs === 'out' || (left != null && left <= 0)) ? 'out' : 'in';
+      if (p.stock !== ns || (p.left == null ? null : p.left) !== left) ch = true;
+      p.stock = ns; if (left == null) delete p.left; else p.left = left;
+    });
+    return ch;
+  };
+  var _loadStore0 = SP.loadStore;
+  SP.loadStore = async function () { var r = await _loadStore0(); if (r && r.data && r.source !== 'demo') { try { await SP.applyLeft(r.data, 'app'); } catch (e) {} } return r; };
 
   function isObj(o) { return o && typeof o === 'object' && !Array.isArray(o); }
   function mergeDefaults(def, val) {
@@ -181,7 +240,30 @@
   SP.SLIDE_DEF = { image: '', bg: '#1b5e20', emoji: '☀️', title: '', subtitle: '', button: '', ribbon: '', linkType: 'none', link: '', visible: true };
   SP.SECTION_DEF = { title: 'New Section', titleEn: '', subtitle: '', kind: 'category', limit: 8, icon: '', visible: true };
   SP.PRODUCT_DEF = { title: '', titleEn: '', sections: [], tagline: '', desc: '', descEn: '', mrp: 0, offer: 0, unit: '', badge: '',
-    stock: 'in', visible: true, sort: 0, emoji: '☀️', bg: '#e8f5e9', image: '', images: [], link: '', sku: '', brand: '' };
+    stock: 'in', visible: true, sort: 0, emoji: '☀️', bg: '#e8f5e9', image: '', images: [], media: [], link: '', sku: '', brand: '', weight: 0, installOk: false, installPrice: 0 };
+
+  /* product media: max 5 (max 2 video), exactly one main. Source of truth when present; image/images derived for old consumers */
+  SP.MEDIA_MAX = 5; SP.VIDEO_MAX = 2;
+  SP.isVideoUrl = function (u) { return /^https?:\/\//i.test(u || ''); };
+  SP.cleanMedia = function (m) {
+    if (!Array.isArray(m)) return [];
+    var out = [], vids = 0;
+    m.forEach(function (x) {
+      if (!x || typeof x !== 'object' || out.length >= SP.MEDIA_MAX) return;
+      var t = x.type === 'video' ? 'video' : 'image', u = String(x.url || '').trim();
+      if (!u) return;
+      if (t === 'video') { if (!SP.isVideoUrl(u) || vids >= SP.VIDEO_MAX) return; vids++; } else if (!SP.isImg(u)) return;
+      out.push({ type: t, url: u, main: x.main === true });
+    });
+    var mi = -1; out.forEach(function (x, i) { if (x.main && mi < 0) mi = i; x.main = false; });
+    if (out.length) out[mi < 0 ? 0 : mi].main = true;
+    return out;
+  };
+  SP.mainMedia = function (p) { var m = (p && p.media) || []; for (var i = 0; i < m.length; i++) if (m[i].main) return m[i]; return m[0] || null; };
+  SP.mediaFromLegacy = function (p) {
+    var l = [p.image].concat(p.images || []).filter(function (u) { return u && SP.isImg(u); });
+    return l.slice(0, SP.MEDIA_MAX).map(function (u, i) { return { type: 'image', url: u, main: i === 0 }; });
+  };
 
   SP.normalize = function (d) {
     var def = SP.demo();
@@ -222,6 +304,12 @@
       p.sections = p.sections.filter(function (id) { return secIds[id]; });
       if (!Array.isArray(p.images)) p.images = p.images ? [String(p.images)] : [];
       p.images = p.images.filter(Boolean);
+      p.media = SP.cleanMedia(p.media);
+      if (p.media.length) {
+        var ph = p.media.filter(function (x) { return x.type === 'image'; }), mm = SP.mainMedia(p);
+        var mp = mm.type === 'image' ? mm : ph[0];
+        p.image = mp ? mp.url : ''; p.images = ph.filter(function (x) { return x !== mp; }).map(function (x) { return x.url; });
+      }
       p.mrp = SP.num(p.mrp); p.offer = SP.num(p.offer); p.sort = SP.num(p.sort);
       p.stock = p.stock === 'out' ? 'out' : 'in';
       return p;
@@ -243,7 +331,7 @@
   function migrateV2(out) {
     var st = out.settings, def = SP.demo().settings;
     if (st.email === 'contact@sunpowers.in') st.email = def.email;
-    if (st.siteUrl === 'https://www.sunpowers.in') st.siteUrl = def.siteUrl;
+    if (/^https?:\/\/((www\.)?sunpowers\.in|shop\.sunpowers\.in)\/?$/i.test(String(st.siteUrl || '').trim())) st.siteUrl = def.siteUrl; // store ka link main website / purana shop na ho
     if (st.location === 'India') st.location = def.location;
     if (!st.address) st.address = def.address;
     if (st.delivery === 'डिलीवरी चार्ज ऑर्डर कन्फ़र्म करते समय बताया जाएगा।') st.delivery = def.delivery;
@@ -346,7 +434,7 @@
         '## सोलर प्रोजेक्ट और इंस्टॉलेशन',
         '- पूरे सोलर सिस्टम/प्रोजेक्ट (सप्लाई + इंस्टॉलेशन) आपकी साइट के हिसाब से तैयार होते हैं, इन पर कोई रिटर्न पॉलिसी नहीं है। प्रोजेक्ट के बीच में कोई बदलाव कराने का खर्च अलग से लगेगा।',
         '## ऑर्डर कैंसिल करना',
-        '- डिस्पैच से पहले: ऑर्डर कैंसिल कर सकते हैं, जमा की गई पूरी रकम (COD का {advancePct}% एडवांस भी) वापस मिलेगी।',
+        '- डिस्पैच से पहले: ऑर्डर कैंसिल कर सकते हैं, जमा की गई पूरी रकम वापस मिलेगी।',
         '- डिस्पैच के बाद: सामान्यतः कैंसिल नहीं होता। हमारे द्वारा स्वीकार किए गए खास मामलों में डिलीवरी खर्च काटकर रकम वापस की जाएगी।',
         '## रिफ़ंड',
         '- मंज़ूर हुआ रिफ़ंड 7–10 कार्य-दिवस में उसी UPI ID या आपके बैंक खाते में भेजा जाएगा।',
@@ -367,7 +455,7 @@
         '## Solar projects and installations',
         '- Complete solar system / project orders (supply + installation) are prepared for your site and have no return policy. Changes requested in the middle of a project are charged separately.',
         '## Order cancellation',
-        '- Before dispatch: you may cancel the order; the full amount paid (including the {advancePct}% advance on Cash on Delivery orders) is refunded.',
+        '- Before dispatch: you may cancel the order; the full amount paid is refunded.',
         '- After dispatch: orders normally cannot be cancelled. In exceptional cases accepted by us, the amount is refunded after deducting delivery charges.',
         '## Refunds',
         '- Approved refunds are sent within 7–10 working days to the original UPI ID or to your bank account.',
@@ -391,7 +479,7 @@
         '- ₹{freeAbove} से ऊपर के ऑर्डर पर डिलीवरी फ़्री',
         'डिलीवरी चार्ज ऑर्डर करने से पहले कार्ट में दिख जाता है।',
         '## ऑर्डर कन्फ़र्मेशन',
-        '- ऑर्डर के बाद हम WhatsApp/फ़ोन पर कन्फ़र्म करते हैं। Cash on Delivery में {advancePct}% एडवांस UPI से देकर ऑर्डर कन्फ़र्म होता है, बाकी डिलीवरी पर।',
+        '- ऑर्डर के बाद हम WhatsApp/फ़ोन पर कन्फ़र्म करते हैं। सभी ऑर्डर प्रीपेड हैं (Cash on Delivery उपलब्ध नहीं); पेमेंट वेरिफ़ाई होने के बाद ऑर्डर आगे बढ़ता है।',
         '## इंस्टॉलेशन',
         '- जब तक अलग से न लिखा हो, प्रोडक्ट की कीमत में इंस्टॉलेशन शामिल नहीं है। इंस्टॉलेशन चार्ज साइट देखकर बताया जाता है।',
         '## रास्ते में नुकसान',
@@ -411,7 +499,7 @@
         '- Free delivery on orders above ₹{freeAbove}',
         'The delivery charge is shown in the cart before you place the order.',
         '## Order confirmation',
-        '- After you order, we confirm it on WhatsApp/phone. For Cash on Delivery, {advancePct}% advance is paid by UPI to confirm the order and the balance is paid on delivery.',
+        '- After you order, we confirm it on WhatsApp/phone. All orders are prepaid (no Cash on Delivery); the order moves ahead after payment is verified.',
         '## Installation',
         '- Unless stated, installation is not included in the product price. Installation charges are told after seeing the site.',
         '## Damage in transit',
@@ -460,7 +548,7 @@
         '- सभी कीमतें भारतीय रुपये में और GST सहित हैं। कीमत और ऑफ़र बिना सूचना बदल सकते हैं; ऑर्डर के समय दिखी कीमत लागू होगी।',
         '## ऑर्डर और पेमेंट',
         '- ऑर्डर तभी पक्का होता है जब हम फ़ोन/WhatsApp पर कन्फ़र्म करते हैं। प्रोडक्ट उपलब्ध न होने या कीमत गलत दिखने पर हम ऑर्डर कैंसिल कर सकते हैं, और जमा पूरी रकम वापस करेंगे।',
-        '- पेमेंट: Cash on Delivery ({advancePct}% एडवांस UPI से) या पूरा भुगतान UPI से।',
+        '- पेमेंट: सभी ऑर्डर प्रीपेड हैं — पूरा भुगतान UPI / PhonePe / Google Pay से।',
         '## प्रोडक्ट की जानकारी',
         '- फ़ोटो सिर्फ़ संदर्भ के लिए हैं, असली प्रोडक्ट थोड़ा अलग हो सकता है। स्पेसिफ़िकेशन निर्माता कंपनी के अनुसार हैं।',
         '## वारंटी और ज़िम्मेदारी',
@@ -477,7 +565,7 @@
         '- All prices are in Indian Rupees and include GST. Prices and offers may change without notice; the price shown when you place the order applies.',
         '## Orders and payment',
         '- An order is confirmed only when we confirm it by phone/WhatsApp. We may cancel an order if a product is unavailable or a price was shown wrongly; any amount paid will be refunded in full.',
-        '- Payment: Cash on Delivery ({advancePct}% advance via UPI) or full payment via UPI.',
+        '- Payment: all orders are prepaid — full payment via UPI / PhonePe / Google Pay.',
         '## Product information',
         '- Photos are for reference; the actual product may look slightly different. Specifications are as given by the manufacturer.',
         '## Warranty and liability',
@@ -502,17 +590,29 @@
     var v = SP.pageVars(st);
     return String(text || '').replace(/\{(\w+)\}/g, function (m, k) { return v[k] !== undefined && v[k] !== null && v[k] !== '' ? String(v[k]) : m; });
   };
-  /* delivery charge for a cart */
-  SP.shippingFor = function (subtotal, pin, st) {
+  /* delivery charge for a cart.
+     Round 48: asli hisaab server deta hai (sp_ship_quote — pincode rule, courier, weight, complete project free).
+     Cache me answer ho to wahi; warna purani setting (local / baaki / freeAbove) se andaza. items = [{id, qty, price}] */
+  SP.shipCache = SP.shipCache || {};
+  SP.shipKey = function (pin, items, sub, pickup) { return SP.digits(pin) + '|' + (pickup ? 'P' : '') + '|' + Math.round(sub || 0) + '|' + (items || []).map(function (i) { return i.id + 'x' + i.qty; }).join(','); };
+  SP.shipFetch = function (pin, items, sub, pickup) {
+    pin = SP.digits(pin); var k = SP.shipKey(pin, items, sub, pickup);
+    if (SP.shipCache[k]) return Promise.resolve(SP.shipCache[k]);
+    if (pin.length !== 6 && !pickup) return Promise.resolve(null);
+    return SP.rpc('sp_ship_quote', { p_pin: pin, p_items: items, p_subtotal: sub, p_pickup: !!pickup }, 12000).then(function (q) { if (q) SP.shipCache[k] = q; return q || null; }, function () { return null; });
+  };
+  SP.shippingFor = function (subtotal, pin, st, items, pickup) {
+    var q = items && SP.shipCache[SP.shipKey(pin, items, subtotal, pickup)];
+    if (q) return { charge: SP.num(q.charge), known: q.known !== false, free: !!q.free, reason: q.reason, mode: q.mode, courier: q.courier || '', etaMin: q.eta_min || 0, etaMax: q.eta_max || 0, server: true };
     var sh = st.shipping || {};
+    if (pickup) return { charge: 0, known: true, free: true, reason: 'pickup', mode: 'pickup' };
     if (sh.enabled === false) return { charge: 0, known: true, free: true, label: '' };
     var free = SP.num(sh.freeAbove) > 0 && subtotal >= SP.num(sh.freeAbove);
     pin = SP.digits(pin);
     var local = String(sh.localPins || '').split(/[,\s]+/).filter(Boolean).some(function (p) { return pin.indexOf(p) === 0; });
     if (free) return { charge: 0, known: true, free: true, reason: 'above' };
     if (pin.length !== 6) return { charge: SP.num(sh.otherCharge), known: false, free: false };
-    if (local) return { charge: SP.num(sh.localCharge), known: true, free: SP.num(sh.localCharge) === 0, reason: 'local' };
-    return { charge: SP.num(sh.otherCharge), known: true, free: SP.num(sh.otherCharge) === 0, reason: 'other' };
+    return { charge: local ? SP.num(sh.localCharge) : SP.num(sh.otherCharge), known: true, free: false, reason: local ? 'local' : 'other', estimate: true };
   };
   /* tiny safe renderer: "## heading", "- bullet", blank line = new paragraph, URLs/emails become links */
   SP.renderText = function (text) {
@@ -612,8 +712,8 @@
         n++;
         products.push({
           id: 'p_' + c[0].slice(4) + '_' + (i + 1), title: p[0], titleEn: p[1], sections: [c[0]],
-          tagline: p[4], desc: p[0] + ' — Sunpowers द्वारा भरोसेमंद क्वालिटी, सही दाम और इंस्टॉलेशन सपोर्ट। (यह डेमो विवरण है, Admin से बदलें)',
-          descEn: p[1] + ' — trusted quality, fair price and installation support by Sunpowers. (Demo text — edit from Admin)',
+          tagline: p[4], desc: p[0] + ' — Sunpowers द्वारा भरोसेमंद क्वालिटी, सही दाम और इंस्टॉलेशन सपोर्ट।',
+          descEn: p[1] + ' — trusted quality, fair price and installation support by Sunpowers.',
           mrp: p[2], offer: p[3], unit: '', badge: p[5], stock: 'in', visible: true, sort: i + 1,
           emoji: c[3], bg: pastel[n % pastel.length], image: '', images: [], link: '', sku: 'SP-' + String(n).padStart(3, '0'), brand: 'Sunpowers'
         });
@@ -666,12 +766,12 @@
         googleRating: '5.0', googleReviews: '17', mainSite: 'https://www.sunpowers.in', gstNote: 'सभी कीमतें GST सहित',
         policyDate: '08-10-2026', reportDays: 7, policyConsent: true,
         shipping: { enabled: true, localPins: '226', localName: 'लखनऊ', localNameEn: 'Lucknow', localCharge: 0, otherCharge: 500, freeAbove: 10000 },
-        siteUrl: 'https://shop.sunpowers.in', brand: 'Sunpowers', themeColor: '#1e8e3e', defaultLang: 'hi',
+        siteUrl: 'https://store.sunpowers.in', brand: 'Sunpowers', themeColor: '#1e8e3e', defaultLang: 'hi',
         searchPlaceholder: 'सोलर पैनल, इन्वर्टर, बैटरी खोजें', stickyTicker: true, whatsappButton: true,
         footerText: 'Sunpowers — सोलर पैनल, इन्वर्टर, बैटरी, पंप और कम्प्लीट सोलर सिस्टम। इंस्टॉलेशन सहित।',
         delivery: 'लखनऊ में फ़्री डिलीवरी • बाकी जगह ₹500 • ₹10,000 से ऊपर के ऑर्डर पर फ़्री',
         payments: {
-          cod: { enabled: true, advancePct: 15, label: 'Cash on Delivery (15% एडवांस)' },
+          cod: { enabled: false, advancePct: 0, label: 'Cash on Delivery (15% अभी बिल की रकम)' },
           upi: { enabled: true, upiId: 'Sunpowers@ybl', payeeName: 'Sunpowers', label: 'UPI पेमेंट (पूरा भुगतान)' }
         },
         social: { facebook: 'https://www.facebook.com/share/1HwbkZd1oK/', instagram: 'https://www.instagram.com/sunpowers.in', youtube: 'https://www.youtube.com/@sunpowers', gmb: 'https://maps.app.goo.gl/9r7jtxRPokG3yKVw8' },
@@ -696,9 +796,9 @@
         'पेमेंट मोड चुनें और "ऑर्डर करें" दबाएँ — कन्फ़र्मेशन WhatsApp पर मिलेगा।'] },
       feedback: { title: 'ग्राहकों की राय', items: [] },
       videos: { title: 'हमारे वीडियो', items: [
-        { id: 'vd1', title: 'सोलर सिस्टम इंस्टॉलेशन (लिंक बदलें)', url: '' },
-        { id: 'vd2', title: 'ग्राहक अनुभव (लिंक बदलें)', url: '' },
-        { id: 'vd3', title: 'सोलर पंप डेमो (लिंक बदलें)', url: '' }] },
+        { id: 'vd1', title: 'सोलर सिस्टम इंस्टॉलेशन', url: '' },
+        { id: 'vd2', title: 'ग्राहक अनुभव', url: '' },
+        { id: 'vd3', title: 'सोलर पंप इंस्टॉलेशन', url: '' }] },
       pages: SP.clone(SP.PAGES_DEF),
       layout: layout
     };

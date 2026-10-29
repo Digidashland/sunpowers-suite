@@ -1,0 +1,29 @@
+ROUND 55 — KYA BADLA (ek customer = ek quotation; brand badlein; lock par baaki band; customer ko history)
+====================================================================================================
+1) QUOTATION LIST: CUSTOMER KE NAAM SE
+   * Ek customer ki ek hi pankti ("Ramesh Kumar · 3 quotation · Bhej di 2, Maan li 1"). Dabane par uski saari quotation khulti hain.
+   * Jis customer ki sirf ek quotation hai, wo pehle jaisi ek pankti hi rehti hai.
+   * Customer ke pej ka Quotation tab bhi uski saari quotation dikhata hai (band hui par "Band (dusri chuni gayi)" likha).
+2) DOOSRA BRAND (Tata ke baad Adani)
+   * Rok pehle jaisi: ek customer ki ek chalu quotation. Naya quotation banane par ab sandesh me saaf likha hai "usi me Option jodein".
+   * Quotation me "Option jodein" = brand badlein. Naam likhne par pehle option ki copy banti hai.
+   * Copy ka rate jab tak aap badal nahi dete: customer ko wo option NAHI dikhta, Accept nahi hota, aur WhatsApp/PDF "Send" band (sandesh ke saath).
+   * Har option ke saamne "Stock hai / Stock kam" ka nishaan.
+   * Final ke baad rate badalna (Revision) pehle jaisa hi hai: Manager/Admin, wajah likhni zaroori; customer link par "Rate badla (Revision 2): purana -> naya" dikhta hai.
+3) JAB CUSTOMER EK QUOTATION LOCK (ACCEPT) KARE
+   * Usi customer ki doosri, usi kaam ki (same type aur same kW) draft/sent Project quotation apne aap "Band" ho jaati hai (list me nahi dikhti;
+     "Purani bhi dikhayein (N)" button se dikhti hain). Unka purana link "Ye quotation ab chalu nahi hai" dikhata hai.
+   * Alag kaam (alag kW / alag type) ki quotation NAHI hatti.
+   * Chuni hui quotation me chhota saar bachta hai: kya bheja gaya, kaunsa vikalp nahi chuna, customer ne kya badlav maanga, kab final hua (sirf naam, kW, rakam, tareekh).
+   * Manager/Admin "Final wapas lein" kare to band hui quotation wapas "Bhej di" ho jaati hain.
+4) CUSTOMER KE LINK PAR HISTORY
+   * "Aapko ab tak kya bheja gaya" (khulne wala dabba): pehle ki quotation, jo vikalp nahi chuna, apna badlav, final, aur rate revision.
+5) STOCK RESERVE KE NIYAM
+   * Ek option wali quotation: bhejte hi reserve (pehle jaisa).
+   * Kai option wali quotation: Final (Accept) hone tak reserve NAHI. Final ke baad sirf chuna hua option reserve.
+   * Band (superseded), expired ya rejected quotation ka reserve chhoot jata hai. Revision me sirf chalu rate ginta hai — double reserve nahi.
+SEEMA (ISE SAAF JAAN LEIN):
+   * Supabase me PDF files storage me padi rehti hain — app unhe delete nahi kar sakta (storage ki suraksha ke karan). Database ka bhaari data (links, PDF link) hat jata hai,
+     par asli PDF files nahi. Storage bharne lage to Supabase dashboard -> Storage -> sp-images me purani PDF khud saaf kar sakte hain.
+   * Pehle se padi purani quotations apne aap band nahi hongi, sirf aage ke naye Final par niyam lagega.
+KAHAN CHALAYEIN: ek hi master command (ROUND-41-APPLY.ps1 + SUNPOWERS-DEPLOY.ps1 -Mode stage). SQL: ROUND-40-55-SQL-ONLY.sql (staging).

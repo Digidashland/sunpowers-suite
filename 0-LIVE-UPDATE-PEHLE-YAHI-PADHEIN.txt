@@ -1,0 +1,26 @@
+LIVE SITE PAR UPDATE — SIRF YE 4 STEP (Round 1 se 21 tak sab is zip me)
+=======================================================================
+Aapki config.js files (Supabase URL/Key, store/crm/site links) is zip me pehle se bhari hain — badalni nahi.
+
+STEP 1 — DATABASE (Supabase -> SQL Editor), SIRF EK BAAR
+   • Agar abhi tak koi update nahi chalaya (pehle deploy ke baad se): MASTER-UPDATE.sql poori chalayein.
+     Badi file ho to SQL-PARTS/2-UPDATE/ ke U01 se U10 tak order se chalayein.
+   • Phir (agar abhi tak nahi chalayi) STORE-CATALOG-LOAD.sql  (ya SQL-PARTS/3-CATALOG-OPTIONAL/ C01 se C05).
+   • Dobara chalana safe hai — kuch nahi bigadta. Detail: SQL-KAISE-CHALAYEIN.txt
+   • (NAYA khali project ho tabhi MASTER-FRESH.sql chalayein. Aapke live project par ZARURAT NAHI.)
+
+STEP 2 — FILES
+   Is zip ko extract karke apne purane sunpowers-suite folder me REPLACE karein (website, store, admin, crm sab).
+
+STEP 3 — GITHUB
+   PUSH-TO-GITHUB.bat par double-click. Vercel chaaron project (website, store, admin, crm) apne aap deploy kar deta hai.
+
+STEP 4 — CHECK (5 minute)
+   • Browser me Ctrl+Shift+R (hard refresh). Phone par app/PWA ho to band karke dobara kholein.
+   • Admin login -> sirf 2 option: Website & Shop Management / Store Management.
+     Website Management -> Website Builder (page chunein -> section edit / duplicate / reorder / live preview).
+   • Website -> shop.html -> product -> "Buy now" -> apna checkout.html -> login -> order (ek test order karke dekhein).
+   • CRM: Leads me har lead par 'Path' dikhe; Customers me 'Add New Customer' dabate hi pehle path poochhe; ek test customer banakar flow dekhein.
+
+Kya naya hai (round-wise): MASTER-COMMAND.txt ke aakhir me round ke section. Poora record project docs me.
+Rollback: purane zip ki files wapas push karein (SQL purane code ko nahi todta).

@@ -1,0 +1,55 @@
+ROUND 48 — KYA BADLA (STAGING ke liye; live par kuch nahi)
+============================================================
+
+Pehle SQL (Supabase STAGING SQL editor): ROUND-40-48-SQL-ONLY.sql  (ya MASTER-UPDATE.sql). Dobara chalana safe hai.
+Phir ek master command (neeche). Live Supabase / live deploy tab tak nahi jab tak aap na kahen.
+
+1) DELIVERY — PINCODE KE HISAAB SE (Admin -> naya tab "Delivery")
+   - Har pincode / district / state par: Courier ya Khud delivery, courier ka naam, base charge, base kg, har extra kg ka charge,
+     "itne se upar free", pahunchne ke din. Sabse specific rule jeetta hai (pincode > district > state > sab).
+   - Sirf wahi pincode jahan Store / Web par availability ON hai (pehle wala pincode system). Baaki pincode par order nahi.
+   - Sab Prepaid hai — COD nahi.
+   - Delivery charge par GST NAHI lagta.
+   - Poora complete project (template wala) order = delivery FREE + uspar GST bhi nahi.
+   - "Store se uthaunga" (pickup) = delivery free.
+   - Product ka weight (kg): Admin product + CRM item ("Weight (kg)") me bharein — charge weight se banta hai.
+   - Store app me product page par delivery estimate (pincode daalne par) + cart / checkout me charge, courier, kitne din.
+   - Website shop me checkout par delivery charge dikhta hai (product page par abhi sirf store app me).
+   - Server check: browser kam delivery charge bhejkar nahi bach sakta (sp_ship_guard).
+
+2) PRODUCT CUSTOMER FLOW (12 step, upar ki patti me sirf yahi dikhte hain)
+   Lead > Customer > Conversation > Demo/Files > Quotation > Confirmation(+advance) > STOCK RESERVE(20) > Billing > DISPATCH/DELIVERY(21) > WARRANTY REGISTRATION(22) > Referral > Complaint
+   - Installation / Demo ka alag step nahi. Demo aur khud-lagane ki video product par hi rehti hai.
+   - 20 Stock Reserve (zaroori nahi, skip ho sakta hai) · 21 Dispatch: Khud / Courier / Store se uthaya, courier naam, tracking, saboot.
+   - 22 Warranty: serial number, warranty mahine, install kisne kiya + "Khud lagane ki ghoshna" link (neeche 4).
+
+3) SERVICE CUSTOMER FLOW (13 step)
+   Lead > Customer > Conversation > Site Visit(zaroori nahi) > Quotation > Confirmation > Technician > JOB DONE REPORT(23) > Billing > Documents > Referral > AMC(agli baar) > Complaint
+   - 23 Job Done Report: kaam ka saar, lage parts, photo, tareekh (Technician step ke baad).
+
+4) CUSTOMER KI GHOSHNA (DECLARATION) — OTP ki jagah (kharcha nahi)
+   - Step 23 me "Customer ko confirmation link" banayein -> link copy ya WhatsApp. Customer website par naam likh kar
+     "Haan, sab theek hai" dabata hai. 48 ghante tak kuch na kare to APNE AAP manzoor (auto).
+   - "Dikkat hai" dabaye to Complaint ticket (Urgent) + "Aaj ke kaam" me reminder apne aap.
+   - Customer ne phone par bataya ho to staff "Phone par bataya — manzoor karein" se haath se manzoor kar sakta hai.
+   - Step 22 me khud lagane wale customer ki ghoshna ka link (auto-accept nahi hota).
+   - Staging se bana link ?e=s ke saath staging database padhta hai; live se bana link live database. Page: website/job-confirm.html (login nahi chahiye).
+
+5) INSTALLATION = OPTIONAL ADD-ON (shifting ki tarah)
+   - Admin product me "Installation seva" tick + charge (₹). Sirf wahi product ke checkout (store + shop) me "Installation (optional)" tick dikhta hai.
+   - Installation ka paisa order total me NAHI judta; order me save hota hai, Admin ko notification + order view me "🔧 Installation chahiye".
+     Phir CRM me Service kaam bana kar alag se bill hota hai. (Order se Service kaam apne aap nahi banta — abhi haath se.)
+
+Files badli: crm/modules (flow, flowbar, flowx, hints, workflow, items), crm/index.html, store (core.js, index.html), website (checkout.js, checkout.html,
+job-confirm.html NAYA), admin (delivery-admin.js NAYA, index.html, core.js). SQL: SQL-PARTS/2-UPDATE/U19.sql (= R48).
+
+Test (local staging Postgres + browser 1280 / 390): delivery rules + quote + guard (SQL, store, shop, admin tab), product/service flow SQL + bar order,
+declaration (link, accept, 48h auto, issue->complaint, phone mark, bad token), public page, install add-on (server filter + checkout checkbox),
+SQL ko MASTER-UPDATE se 2 baar chalaya — 0 error; purani regression tests.
+
+Bug fix: Admin me naya product "CRM inventory me bhi jodein" ke saath banate waqt store save kabhi-kabhi "STORE_CHANGED" deta tha (CRM item banne se store ka version badh jata tha) — theek kiya.
+
+Dhyan:
+ - Delivery charge par GST nahi — ye apne CA se ek baar pakka kar lein.
+ - Service step 23 ke baad hi declaration link ban sakta hai. Billing ko declaration ka intezar nahi karna padta.
+ - Live par: SQL-1 / backup / -Mode prod aap bolenge tab hi.

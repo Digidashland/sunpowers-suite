@@ -1,0 +1,36 @@
+ROUND 46 — Customer flow ka audit + sab fix (staging)
+======================================================
+Kya galat tha (jo aapne pucha tha: flow kaha tut raha hai) aur ab kya hua:
+
+1) Flow patti (bar) kaam-page kholte hi gayab ho jati thi            -> FIX (A)
+   Ab patti Customers list par bhi aur customer ke har kaam-page par (Quotation, Site Visit, Blueprint, Billing,
+   Bill, Documents, Commission, Maintenance, Customer page) upar dikhti rehti hai. Step dabate hi agla page khulta hai,
+   patti wahi rehti hai, usi step par "on" nishaan. Upar "← Customers" se wapas.
+   Side menu se seedha koi menu kholo to patti nahi — sirf us menu ke apne tabs (jaisa pehle tha). Dono alag rahe.
+
+2) "Confirmation" step hamesha grey (lagu nahi) dikhta tha          -> FIX (B, SQL)
+   Ab har flow me hai (Project, Product, Service). Quotation Accept hote hi apne aap ✓. (AMC only / Site visit only me nahi.)
+
+3) "Abhi" (current step) Send Demo / Files par atka rehta tha        -> FIX (C)
+   Ab "Abhi" pehla ZARURI pending step hai. Demo/Files, Loan, Referral, AMC, Complaint optional hain — wo "Abhi" nahi
+   banate aur "pehle ye poora karein" chetavni bhi nahi dete. Projects list ka "Abhi:" bhi isi se.
+
+4) Kuch steps customer ke bina khulte the                             -> FIX (D)
+   - Finish Work (12): bill ban gaya ho to seedha us customer ka Bill khulta hai, warna us customer ka Billing.
+   - Billing: customer ke flow se aane par sirf us customer ke bill / baaki / payments + "Payment jodein" us customer ke naam se.
+   - Documents: banner + "Customer ko bhejein" us customer aur uske Plant ID par pehle se chuna.
+   - Commission / Referral: us customer ke naam / quotation no. wali entries (Commission me customer ka alag link nahi hota).
+   - Complaint (18): ab Maintenance page nahi, seedha apna popup (status, samasya, ticket...).
+   - Sabhi pages par "Sabhi ... dekhein" link se filter hata sakte hain.
+
+5) Installation ka kram (8 -> 9 -> 10 -> 11, Subsidy 13)               -> FIX (E)
+   Aage ka step pehle poora karne par rok nahi, sirf poochta hai: "Pehle ... poora nahi hua. Phir bhi karein?"
+
+Jo jaan-boojhkar waisa hi rakha:
+ - Step 1 (Add Customer) patti me alag chip nahi — customer ka naam wala 👤 chip wahi hai.
+ - Step 12 Finish Work haath se tick nahi hota — bill ka balance zero hote hi apne aap.
+ - Side menu se kholne par patti nahi aati (aapke kehne ke mutabiq).
+
+SQL: ROUND-40-46-SQL-ONLY.sql (ya MASTER-UPDATE.sql). Sirf crm_wf_flow badla; dobara chalana safe. Staging pe pehle.
+Test: 6 steps ke link x 2 screen (1280, 390), menu-se-seedha, soft-order popup, Complaint popup, Docs/Billing/Commission banner, purane menu routes (sab pass).
+Baaki bacha (agle round): Blueprint rework (customer-first, auto-fill), Download & Share single dropdown.

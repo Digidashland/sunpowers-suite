@@ -1,10 +1,16 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="hi" data-lang-default="hi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Admin — Sunpowers</title>
+<meta name="theme-color" content="#1e8e3e">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SP Admin">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" href="favicon-32.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -16,15 +22,22 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 input,select,textarea{font:inherit;color:inherit}
 a{color:var(--g-d)}
 .hide{display:none!important}
+/* Round 25: which page am I editing? green = Store App, golden = Web Shop (website); two-colour = applies to both */
+.via{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-radius:12px;padding:9px 12px;margin:0 0 10px;font-weight:700;font-size:14px;border:1px solid;animation:viaF 1.5s ease-out 2;--fl:30,142,62}
+.via i{width:10px;height:10px;border-radius:50%;flex:none;animation:viaP 1.6s ease-in-out infinite}
+.via small{font-weight:500;opacity:.85}
+.via.st{background:linear-gradient(90deg,#e1f3e4,#f3faf4);border-color:#b2dcba;color:#14692c}.via.st i{background:#1e8e3e}
+.via.sh{background:linear-gradient(90deg,#fdeccb,#fff7e6);border-color:#f0cd86;color:#7a4e00;--fl:245,166,35}.via.sh i{background:#f5a623}
+.via.bo{background:linear-gradient(90deg,#e1f3e4 0,#f1f7e6 48%,#fdeccb 100%);border-color:#c9d79a;color:#46510f}.via.bo i{background:linear-gradient(90deg,#1e8e3e 50%,#f5a623 50%)}
+.via.bo2{background:linear-gradient(90deg,#fdeccb 0,#f1f7e6 52%,#e1f3e4 100%);border-color:#c9d79a;color:#46510f;--fl:245,166,35}.via.bo2 i{background:linear-gradient(90deg,#f5a623 50%,#1e8e3e 50%)}
+@keyframes viaF{0%{box-shadow:0 0 0 0 rgba(var(--fl),.6)}100%{box-shadow:0 0 0 16px rgba(var(--fl),0)}}
+@keyframes viaP{50%{transform:scale(.55);opacity:.5}}
+.pch{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:30px;padding:0 6px;border-radius:9px;font-size:15px;border:1px solid var(--line);background:#fff;opacity:.45;filter:grayscale(1)}
+.pch.on{opacity:1;filter:none}.pch.st.on{background:#e1f3e4;border-color:#9fd2a8}.pch.sh.on{background:#fdeccb;border-color:#efc774}.pch[disabled]{cursor:not-allowed}
 .top{position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px solid var(--line)}
-.top-in{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:8px;padding:10px 12px}
+.top-in{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:8px;padding:10px 12px;flex-wrap:wrap}.top-in h1{min-width:0}
 .top h1{font-size:18px;font-weight:800;color:var(--g-d);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tabs{max-width:1100px;margin:0 auto;display:flex;gap:6px;overflow-x:auto;padding:0 12px 10px;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
-.tab{flex:none;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;font-weight:600;font-size:14px;white-space:nowrap}
-.tab.on{background:var(--g);border-color:var(--g);color:#fff}
-.tcnt{margin-left:6px;background:var(--red);color:#fff;border-radius:999px;font-size:11px;padding:1px 7px;font-weight:800}
-.tab.on .tcnt{background:#fff;color:var(--red)}
+.wb-ed{padding:10px;border:1px dashed #b9cdb9;border-radius:10px;margin:6px 0 12px;background:#fbfdfb}.wb-it.open>.row{background:#eef7ee}.wb-it{margin-bottom:6px}
 .chk2{display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:6px 0}.chk2 input{width:18px;height:18px;margin-top:2px;flex:none}
 main{max-width:1100px;margin:0 auto;padding:14px 12px 120px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:12px;padding:9px 14px;font-weight:700;font-size:14px;background:var(--g);color:#fff;white-space:nowrap}
@@ -59,6 +72,7 @@ main{max-width:1100px;margin:0 auto;padding:14px 12px 120px}
 .note.r{background:#fdecea;border-color:#f5c2bd}
 .empty{text-align:center;color:var(--mut);padding:30px 10px}
 /* forms */
+.more{margin-top:12px;border:1px dashed #b7c8b5;border-radius:10px;padding:8px 12px;background:#fafdf9}.more>summary{cursor:pointer;font-weight:700;font-size:13px;color:var(--g-d);margin-bottom:8px}
 .fg{display:grid;grid-template-columns:1fr;gap:12px}
 @media(min-width:700px){.fg{grid-template-columns:1fr 1fr}.fld.full{grid-column:1/-1}}
 .fld label.l{display:block;font-size:13px;font-weight:700;margin-bottom:4px}
@@ -78,6 +92,14 @@ main{max-width:1100px;margin:0 auto;padding:14px 12px 120px}
 .upl{position:relative;overflow:hidden}
 .upl input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .mimgs{display:flex;gap:8px;flex-wrap:wrap}
+.mmed{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}
+.mmi{width:92px;border-radius:10px;overflow:hidden;position:relative;border:2px solid var(--line);background:#fafcf9}
+.mmi.main{border-color:var(--g,#2e7d32);box-shadow:0 0 0 2px rgba(46,125,50,.25)}
+.mmi img,.mmi video{width:100%;height:92px;object-fit:cover;display:block;background:#111}
+.mmi .mk{position:absolute;left:3px;top:3px;background:rgba(0,0,0,.65);color:#fff;border-radius:6px;padding:0 4px;font-size:12px}
+.imgf [hidden]{display:none!important}.mmi button.rp,.mimg button.rp{right:auto!important;left:2px;top:auto!important;bottom:2px}.mmi button.rl,.mimg button.rl{right:auto!important;left:26px;top:auto!important;bottom:2px}.mmi button.rp,.mmi button.rl{bottom:24px}.mmi button{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:12px}
+.mmain{display:flex;gap:4px;align-items:center;justify-content:center;font-size:12px;padding:3px;cursor:pointer}
+.mcnt{width:100%;font-size:12px;color:var(--mut)}
 .mimg{width:74px;height:74px;border-radius:10px;overflow:hidden;position:relative;border:1px solid var(--line);background:#fafcf9}
 .mimg img{width:100%;height:100%;object-fit:cover}
 .mimg button{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:12px}
@@ -121,15 +143,57 @@ main{max-width:1100px;margin:0 auto;padding:14px 12px 120px}
 table.imp{width:100%;border-collapse:collapse;font-size:14px}
 table.imp td,table.imp th{padding:6px;border-bottom:1px solid var(--line);text-align:left}
 </style>
+<style>
+/* ---- splash: app icon only + running-lines loader ---- */
+#splash{position:fixed;inset:0;z-index:99998;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;background:radial-gradient(120% 90% at 50% 0%,#2f9e4f 0%,#14622e 55%,#0b3a1b 100%);pointer-events:none;transition:opacity .45s ease,visibility 0s linear .45s}
+#splash.out{opacity:0;visibility:hidden}
+#splash img{width:min(46vw,190px);height:auto;filter:drop-shadow(0 14px 26px rgba(0,0,0,.38));animation:spPop .6s cubic-bezier(.2,1.4,.4,1) both}
+#splash .sp-run{display:flex;flex-direction:column;gap:6px;width:150px}
+#splash .sp-run i{display:block;height:3px;border-radius:3px;background:rgba(255,255,255,.18);position:relative;overflow:hidden}
+#splash .sp-run i:before{content:"";position:absolute;top:0;bottom:0;left:-45%;width:45%;border-radius:3px;background:linear-gradient(90deg,transparent,#f9a825,#fff6d6);animation:spRun 1.1s linear infinite}
+#splash .sp-run i:nth-child(2){width:78%;margin-left:11%}#splash .sp-run i:nth-child(2):before{animation-duration:1.4s;animation-delay:.15s}
+#splash .sp-run i:nth-child(3){width:56%;margin-left:22%}#splash .sp-run i:nth-child(3):before{animation-duration:.9s;animation-delay:.3s}
+@keyframes spPop{from{transform:scale(.55);opacity:0}to{transform:none;opacity:1}}
+@keyframes spRun{from{left:-45%}to{left:100%}}
+@media (prefers-reduced-motion:reduce){#splash *{animation-duration:.01s!important;animation-delay:0s!important}#splash .sp-run i:before{animation:none;left:0;width:100%}}
+</style>
 </head>
 <body>
+<div id="splash" aria-hidden="true" data-noi18n><img src="splash-icon.png" alt="" width="190" height="190"><div class="sp-run"><i></i><i></i><i></i></div></div>
+<script>(function(){var d=document.getElementById('splash');if(!d)return;document.documentElement.appendChild(d);var seen=false;try{seen=sessionStorage.getItem('sp_splash_admin')==='1';sessionStorage.setItem('sp_splash_admin','1');}catch(e){}
+if(seen){d.remove();return;}
+function hide(){d.classList.add('out');setTimeout(function(){if(d.parentNode)d.remove();},600);}
+var t0=Date.now();function ready(){setTimeout(hide,Math.max(0,1500-(Date.now()-t0)));}
+if(document.readyState==='complete')ready();else window.addEventListener('load',ready);setTimeout(hide,3800);})();</script>
+
 <div id="app"></div>
 <div class="toast" id="toast"></div>
 <script src="config.js"></script>
+<script src="sp-look.js?v=1" data-app="admin"></script>
+<script src="sp-i18n.js?v=12"></script>
+<script src="sp-voice.js?v=2" defer></script>
+<script src="i18n-dict.js?v=6"></script>
+<script src="i18n-langs.js?v=2"></script>
 <script src="lic.js?v=1" data-app="admin"></script>
 <script src="core.js"></script>
 <script src="xlsx-lite.js"></script>
+<script src="sheets.js?v=1"></script>
+<script src="pincode-admin.js?v=1"></script>
+<script src="sell-admin.js?v=1"></script>
+<script src="sub-admin.js?v=1"></script>
+<script src="delivery-admin.js?v=1"></script>
 <script src="auth.js"></script>
+<script src="cms-defaults.js"></script>
+<script src="cms-manifest.js"></script>
+<script src="cms-secs.js"></script>
+<script src="sp-install.js?v=1" data-app-name="Sunpowers Admin"></script>
+<script src="sp-hdr.js?v=4"></script>
+<script src="sp-dash.js?v=3"></script>
+<script src="sp-look-ui.js?v=1"></script>
+<script src="web-admin.js?v=17"></script>
+<script src="sp-builder.js?v=8"></script>
+<script src="builder-admin.js?v=12"></script>
+<script src="backup-admin.js?v=2"></script>
 <script>
 (function () {
 'use strict';
@@ -138,11 +202,15 @@ var $ = function (s, r) { return (r || document).querySelector(s); };
 var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 var app = $('#app');
 var PASS = SP.ss.get('sp_admin_pass') || SP.ls.get('sp_admin_pass_keep', null) || '';
+SP.getUploadToken = function () { return SP.rpc('sp_admin_upload_token', { p_pass: PASS }); };
 function isTok(x) { return /^[0-9a-f]{48}$/.test(x || ''); }
-var D = null, IS_DEMO = false, TAB = SP.ss.get('sp_admin_tab') || 'layout', UP = 0, saveChain = Promise.resolve(), dirty = false;
+var D = null, IS_DEMO = false, TAB = SP.ss.get('sp_admin_tab') || 'dash', UP = 0, saveChain = Promise.resolve(), dirty = false;
 var PROD_FILTER = { q: '', sec: '' };
 var CFG = window.SP_CONFIG || {};
-function storeBase() { return String(CFG.STORE_URL || (D && D.settings && D.settings.siteUrl) || '').replace(/\/+$/, ''); }
+/* Round 26: on staging / preview hosts (…-admin…vercel.app) the links point to the matching staging website / store / crm, never to the live domain. */
+function stagingSibling(kind) { var h = location.hostname; if (/(^|\.)sunpowers\.in$/.test(h) || !/-admin/.test(h)) return ''; if (!/-admin-git-/.test(h) && CFG.STAGING_SUFFIX && /\.vercel\.app$/.test(h)) return 'https://sunpowers-suite-' + kind + '-' + CFG.STAGING_SUFFIX; return location.origin.replace('-admin', '-' + kind); }
+function siteLink() { var st = stagingSibling('website'); if (st) return st; var u = String(CFG.SITE_URL || (D && D.settings && D.settings.mainSite) || '').trim(); return /^https?:\/\//i.test(u) ? u : ''; }
+function storeBase() { var st = stagingSibling('store'); if (st) return st; return String(CFG.STORE_URL || (D && D.settings && D.settings.siteUrl) || '').replace(/\/+$/, ''); }
 function storeLink() { return storeBase() || '../'; }
 
 function toast(m, err) { var el = $('#toast'); el.textContent = m; el.className = 'toast on' + (err ? ' err' : ''); clearTimeout(toast._t); toast._t = setTimeout(function () { el.className = 'toast'; }, err ? 4200 : 2400); }
@@ -152,7 +220,8 @@ function setPath(o, p, v) { var ks = p.split('.'), a = o; for (var i = 0; i < ks
 function sec(id) { return D.sections.filter(function (s) { return s.id === id; })[0]; }
 function prod(id) { return D.products.filter(function (p) { return p.id === id; })[0]; }
 function ssById(id) { return D.slideshows.filter(function (s) { return s.id === id; })[0]; }
-function thumb(src, emoji, bg) { return '<div class="th" style="background:' + esc(bg || '#e8f5e9') + '">' + esc(emoji || '🖼️') + (SP.isImg(src) ? '<img src="' + esc(src) + '" alt="" loading="lazy" onerror="this.remove()">' : '') + '</div>'; }
+function absU(u) { u = String(u || ''); return /^\/(?!\/)/.test(u) && storeBase() ? storeBase() + u : u; }
+function thumb(src, emoji, bg) { return '<div class="th" style="background:' + esc(bg || '#e8f5e9') + '">' + esc(emoji || '🖼️') + (SP.isImg(src) ? '<img src="' + esc(absU(src)) + '" alt="" loading="lazy" onerror="this.remove()">' : '') + '</div>'; }
 function download(blob, name) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
 function today() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 function fmtDate(s) { try { return new Date(s).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }); } catch (e) { return s; } }
@@ -192,11 +261,30 @@ function ask(msg, okLabel, danger) {
 /* ======================= form builder ======================= */
 var LINK_TYPES = [['none', '— कोई लिंक नहीं —'], ['section', 'Section / Category खोलें'], ['product', 'Product खोलें'], ['form', 'Requirement Form खोलें'], ['whatsapp', 'WhatsApp पर मैसेज'], ['call', 'कॉल करें'], ['url', 'कोई भी वेबसाइट URL']];
 var fid = 0;
-function F(fields, obj) { return '<div class="fg">' + fields.map(function (f) { return fieldHtml(f, obj || {}); }).join('') + '</div>'; }
+/* Round 27: ENGLISH-ONLY editing. A form never asks for two languages: where a form has a main (Hindi) field "x" and its twin "xEn", only ONE English field is shown (bound to xEn).
+   When saved, the main field "x" gets the same English text (only if the English text was changed — old hand-written Hindi stays if nobody touched it).
+   The public site / app shows the visitor's own language by converting this English automatically. */
+function enPairs(fields) {
+  var keys = {}; fields.forEach(function (f) { keys[f.k] = f; });
+  return fields.filter(function (f) { return /En$/.test(f.k) && keys[f.k.slice(0, -2)] && (f.t === 'text' || f.t === 'textarea' || !f.t); }).map(function (f) { return { en: f, hi: keys[f.k.slice(0, -2)] }; });
+}
+function enLabel(hl) { return String(hl).replace(/\s*\((हिंदी|Hindi)[^)]*\)/g, '').replace(/\s*\(वैकल्पिक\)/g, '').trim(); }
+function enFields(fields) {
+  var pr = enPairs(fields); if (!pr.length) return fields;
+  var drop = {}, rep = {}; pr.forEach(function (x) { drop[x.hi.k] = 1; rep[x.en.k] = Object.assign({}, x.en, { adv: false, req: !!x.hi.req, fb: x.hi.k, l: enLabel(x.hi.l) + ' (English)', ph: x.en.ph || x.hi.ph }); });
+  return fields.filter(function (f) { return !drop[f.k]; }).map(function (f) { return rep[f.k] || f; });
+}
+function FA(fields, obj) {
+  fields = enFields(fields);
+  var main = fields.filter(function (f) { return !f.adv; }), adv = fields.filter(function (f) { return f.adv; });
+  return F(main, obj) + (adv.length ? '<details class="more"><summary>⚙️ और विकल्प (वैकल्पिक) — नाम English, टैगलाइन, बैज, SKU, ब्रांड आदि</summary>' + F(adv, obj) + '</details>' : '');
+}
+function F(fields, obj) { fields = enFields(fields); return '<div class="fg">' + fields.map(function (f) { return fieldHtml(f, obj || {}); }).join('') + '</div>'; }
 function fieldHtml(f, obj) {
   var id = 'f' + (++fid), v = f.t === 'link' ? null : getPath(obj, f.k), lab = '<label class="l" for="' + id + '">' + esc(f.l) + (f.req ? ' <span style="color:var(--red)">*</span>' : '') + '</label>';
   var help = f.h ? '<small class="help">' + f.h + '</small>' : '', inner = '';
   if (v === undefined || v === null) v = f.d !== undefined ? f.d : '';
+  if (f.fb && !String(v).trim()) { var hv = getPath(obj, f.fb); if (hv && !/[\u0900-\u097F]/.test(hv)) v = hv; }
   switch (f.t) {
     case 'textarea': inner = lab + '<textarea id="' + id + '" rows="' + (f.rows || 3) + '" placeholder="' + esc(f.ph || '') + '">' + esc(v) + '</textarea>'; break;
     case 'lines': inner = lab + '<textarea id="' + id + '" rows="' + (f.rows || 5) + '" placeholder="' + esc(f.ph || '') + '">' + esc((Array.isArray(v) ? v : []).join('\n')) + '</textarea>'; break;
@@ -204,19 +292,22 @@ function fieldHtml(f, obj) {
     case 'color': inner = lab + '<input type="color" id="' + id + '" value="' + (/^#[0-9a-f]{6}$/i.test(v) ? v : (f.d || '#e8f5e9')) + '">'; break;
     case 'select': inner = lab + '<select id="' + id + '">' + f.o.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (String(v) === String(o[0]) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>'; break;
     case 'check': inner = '<label class="chk"><input type="checkbox" id="' + id + '"' + (v === true || v === 'yes' ? ' checked' : '') + '> ' + esc(f.l) + '</label>'; break;
-    case 'image': inner = lab + '<div class="imgf"><div class="imgprev">' + (SP.isImg(v) ? '<img src="' + esc(v) + '" alt="">' : 'कोई फ़ोटो नहीं') + '</div>' +
-      '<div class="imgbtns"><span class="btn sm upl">📷 फ़ोटो अपलोड<input type="file" accept="image/*"></span><button type="button" class="btn sm gray" data-clr>हटाएँ</button></div>' +
+    case 'image': inner = lab + '<div class="imgf"><div class="imgprev">' + (SP.isImg(v) ? '<img src="' + esc(absU(v)) + '" alt="">' : 'कोई फ़ोटो नहीं') + '</div>' +
+      '<div class="imgbtns"><span class="btn sm upl"><b data-upl>' + (SP.isImg(v) ? '🔄 फ़ोटो बदलें (Replace)' : '📷 फ़ोटो अपलोड') + '</b><input type="file" accept="image/*"></span><button type="button" class="btn sm out" data-rlnk>🔗 लिंक से बदलें</button><button type="button" class="btn sm gray" data-clr' + (SP.isImg(v) ? '' : ' hidden') + '>🗑 हटाएँ (Delete)</button></div>' +
       '<input type="text" id="' + id + '" class="imgurl" placeholder="या image का URL paste करें" value="' + esc(/^data:/.test(v) ? '' : v) + '" data-full="' + esc(v) + '"></div>'; break;
     case 'images': inner = lab + '<div class="imgf"><div class="mimgs"></div><div class="imgbtns"><span class="btn sm upl">📷 फ़ोटो जोड़ें<input type="file" accept="image/*" multiple></span></div>' +
       '<div style="display:flex;gap:6px"><input type="text" class="inp" placeholder="या image URL paste करें"><button type="button" class="btn sm out" data-addurl>जोड़ें</button></div></div>'; break;
+    case 'media': inner = lab + '<div class="imgf"><div class="mmed"></div><div class="imgbtns"><span class="btn sm upl">📷 फ़ोटो जोड़ें<input type="file" accept="image/*" multiple data-mph></span><span class="btn sm upl">🎬 वीडियो जोड़ें (MP4/WebM)<input type="file" accept="video/mp4,video/webm" data-mvd></span></div>' +
+      '<div style="display:flex;gap:6px"><input type="text" class="inp" placeholder="या फ़ोटो का https:// लिंक paste करें"><button type="button" class="btn sm out" data-addurl>जोड़ें</button></div>' +
+      '<div style="display:flex;gap:6px;margin-top:6px"><input type="text" class="inp" data-vurl placeholder="या वीडियो (MP4) का https:// लिंक paste करें"><button type="button" class="btn sm out" data-addvurl>जोड़ें</button></div></div>'; break;
     case 'multisec': inner = lab + '<div class="secs">' + D.sections.map(function (s) {
         return '<label><input type="checkbox" value="' + esc(s.id) + '"' + ((v || []).indexOf(s.id) >= 0 ? ' checked' : '') + '> ' + esc(s.icon || '') + ' ' + esc(s.title) + ' <span class="tag' + (s.kind === 'update' ? ' o' : '') + '">' + (s.kind === 'update' ? 'Update' : 'Category') + '</span></label>';
       }).join('') + (D.sections.length ? '' : '<span style="color:var(--mut)">पहले Section बनाएँ</span>') + '</div>'; break;
     case 'link': inner = lab + '<div class="lnk"><select id="' + id + '" data-lt>' + LINK_TYPES.map(function (o) { return '<option value="' + o[0] + '"' + ((obj.linkType || 'none') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select><div data-ltgt></div></div>'; break;
     default: inner = lab + '<input type="' + (f.t === 'password' ? 'password' : 'text') + '" id="' + id + '" value="' + esc(v) + '" placeholder="' + esc(f.ph || '') + '"' + (f.max ? ' maxlength="' + f.max + '"' : '') + '>';
   }
-  return '<div class="fld' + (f.full || ['textarea', 'lines', 'images', 'multisec', 'link'].indexOf(f.t) >= 0 ? ' full' : '') + '" data-k="' + esc(f.k) + '" data-t="' + f.t + '"' +
-    (f.t === 'images' ? ' data-v="' + esc(JSON.stringify(Array.isArray(v) ? v : [])) + '"' : '') + (f.t === 'link' ? ' data-l="' + esc(obj.link || '') + '"' : '') + '>' + inner + help + '<span class="err hide"></span></div>';
+  return '<div class="fld' + (f.full || ['textarea', 'lines', 'images', 'media', 'multisec', 'link'].indexOf(f.t) >= 0 ? ' full' : '') + '" data-k="' + esc(f.k) + '" data-t="' + f.t + '"' + (f.fb ? ' data-orig="' + esc(v) + '"' : '') +
+    ((f.t === 'images' || f.t === 'media') ? ' data-v="' + esc(JSON.stringify(Array.isArray(v) ? v : [])) + '"' : '') + (f.t === 'link' ? ' data-l="' + esc(obj.link || '') + '"' : '') + '>' + inner + help + '<span class="err hide"></span></div>';
 }
 function linkTarget(fld, type, val) {
   var box = $('[data-ltgt]', fld), h = '';
@@ -228,9 +319,35 @@ function linkTarget(fld, type, val) {
   else if (type === 'form') h = '<div style="color:var(--mut);font-size:13px;padding-top:8px">ग्राहक का क्लिक → होम पेज का Requirement Form खुलेगा (टाइटल अपने आप भर जाएगा)</div>';
   box.innerHTML = h;
 }
+/* Round 27: Replace helpers (every photo / video can be deleted OR replaced — by uploading a new file or by pasting a new link) */
+function pickFile(kind, cb) {
+  var i = document.createElement('input'); i.type = 'file'; i.accept = kind === 'video' ? 'video/*' : 'image/*';
+  i.onchange = function () { var f = i.files && i.files[0]; if (f) cb(f); }; i.click();
+}
+function askMediaUrl(kind, cb) {
+  modal('🔗 ' + (kind === 'video' ? 'वीडियो' : 'फ़ोटो') + ' का नया लिंक', '<div class="fld full"><label class="l">https:// लिंक paste करें</label><input class="inp" id="rpUrl" type="text" placeholder="https://…"></div>', [{ l: 'रद्द करें', cls: 'gray' }, { l: '✅ बदलें', fn: function (md) {
+    var u = ($('#rpUrl', md.body).value || '').trim();
+    if (kind === 'video' ? !SP.isVideoUrl(u) : (!SP.isImg(u) || /^data:/i.test(u))) { toast('सही https:// लिंक डालें', true); return false; }
+    cb(u);
+  } }]);
+}
 function renderMimgs(fld) {
   var list = fld._list || [];
-  $('.mimgs', fld).innerHTML = list.map(function (u, i) { return '<div class="mimg"><img src="' + esc(u) + '" alt="" onerror="this.style.opacity=.2"><button type="button" data-rmi="' + i + '">✕</button></div>'; }).join('') || '<span style="color:var(--mut);font-size:13px">कोई अतिरिक्त फ़ोटो नहीं</span>';
+  $('.mimgs', fld).innerHTML = list.map(function (u, i) { return '<div class="mimg"><img src="' + esc(absU(u)) + '" alt="" onerror="this.style.opacity=.2"><button type="button" data-rmi="' + i + '" title="Delete">✕</button><button type="button" class="rp" data-rpi="' + i + '" title="Replace (upload)">🔄</button><button type="button" class="rl" data-rli="' + i + '" title="Replace (link)">🔗</button></div>'; }).join('') || '<span style="color:var(--mut);font-size:13px">कोई अतिरिक्त फ़ोटो नहीं</span>';
+}
+function renderMmed(fld) {
+  var l = fld._list || [], nv = l.filter(function (x) { return x.type === 'video'; }).length;
+  $('.mmed', fld).innerHTML = (l.map(function (m, i) {
+    return '<div class="mmi' + (m.main ? ' main' : '') + '" data-mi="' + i + '">' + (m.type === 'video' ? '<video src="' + esc(m.url) + '#t=0.5" muted preload="metadata" playsinline></video><span class="mk">🎬</span>' : '<img src="' + esc(m.url) + '" alt="" onerror="this.style.opacity=.2">') +
+      '<label class="mmain"><input type="radio" name="' + fld.id + 'm" data-main="' + i + '"' + (m.main ? ' checked' : '') + '> मुख्य</label><button type="button" data-rmm="' + i + '" title="Delete">✕</button><button type="button" class="rp" data-rpm="' + i + '" title="Replace (upload)">🔄</button><button type="button" class="rl" data-rlm="' + i + '" title="Replace (link)">🔗</button></div>';
+  }).join('') || '<span style="color:var(--mut);font-size:13px">कोई फ़ोटो/वीडियो नहीं</span>') +
+    '<div class="mcnt">' + l.length + '/' + SP.MEDIA_MAX + ' · वीडियो ' + nv + '/' + SP.VIDEO_MAX + '</div>';
+}
+function mediaAdd(fld, type, url) {
+  var l = fld._list;
+  if (l.length >= SP.MEDIA_MAX) { toast('एक प्रोडक्ट में ज़्यादा से ज़्यादा ' + SP.MEDIA_MAX + ' फ़ोटो/वीडियो', true); return false; }
+  if (type === 'video' && l.filter(function (x) { return x.type === 'video'; }).length >= SP.VIDEO_MAX) { toast('ज़्यादा से ज़्यादा ' + SP.VIDEO_MAX + ' वीडियो', true); return false; }
+  l.push({ type: type, url: url, main: !l.length }); renderMmed(fld); return true;
 }
 async function handleUpload(file) {
   UP++;
@@ -240,10 +357,19 @@ async function handleUpload(file) {
     return r.url;
   } finally { UP--; }
 }
+async function handleVideo(file) {
+  if (!/^video\/(mp4|webm)$/.test(file.type || '')) throw new Error('सिर्फ़ MP4 या WebM वीडियो अपलोड करें (या https:// लिंक paste करें)');
+  if (file.size > 50 * 1048576) throw new Error('वीडियो 50 MB से बड़ा है — छोटा करें, या Cloudinary आदि का https:// लिंक paste करें');
+  UP++;
+  try { var u = await SP.uploadImage(file); if (!/^https?:/i.test(u)) throw new Error('अपलोड नहीं हुआ'); return u; }
+  catch (e) { throw new Error('वीडियो अपलोड नहीं हुआ (' + (e.message || '').slice(0, 80) + ') — Supabase storage / admin login जाँचें, या https:// लिंक paste करें'); }
+  finally { UP--; }
+}
 function bindForm(root) {
   $$('.fld[data-t=image]', root).forEach(function (fld) {
     var inp = $('.imgurl', fld), prev = $('.imgprev', fld), file = $('input[type=file]', fld);
-    function show(u) { prev.innerHTML = SP.isImg(u) ? '<img src="' + esc(u) + '" alt="">' : 'कोई फ़ोटो नहीं'; }
+    function show(u) { var has = SP.isImg(u); prev.innerHTML = has ? '<img src="' + esc(absU(u)) + '" alt="">' : 'कोई फ़ोटो नहीं'; var ub = $('[data-upl]', fld), cb = $('[data-clr]', fld); if (ub) ub.textContent = has ? '🔄 फ़ोटो बदलें (Replace)' : '📷 फ़ोटो अपलोड'; if (cb) cb.hidden = !has; }
+    $('[data-rlnk]', fld).addEventListener('click', function () { askMediaUrl('image', function (u) { inp.value = u; inp.setAttribute('data-full', u); show(u); }); });
     inp.addEventListener('input', function () { inp.setAttribute('data-full', inp.value.trim()); show(inp.value.trim()); });
     $('[data-clr]', fld).addEventListener('click', function () { inp.value = ''; inp.setAttribute('data-full', ''); show(''); });
     file.addEventListener('change', async function () {
@@ -256,7 +382,9 @@ function bindForm(root) {
   $$('.fld[data-t=images]', root).forEach(function (fld) {
     try { fld._list = JSON.parse(fld.getAttribute('data-v') || '[]'); } catch (e) { fld._list = []; }
     renderMimgs(fld);
-    fld.addEventListener('click', function (e) { var b = e.target.closest('[data-rmi]'); if (b) { fld._list.splice(+b.getAttribute('data-rmi'), 1); renderMimgs(fld); } });
+    fld.addEventListener('click', function (e) { var b = e.target.closest('[data-rmi]'); if (b) { fld._list.splice(+b.getAttribute('data-rmi'), 1); renderMimgs(fld); return; }
+      b = e.target.closest('[data-rpi]'); if (b) { var i = +b.getAttribute('data-rpi'); pickFile('image', async function (f) { try { fld._list[i] = await handleUpload(f); renderMimgs(fld); toast('🔄 फ़ोटो बदल गई'); } catch (er) { toast(er.message, true); } }); return; }
+      b = e.target.closest('[data-rli]'); if (b) { var j = +b.getAttribute('data-rli'); askMediaUrl('image', function (u) { fld._list[j] = u; renderMimgs(fld); }); } });
     $('[data-addurl]', fld).addEventListener('click', function () { var i = $('.inp', fld), u = i.value.trim(); if (!SP.isImg(u)) return toast('सही image URL डालें (https://...)', true); fld._list.push(u); i.value = ''; renderMimgs(fld); });
     var file = $('input[type=file]', fld);
     file.addEventListener('change', async function () {
@@ -268,6 +396,35 @@ function bindForm(root) {
       }
     });
   });
+  $$('.fld[data-t=media]', root).forEach(function (fld) {
+    fld.id = 'mf' + (++fid);
+    try { fld._list = SP.cleanMedia(JSON.parse(fld.getAttribute('data-v') || '[]')); } catch (e) { fld._list = []; }
+    renderMmed(fld);
+    fld.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-rmm]');
+      if (b) { var i = +b.getAttribute('data-rmm'); if (!fld._list[i]) return; var was = fld._list[i].main; fld._list.splice(i, 1); if (was && fld._list.length) fld._list[0].main = true; renderMmed(fld); return; }
+      b = e.target.closest('[data-rpm]'); if (b) { var pi = +b.getAttribute('data-rpm'), it = fld._list[pi]; if (!it) return; pickFile(it.type, async function (f) { try { var u = it.type === 'video' ? await handleVideo(f) : await handleUpload(f); fld._list[pi].url = u; renderMmed(fld); toast('🔄 बदल गया'); } catch (er) { toast(er.message, true); } }); return; }
+      b = e.target.closest('[data-rlm]'); if (b) { var li = +b.getAttribute('data-rlm'), it2 = fld._list[li]; if (!it2) return; askMediaUrl(it2.type, function (u) { fld._list[li].url = u; renderMmed(fld); }); return; }
+      var r = e.target.closest('[data-main]');
+      if (r) { var k = +r.getAttribute('data-main'); fld._list.forEach(function (x, j) { x.main = j === k; }); renderMmed(fld); }
+    });
+    $('[data-addurl]', fld).addEventListener('click', function () { var i = $('.inp', fld), u = i.value.trim(); if (!SP.isImg(u) || /^data:/i.test(u)) return toast('सही फ़ोटो URL डालें (https://...)', true); if (mediaAdd(fld, 'image', u)) i.value = ''; });
+    $('[data-addvurl]', fld).addEventListener('click', function () { var i = $('[data-vurl]', fld), u = i.value.trim(); if (!SP.isVideoUrl(u)) return toast('सही वीडियो URL डालें (https://...mp4)', true); if (mediaAdd(fld, 'video', u)) i.value = ''; });
+    $('[data-mph]', fld).addEventListener('change', async function (ev) {
+      var files = Array.prototype.slice.call(ev.target.files); ev.target.value = '';
+      for (var i = 0; i < files.length; i++) {
+        if (fld._list.length >= SP.MEDIA_MAX) { toast('ज़्यादा से ज़्यादा ' + SP.MEDIA_MAX + ' फ़ोटो/वीडियो', true); break; }
+        try { mediaAdd(fld, 'image', await handleUpload(files[i])); } catch (e) { toast(e.message, true); }
+      }
+    });
+    $('[data-mvd]', fld).addEventListener('change', async function (ev) {
+      var f = ev.target.files[0]; ev.target.value = ''; if (!f) return;
+      if (fld._list.length >= SP.MEDIA_MAX) return toast('ज़्यादा से ज़्यादा ' + SP.MEDIA_MAX + ' फ़ोटो/वीडियो', true);
+      if (fld._list.filter(function (x) { return x.type === 'video'; }).length >= SP.VIDEO_MAX) return toast('ज़्यादा से ज़्यादा ' + SP.VIDEO_MAX + ' वीडियो', true);
+      toast('⏳ वीडियो अपलोड हो रहा है…');
+      try { mediaAdd(fld, 'video', await handleVideo(f)); } catch (e) { toast(e.message, true); }
+    });
+  });
   $$('.fld[data-t=link]', root).forEach(function (fld) {
     var sel = $('[data-lt]', fld);
     linkTarget(fld, sel.value, fld.getAttribute('data-l'));
@@ -275,7 +432,7 @@ function bindForm(root) {
   });
 }
 function readForm(root, fields) {
-  var out = {}, ok = true;
+  var out = {}, ok = true, orig = fields; fields = enFields(fields);
   if (UP > 0) { toast('⏳ फ़ोटो अपलोड हो रही है, थोड़ा रुकें…', true); return null; }
   fields.forEach(function (f) {
     var fld = $$('.fld', root).filter(function (x) { return x.getAttribute('data-k') === f.k; })[0]; if (!fld) return;
@@ -286,6 +443,8 @@ function readForm(root, fields) {
       case 'lines': v = el.value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean); break;
       case 'image': v = ($('.imgurl', fld).getAttribute('data-full') || '').trim(); if (v && !SP.isImg(v)) err = 'URL https:// से शुरू होना चाहिए'; break;
       case 'images': v = (fld._list || []).slice(); break;
+      case 'media': v = SP.cleanMedia(fld._list || []); var ph = v.filter(function (x) { return x.type === 'image'; }), mm = SP.mainMedia({ media: v }), mp = mm && mm.type === 'image' ? mm : ph[0];
+        out.image = mp ? mp.url : ''; out.images = ph.filter(function (x) { return x !== mp; }).map(function (x) { return x.url; }); break;
       case 'multisec': v = $$('input:checked', fld).map(function (c) { return c.value; }); if (f.req && !v.length) err = 'कम से कम एक Section चुनें'; break;
       case 'link': var lt = $('[data-lt]', fld).value, tg = $('[data-ltgt] .inp', fld); out.linkType = lt; out.link = tg ? tg.value.trim() : '';
         if (lt === 'url' && !out.link) err = 'URL लिखें'; fld.classList.toggle('bad', !!err); $('.err', fld).textContent = err; $('.err', fld).classList.toggle('hide', !err); if (err) ok = false; return;
@@ -297,22 +456,48 @@ function readForm(root, fields) {
     if (err) ok = false;
     out[f.k] = v;
   });
+  enPairs(orig).forEach(function (x) {
+    var fe = $$('.fld', root).filter(function (y) { return y.getAttribute('data-k') === x.en.k; })[0], fh = $$('.fld', root).filter(function (y) { return y.getAttribute('data-k') === x.hi.k; })[0];
+    if (!fe || fh || out[x.en.k] === undefined) return;
+    if (out[x.en.k] !== (fe.getAttribute('data-orig') || '')) out[x.hi.k] = out[x.en.k];
+  });
   if (!ok) { var first = $('.fld.bad', root); if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' }); toast('लाल वाले फ़ील्ड ठीक करें', true); return null; }
   return out;
 }
 function applyTo(obj, vals) { for (var k in vals) setPath(obj, k, vals[k]); return obj; }
 
 /* ======================= save ======================= */
+/* Round 25: overwrite guard. The server compares the version we loaded with the version in the database; if someone else saved in between, we stop and ask. */
+var STORE_VER = null, FORCE_NEXT = false;
+async function readStoreVer() { try { var v = await SP.rpc('sp_store_ver', {}, 8000); STORE_VER = v && v.main ? v.main : null; } catch (e) { STORE_VER = null; } }
+async function saveStoreGuarded(data) {
+  var force = FORCE_NEXT; FORCE_NEXT = false;
+  if (STORE_VER == null) { await SP.rpc('sp_save_store', { p_pass: PASS, p_data: data }, 60000); readStoreVer(); return; }   /* old database without the guard: save as before */
+  try {
+    var r = await SP.rpc('sp_save_store2', { p_pass: PASS, p_data: data, p_expect: force ? null : STORE_VER }, 60000);
+    if (r && r.ver) STORE_VER = r.ver; else readStoreVer();
+  } catch (e) {
+    if (/Could not find the function|sp_save_store2|PGRST202|404/i.test(e.message) && !/STORE_CHANGED/.test(e.message)) { STORE_VER = null; await SP.rpc('sp_save_store', { p_pass: PASS, p_data: data }, 60000); return; }
+    if (/STORE_CHANGED/.test(e.message)) { e.conflict = true; }
+    throw e;
+  }
+}
+function conflictBox() {
+  var m = modal('⚠️ किसी और ने बदलाव कर दिया है', '<p style="font-size:15px;line-height:1.5">आपके खोलने के बाद <b>दूसरी विंडो / फ़ोन / व्यक्ति</b> ने Store या Shop में कुछ सेव किया है। अभी सेव करने पर उनका बदलाव मिट सकता है।</p><p style="font-size:14px;color:var(--mut);margin-top:6px">सुझाव: पहले ताज़ा डेटा लोड करें, फिर अपना बदलाव दोबारा करें।</p>', [
+    { l: 'फिर भी मेरा सेव करें', cls: 'red', fn: function () { FORCE_NEXT = true; save('✅ सेव हो गया (दूसरे का बदलाव बदल दिया)'); } },
+    { l: '🔄 ताज़ा डेटा लोड करें', fn: function () { dirty = false; boot(); } }]);
+  return m;
+}
 function save(msg) {
   saveChain = saveChain.then(async function () {
     var data = SP.normalize(D), size = JSON.stringify(data).length;
     try {
-      await SP.rpc('sp_save_store', { p_pass: PASS, p_data: data }, 60000);
+      await saveStoreGuarded(data);
       IS_DEMO = false; dirty = false; SP.ls.set(SP.CACHE_KEY, data);
       toast(msg || '✅ सेव हो गया — वेबसाइट पर लाइव');
       if (size > 4e6) toast('⚠️ डेटा बड़ा हो रहा है (' + Math.round(size / 1e6) + 'MB) — फ़ोटो Storage में अपलोड करें', true);
     } catch (e) {
-      dirty = true; toast('❌ सेव नहीं हुआ: ' + e.message, true);
+      dirty = true; if (e.conflict) { conflictBox(); } else toast('❌ सेव नहीं हुआ: ' + e.message, true);
       if (/wrong password/i.test(e.message)) return logout('पासवर्ड बदल गया है — दोबारा लॉगिन करें');
     }
     renderSaveBar();
@@ -330,14 +515,14 @@ window.addEventListener('beforeunload', function (e) { if (dirty || UP > 0) { e.
 
 /* ======================= login ======================= */
 function loginView(msg) {
-  app.innerHTML = '<div class="login"><div class="card" id="lgCard"><div class="empty"><span class="spin"></span></div></div></div>';
+  app.innerHTML = '<div class="login"><div style="text-align:right;margin-bottom:8px"><button type="button" class="btn sm out" data-sp-lang="long"></button></div><div class="card" id="lgCard"><div class="empty"><span class="spin"></span></div></div></div>';
   SP.rpc('crm_auth_mode', { p: {} }).then(function (m) { if (m && m.legacy) passLogin(msg); else otpLogin(); }, function (e) { if (/Could not find|PGRST202|schema cache/i.test(e.message)) passLogin(msg); else otpLogin(); });
   function otpLogin() {
     var c = $('#lgCard');
     c.innerHTML = (msg ? '<div class="note r">' + esc(msg) + '</div>' : '') + '<div id="authBox"></div><p style="margin-top:12px;text-align:center"><a href="' + esc(storeLink()) + '">← स्टोर पर जाएँ</a></p>';
     SPAuth.mount($('#authBox'), { app: 'admin', lang: 'hi', fixedId: 'admin', logo: 'icon-192.png', title: 'Admin Login', sub: 'Sunpowers Store',
       rpc: function (fn, p) { return SP.rpc(fn, { p: p }); },
-      onDone: async function (r) { PASS = r.token; SP.ss.set('sp_admin_pass', r.token); SP.ls.del('sp_admin_pass_keep'); $('#toast').className = 'toast'; await boot(); } });
+      onDone: async function (r) { SP.ss.del('sp_admin_mode'); PASS = r.token; SP.ss.set('sp_admin_pass', r.token); SP.ls.del('sp_admin_pass_keep'); $('#toast').className = 'toast'; await boot(); } });
   }
   function passLogin(m) {   /* only until the CRM database (crm-setup.sql) is installed */
     $('#lgCard').innerHTML = '<div style="text-align:center"><img src="icon-192.png" alt="" style="width:64px;height:64px;border-radius:16px;display:inline-block"></div><h2 style="text-align:center;margin-bottom:4px">Admin Login</h2>' +
@@ -352,21 +537,24 @@ function loginView(msg) {
       b.disabled = true; b.innerHTML = '<span class="spin"></span> जाँच हो रही है…';
       try {
         await SP.rpc('sp_admin_login', { p_pass: pw });
-        PASS = pw; SP.ss.set('sp_admin_pass', pw); $('#toast').className = 'toast'; if ($('#keep').checked) SP.ls.set('sp_admin_pass_keep', pw); else SP.ls.del('sp_admin_pass_keep');
+        SP.ss.del('sp_admin_mode'); PASS = pw; SP.ss.set('sp_admin_pass', pw); $('#toast').className = 'toast'; if ($('#keep').checked) SP.ls.set('sp_admin_pass_keep', pw); else SP.ls.del('sp_admin_pass_keep');
         await boot();
       } catch (err) { b.disabled = false; b.textContent = 'लॉगिन'; toast(/wrong password/i.test(err.message) ? '❌ गलत पासवर्ड' : err.message, true); }
     });
   }
 }
-function logout(msg) { clearInterval(POLL); if (isTok(PASS)) SP.rpc('crm_logout', { p: { token: PASS } }).catch(function () {}); PASS = ''; SP.ss.del('sp_admin_pass'); SP.ls.del('sp_admin_pass_keep'); D = null; dirty = false; renderSaveBar(); loginView(msg); }
+function logout(msg) { SP.ss.del('sp_admin_mode'); clearInterval(POLL); if (isTok(PASS)) SP.rpc('crm_logout', { p: { token: PASS } }).catch(function () {}); PASS = ''; SP._ut = ''; SP.ss.del('sp_admin_pass'); SP.ls.del('sp_admin_pass_keep'); D = null; dirty = false; renderSaveBar(); loginView(msg); }
 
 async function boot() {
   app.innerHTML = '<div class="empty"><span class="spin"></span> लोड हो रहा है…</div>';
   try {
     await SP.rpc('sp_admin_login', { p_pass: PASS });
+    await readStoreVer();   /* version is read BEFORE the data, so it is never newer than what we hold */
     var d = await SP.rpc('sp_get_store', {});
     if (d && isObj(d) && Array.isArray(d.layout)) { D = SP.normalize(d); IS_DEMO = false; } else { D = SP.normalize(SP.demo()); IS_DEMO = true; }
-    shell();
+    hdrConfig();
+    var md = SP.ss.get('sp_admin_mode');
+    if (md === 'web' || md === 'shop') openWeb(md === 'shop' ? 'shop' : 'site'); else if (md === 'store') shell(); else if (md === 'hub') webHub(); else chooser();
   } catch (e) {
     if (/wrong password/i.test(e.message)) return logout(isTok(PASS) ? 'लॉगिन का समय पूरा — PIN दोबारा डालें' : 'पासवर्ड गलत है या बदल गया है');
     app.innerHTML = '<div class="login"><div class="card"><h2>⚠️ डेटाबेस से कनेक्ट नहीं हो पाया</h2><p style="margin:8px 0">' + esc(e.message) + '</p>' +
@@ -376,34 +564,227 @@ async function boot() {
   }
 }
 
+/* ======================= chooser (level 1) → Website & Shop (level 2) / Store ======================= */
+var T_WEB = 'Website & Shop Management', T_STORE = 'App Store Management', T_DES = 'Website Management', T_SHOP = 'Shop Page Management', T_ANA = 'Website Analytics', T_CMP = 'Compare';
+var NAVC = null, DFILTER = false;
+/* Round 25: Shop Page menu also gets the Store tabs that are shared (same data, same screens). VIA = from which side the admin opened them. */
+var SHOP_SHARED = ['orders', 'enquiries', 'products', 'crm', 'pincode', 'sell', 'sub', 'delivery', 'sections', 'services', 'feedback', 'formguide', 'pages', 'settings', 'excel'];
+var SHOP_OWN = [['dash', '📊 डैशबोर्ड'], ['builder', '🧱 Web Shop Page Builder'], ['texts', '📝 Shop पेज के शब्द व बटन'], ['shop', '🛍️ कार्ट सेक्शन'], ['photos', '🖼️ Shop Media']];
+var VIA = SP.ss.get('sp_admin_via') === 'shop' ? 'shop' : 'store';
+function setVia(v) { VIA = v === 'shop' ? 'shop' : 'store'; SP.ss.set('sp_admin_via', VIA); }
+function modeTitle() { return VIA === 'shop' ? 'Shop Page' : T_STORE; }
+function viaBand(tab) {
+  if (SHOP_SHARED.indexOf(tab) >= 0) return VIA === 'shop' ? '<div class="via bo2"><i></i>🛍️ Web Shop ⇄ 🏪 Store App <small>— दोनों पर लागू: यहाँ का बदलाव दोनों जगह दिखेगा</small></div>' : '<div class="via bo"><i></i>🏪 Store App ⇄ 🛍️ Web Shop <small>— दोनों पर लागू: यहाँ का बदलाव दोनों जगह दिखेगा</small></div>';
+  return '<div class="via st"><i></i>🏪 सिर्फ़ Store App <small>— Shop पेज (वेबसाइट) पर असर नहीं</small></div>';
+}
+function sharedItems(via) {
+  syncTabs();
+  return TABS.filter(function (t) { return SHOP_SHARED.indexOf(t[0]) >= 0; }).map(function (t) { var i = t[1].indexOf(' ');
+    return { group: via === 'shop' ? 'Store + Shop (साझा)' : T_STORE, ic: t[1].slice(0, i), l: t[1].slice(i + 1).replace(/^स्टोर सेटिंग्स.*/, 'सेटिंग्स (जानकारी, रंग व ग्रीटिंग)'), kw: t[0], cnt: NAVC && ({ orders: (NAVC.orders_new || 0) + (NAVC.pay_pending || 0), enquiries: NAVC.enquiries_new, crm: NAVC.crm_pending })[t[0]] || '', on: inStore() && TAB === t[0], fn: function () { setVia(via); SP.ss.set('sp_admin_tab', t[0]); TAB = t[0]; shell(); } }; });
+}
+function shopOwnItems() { return SHOP_OWN.map(function (t) { var i = t[1].indexOf(' '); return { group: 'Shop Page', ic: t[1].slice(0, i), l: t[1].slice(i + 1), kw: t[0], on: false, fn: function () { setVia('shop'); openWeb('shop', t[0]); } }; }); }
+function topBar(title, back, extra) { return SPHDR.bar({ title: title, back: back, filter: extra === 'filter' }); }
+function dashFilter() { var c = SPDASH.ctl; return { ranges: c ? c.ranges() : [], pick: function (v) { var c2 = SPDASH.ctl; if (!c2) return; if (v === 'ref') c2.refresh(); else if (v === 'csv') c2.csv(); else c2.set(v); } }; }
+function hubBind(back, withFilter) { SPHDR.bind({ back: back, filter: withFilter ? dashFilter : null }); SPHDR.refresh(); if (window.SPLOOK) SPLOOK.again(); }
+function bigBtn(id, ic, t, sub, cls) { return '<button class="btn full' + (cls ? ' ' + cls : '') + '" id="' + id + '" style="padding:18px 16px;font-size:17px;margin-bottom:10px;justify-content:flex-start;text-align:left;white-space:normal"><span style="font-size:26px;margin-right:6px">' + ic + '</span>' + esc(t) + '</button>'; }
+function stripHost() { return '<div id="kpiStrip"></div>'; }
+function loadStrip(kind) { var h = $('#kpiStrip'); if (h && window.SPDASH) SPDASH.strip(h, { kind: kind, rpc: function (fn, p) { return SP.rpc(fn, p, 60000); }, pass: function () { return PASS; }, onData: function (a) { SPHDR.setAlerts(a); } }); }
+function storeTabItems() { syncTabs(); return TABS.map(function (t) { var i = t[1].indexOf(' '); return { group: T_STORE, ic: t[1].slice(0, i), l: t[1].slice(i + 1), kw: t[0], cnt: NAVC && ({ orders: (NAVC.orders_new || 0) + (NAVC.pay_pending || 0), enquiries: NAVC.enquiries_new, crm: NAVC.crm_pending })[t[0]] || '', on: TAB === t[0], fn: function () { setVia('store'); SP.ss.set('sp_admin_tab', t[0]); TAB = t[0]; shell(); } }; }); }
+function inWeb() { var m = SP.ss.get('sp_admin_mode'); return (m === 'web' || m === 'shop') && window.SPWEB && SPWEB.nav; }
+function inStore() { return SP.ss.get('sp_admin_mode') === 'store'; }
+function navItems() {
+  if (inWeb()) { var nb = SPWEB.nav(); if (SP.ss.get('sp_admin_mode') !== 'shop') return nb; return nb.filter(function (x) { return x.group === 'Shop Page'; }).concat(sharedItems('shop'), nb.filter(function (x) { return x.group !== 'Shop Page'; })); }
+  if (inStore()) return VIA === 'shop' ? shopOwnItems().concat(sharedItems('shop'), window.SPBK ? SPBK.items('shop') : []) : storeTabItems().concat(window.SPBK ? SPBK.items('store') : []);
+  return [{ group: 'Home', ic: '🏠', l: 'Main menu', kw: 'home', fn: chooser },
+    { group: T_WEB, ic: '🎨', l: T_DES, kw: 'website design', fn: function () { openWeb('site'); } }, { group: T_WEB, ic: '🛍️', l: T_SHOP, kw: 'shop', fn: function () { openWeb('shop'); } },
+    { group: T_WEB, ic: '📊', l: T_ANA, kw: 'analytics visitors', fn: function () { dashScreen('web', webHub); } }, { group: T_WEB, ic: '⚖️', l: T_CMP, kw: 'compare', fn: function () { dashScreen('compare', chooser); } }]
+    .concat(storeTabItems()).concat([{ group: 'Settings', ic: '⚙️', l: 'Admin Settings', kw: 'colour greeting look', fn: adminSettings }]);
+}
+/* CRM link: live admin → live CRM; preview admin (…-admin-git-branch…) → matching preview CRM (…-crm-git-branch…) */
+/* Round 26: CRM opens only from here — Admin login first, then a one-time 60-second ticket that the CRM verifies on the server. */
+/* Round 27: the CRM door is the Admin panel. This window shows who is in the CRM (Admin + every CRM user) and opens the CRM as Admin. */
+var ROLE_HI = { admin: 'Admin', manager: 'Manager', staff: 'Staff', dealer: 'Dealer', marketing: 'Marketing', influencer: 'Influencer' };
+async function openCrm() {
+  var users = [], err = '';
+  try { users = await SP.rpc('sp_admin_crm_users', { p_pass: PASS }) || []; } catch (e) { err = e.message || 'list nahi mili'; }
+  var adm = users.filter(function (u) { return u.role === 'admin'; }), oth = users.filter(function (u) { return u.role !== 'admin'; });
+  function row(u) { return '<div class="row"><div class="th">' + (u.role === 'admin' ? '👑' : '👤') + '</div><div class="rm"><b>' + esc(u.name || u.username) + '</b> <span class="tag' + (u.role === 'admin' ? ' o' : '') + '">' + esc(ROLE_HI[u.role] || u.role) + '</span>' + (u.status !== 'active' ? ' <span class="tag r">' + esc(u.status) + '</span>' : '') + '<small>' + esc([u.mobile, u.email].filter(Boolean).join(' • ') || '—') + (u.pin_set ? '' : ' • PIN set nahi hua') + '</small></div></div>'; }
+  modal('🔗 CRM — Admin ke raaste se', '<div class="note g">CRM ka darwaza sirf Admin panel hai. Neeche "Admin ke roop me CRM kholein" dabayein — CRM naye tab me Admin ke roop me khulta hai. Baaki users apni ID / PIN se CRM me jaate hain (wahi screen par jahan woh Admin ne banayi).</div>' +
+    '<div class="bar"><button class="btn" id="crmGo">🔗 Admin ke roop me CRM kholein</button></div>' +
+    '<b>👑 Admin (' + adm.length + ')</b>' + (adm.map(row).join('') || '<div class="empty" style="padding:8px">Abhi CRM me Admin user nahi bana — upar wale button se CRM kholte hi ban jata hai.</div>') +
+    '<b style="display:block;margin-top:10px">👥 Baaki CRM users (' + oth.length + ')</b>' + (oth.map(row).join('') || '<div class="empty" style="padding:8px">Abhi koi aur CRM user nahi — CRM → Team se banayein.</div>') + (err ? '<div class="note r">' + esc(err) + '</div>' : ''),
+    [{ l: 'Band karein', cls: 'gray' }], function (md) { var g = $('#crmGo', md.body); if (g) g.onclick = function () { goCrm(); }; });
+}
+async function goCrm() {
+  var base = crmLink(); if (!base) return toast('CRM link set nahi hai', true);
+  var w = window.open('about:blank', '_blank');
+  try { var r = await SP.rpc('sp_admin_crm_ticket', { p_pass: PASS }); if (!r || !r.ticket) throw new Error('Ticket nahi bana');
+    if (w) { try { w.opener = null; } catch (e) {} w.location.href = base.replace(/#.*$/, '') + '#h=' + r.ticket; } else location.href = base.replace(/#.*$/, '') + '#h=' + r.ticket;
+  } catch (e) { if (w) w.close(); toast(e.message || 'CRM nahi khul paya', true); }
+}
+function crmLink() { if (/(^|\.)sunpowers\.in$/.test(location.hostname)) return CFG.CRM_URL || ''; return stagingSibling('crm'); }
+function navLinks() { if (inStore() && VIA === 'shop') return siteLink() ? [{ ic: '🌐', l: 'View Website', href: siteLink() }, { ic: '🏪', l: 'View Store', href: storeLink() }] : [{ ic: '🏪', l: 'View Store', href: storeLink() }]; if (inStore()) return [{ ic: '🏪', l: 'View Store', href: storeLink() }]; if (inWeb()) return siteLink() ? [{ ic: '🌐', l: 'View Website', href: siteLink() }] : []; var l = [{ ic: '🏪', l: 'View Store', href: storeLink() }]; if (siteLink()) l.push({ ic: '🌐', l: 'View Website', href: siteLink() }); if (crmLink()) l.push({ ic: '📊', l: 'CRM', href: crmLink() }); return l; }
+function hdrConfig() {
+  SPHDR.config({ title: function () { if (inStore()) return modeTitle(); if (inWeb()) return SP.ss.get('sp_admin_mode') === 'shop' ? 'Shop Page' : 'Website Management'; return (D && D.settings && D.settings.storeName ? D.settings.storeName : 'Sunpowers') + ' Admin'; }, items: navItems, logout: function () { logout(); },
+    alerts: async function () {
+      var out = []; try { var c = NAVC || await SP.rpc('sp_admin_counts', { p_pass: PASS }); if (c.orders_new) out.push({ c: 'r', t: '📦 ' + c.orders_new + ' new order(s)' }); if (c.pay_pending) out.push({ c: 'y', t: '💳 ' + c.pay_pending + ' payment(s) to verify' }); if (c.enquiries_new) out.push({ c: 'y', t: '📞 ' + c.enquiries_new + ' new enquiry' }); if (c.crm_pending) out.push({ c: 'y', t: '🔗 ' + c.crm_pending + ' CRM item(s) to review' }); } catch (e) {}
+      if (STK && STK.count) out.push({ c: 'r', t: '⚠️ Stock alert: ' + STK.count + ' item(s)' });
+      if (!inStore()) try { var D2 = await SP.rpc('sp_admin_analytics', { p_pass: PASS, p_days: 7 }); SPDASH.alertItems(D2, 'compare').forEach(function (x) { if (x[0] !== 'g' && /^(📉|🛒)/.test(x[1])) out.push({ c: x[0], t: x[1] }); }); } catch (e) {}
+      return out;
+    } });
+  SPHDR.config({ links: navLinks });
+}
+function chooser() {
+  clearInterval(POLL); SP.ss.del('sp_admin_mode');
+  app.innerHTML = topBar('Sunpowers Admin', false) + '<main id="chooser" style="max-width:560px;margin:0 auto;padding:14px 16px">' + stripHost() +
+    bigBtn('chW', '🌐', T_WEB) + bigBtn('chS', '🛒', T_STORE, '', 'out') + (crmLink() ? bigBtn('chR', '📊', 'CRM Management', 'Leads, quotation, staff', 'out') : '') +
+    '<div class="bar" style="margin-top:2px"><button class="btn sm out" id="chC" aria-label="' + T_CMP + '">⚖️ ' + T_CMP + '</button><button class="btn sm out" id="chA" aria-label="Admin Settings">⚙️ Settings</button></div></main>';
+  $('#chW').onclick = webHub; $('#chS').onclick = function () { setVia('store'); TAB = 'dash'; SP.ss.set('sp_admin_tab', 'dash'); shell(); };
+  $('#chC').onclick = function () { dashScreen('compare', chooser); }; $('#chA').onclick = function () { adminSettings(); };
+  var chR = $('#chR'); if (chR) chR.onclick = openCrm;
+  hubBind(null); loadStrip('web');
+}
+function webHub() {
+  clearInterval(POLL); SP.ss.set('sp_admin_mode', 'hub');
+  app.innerHTML = topBar('Website & Shop', true) + '<main style="max-width:560px;margin:0 auto;padding:14px 16px">' + stripHost() +
+    bigBtn('hbW', '🎨', T_DES) + bigBtn('hbS', '🛍️', T_SHOP, '', 'out') + bigBtn('hbD', '📊', T_ANA, '', 'out') + '<div class="bar"><button class="btn sm out" id="hbC">⚖️ ' + T_CMP + '</button><button class="btn sm out" id="hbV">🎬 Website Videos</button></div></main>';
+  hubBind(chooser); loadStrip('web');
+  $('#hbW').onclick = function () { openWeb('site'); }; $('#hbS').onclick = function () { openWeb('shop'); };
+  $('#hbD').onclick = function () { dashScreen('web', webHub); }; $('#hbC').onclick = function () { dashScreen('compare', webHub); }; $('#hbV').onclick = videoLib;
+}
+var VLIB = [['home', 'Sunpowers overview', 'Home, Services'], ['residential', 'Ghar ke liye solar (3–30 kW)', 'Residential'], ['commercial', 'Commercial solar (10–200 kW)', 'Commercial'], ['industrial', 'Factory solar (100 kW–2 MW)', 'Industrial'], ['ongrid', 'On-Grid solar', 'On-Grid'], ['offgrid', 'Off-Grid solar', 'Off-Grid'], ['hybrid', 'Hybrid solar', 'Hybrid'], ['vfd', 'Solar VFD (pump / chakki)', 'VFD'], ['subsidy', 'PM Surya Ghar subsidy', 'Subsidy, Home'], ['finance', 'Loan, EMI aur payback', 'Finance'], ['install', 'Installation', 'Installation, About'], ['shifting', 'Plant shifting', 'Installation & Shifting'], ['cleaning', 'Panel cleaning', 'Cleaning'], ['maintenance', 'Maintenance aur audit', 'Maintenance, Home'], ['detector', 'Error Detector', 'Error Detector'], ['blueprint', 'Blue Print', 'Blue Print'], ['calculator', 'Solar calculator', 'Calculator'], ['buy', 'Online store se order', 'Shop, Home'], ['experts', 'Sunpowers hai to! Bharosa hai!', 'Home (Support), Experts'], ['myplant', 'Meri Plant (Plant ID)', 'Experts']];
+function videoLib() {
+  clearInterval(POLL); var base = siteLink().replace(/\/+$/, '');
+  app.innerHTML = topBar('Website Videos', true) + '<main style="max-width:1000px;margin:0 auto;padding:12px 16px"><p style="color:#5a6b5f;margin:4px 0 12px">Website par chalne wale sabhi explainer videos. Download sirf yahin (Admin) se milta hai — website par visitor ko download button nahi dikhta.</p>' + (base ? '' : '<div class="note r">Website ka link set nahi hai (config: SITE_URL) — videos preview nahi honge.</div>') +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px">' + VLIB.map(function (v) { var u = base + '/assets/video/' + v[0];
+      return '<div class="card" style="padding:10px"><video controls preload="none" playsinline controlsList="nodownload" poster="' + esc(u) + '.jpg" src="' + esc(u) + '.mp4" style="width:100%;border-radius:10px;background:#0b2e1f;aspect-ratio:16/9"></video><b style="display:block;margin-top:8px">' + esc(v[1]) + '</b><small style="color:#5a6b5f">Page: ' + esc(v[2]) + '</small><div class="bar" style="margin-top:8px"><button class="btn sm" data-vdl="' + v[0] + '">⬇ Download</button></div></div>'; }).join('') + '</div></main>';
+  hubBind(webHub);
+  app.querySelectorAll('[data-vdl]').forEach(function (b) { b.onclick = function () {
+    var k = b.getAttribute('data-vdl'), u = base + '/assets/video/' + k + '.mp4'; b.disabled = true;
+    fetch(u).then(function (r) { if (!r.ok) throw 0; return r.blob(); }).then(function (bl) { var a = document.createElement('a'); a.href = URL.createObjectURL(bl); a.download = 'sunpowers-' + k + '.mp4'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 3000); b.disabled = false; })
+      .catch(function () { b.disabled = false; window.open(u, '_blank'); toast('Video naye tab me khula — wahin se save karein'); }); }; });
+}
+function dashScreen(kind, back) {
+  clearInterval(POLL); app.innerHTML = topBar(kind === 'compare' ? T_CMP : 'Analytics', true, 'filter') + '<main style="max-width:1100px;margin:0 auto;padding:12px" id="dsHost"></main>'; hubBind(back, true);
+  SPDASH.mount($('#dsHost'), { kind: kind, rpc: function (fn, p) { return SP.rpc(fn, p, 60000); }, pass: function () { return PASS; }, toast: toast, onData: function (a) { SPHDR.setAlerts(a); }, productTitle: function (id) { var p = D && D.products && D.products.filter(function (x) { return x.id === id; })[0]; return p ? p.title : ''; } });
+}
+function lookIO() { return SPLOOKUI.adminIO(function (fn, p) { return SP.rpc(fn, p, 30000); }, function () { return PASS; }); }
+function adminSettings() {
+  clearInterval(POLL); app.innerHTML = topBar('Admin Settings', true) + '<main style="max-width:760px;margin:0 auto;padding:12px" id="lkHost"></main>'; hubBind(chooser);
+  var io = lookIO(); SPLOOKUI.mount($('#lkHost'), { app: 'admin', label: 'Admin पैनल', lang: 'hi', livePanel: true, load: io.load, save: io.save, users: io.users, toast: toast });
+}
+/* photos / videos placed inside the page-builder sections of one page ('store' or 'shop') - used by Shop Media (website admin) */
+function builderMedia(pg) {
+  var out = [], seen = {};
+  try {
+    var c = SPBLD.norm(D && D.builder);
+    (c.order[pg] || []).forEach(function (id) {
+      var cp = c.comps[id]; if (!cp) return;
+      (function scan(v, key) {
+        if (typeof v === 'string') { var u = v.trim(); if (!/^(https?:\/\/|\/img\/)/i.test(u) || seen[u]) return; if (!/(image|img|poster|photo|url|link)/i.test(key || '')) return; seen[u] = 1; var vid = /\.(mp4|webm)(\?|$)|youtu/i.test(u) || /\/video\//i.test(u); if (!vid && /^url$|link/i.test(key || '') && !/\.(jpe?g|png|webp|gif|svg)(\?|$)/i.test(u)) return; out.push({ kind: vid ? 'video' : 'photos', name: (cp.name || cp.type) + '-' + out.length, url: u }); }
+        else if (Array.isArray(v)) v.forEach(function (x) { scan(x, key); });
+        else if (v && typeof v === 'object') Object.keys(v).forEach(function (k) { scan(v[k], k); });
+      })(cp.cfg, '');
+    });
+  } catch (e) {}
+  return out;
+}
+function builderMediaSet(pg, old, nv) {
+  var n = 0;
+  try { var c = SPBLD.norm(D && D.builder); (c.order[pg] || []).forEach(function (id) { var cp = c.comps[id]; if (cp) n += deepRep(cp.cfg, old, nv); }); if (n) D.builder = c; } catch (e) {}
+  return n;
+}
+function openWeb(scope, tab) {
+  clearInterval(POLL); scope = scope || 'site'; if (scope === 'shop') setVia('shop');
+  window.SPWEB.open({
+    app: app, rpc: SP.rpc, pass: function () { return PASS; }, toast: toast, ask: ask, logout: logout, upload: handleUpload, uploadVideo: handleVideo, siteLink: siteLink, scope: scope, tab: tab || '', openShop: function () { openWeb('shop', 'builder'); }, downloadMedia: downloadMedia,
+    setMode: function (m) { SP.ss.set('sp_admin_mode', m); }, showStore: function () { webHub(); }, back: webHub,
+    productTitle: function (id) { var p = D && D.products && D.products.filter(function (x) { return x.id === id; })[0]; return p ? p.title : ''; },
+    saveStore: function (m) { return save(m); },
+    builder: { media: builderMedia, mediaSet: builderMediaSet, html: function () { return SPBA.html(); }, bind: function (m) { SPBA.bind(m); }, reset: function () { SPBA.reset(); }, use: function (render, pg) { initBuilder(render); SPBA.setPage(pg, !!pg); } }
+  });
+}
+SPBK.init({ rpc: function (fn, p, ms) { return SP.rpc(fn, p, ms); }, pass: function () { return PASS; }, toast: toast, ask: ask, modal: modal, download: download, normalize: function (d) { return SP.normalize(d); }, demo: function () { return SP.demo(); },
+  setD: function (d2) { D = d2; IS_DEMO = false; dirty = false; },
+  reopen: function (scope) { if (scope === 'store') shell(); else openWeb(scope === 'shop' ? 'shop' : 'site'); } });
+function initBuilder(renderFn) {
+  SPBA.init({ D: function () { return D; }, save: save, toast: toast, modal: modal, ask: ask, F: F, FA: FA, readForm: readForm, bindForm: bindForm, render: renderFn });
+}
+/* the Store Admin tabs: dashboard + look */
+function leaveWebBuilder() { initBuilder(function () { if (TAB === 'builder') render(); }); SPBA.setPage('store', true); }
+
 /* ======================= shell & tabs ======================= */
-var TABS = [['layout', '🏠 होम लेआउट'], ['products', '📦 प्रोडक्ट्स'], ['sections', '🗂️ सेक्शन'], ['slides', '🖼️ स्लाइडशो'], ['services', '🛠️ सर्विसेज़'],
-  ['feedback', '⭐ फ़ीडबैक'], ['videos', '▶️ वीडियो'], ['formguide', '📝 फ़ॉर्म व गाइड'], ['pages', '📄 पेज/पॉलिसी'], ['orders', '🧾 ऑर्डर'], ['enquiries', '📨 पूछताछ'], ['crm', '🔗 CRM से आए प्रोडक्ट'], ['excel', '📊 Excel / Feed'], ['settings', '⚙️ सेटिंग्स']];
+var TABS_FULL = [['dash', '📊 डैशबोर्ड'], ['orders', '🧾 ऑर्डर'], ['enquiries', '📨 पूछताछ'], ['products', '📦 प्रोडक्ट्स'], ['crm', '🔗 CRM से आए प्रोडक्ट'], ['pincode', '📍 पिनकोड'], ['sell', '🗺️ कहाँ बेचना है'], ['sub', '🏛️ सब्सिडी'], ['delivery', '🚚 डिलीवरी रेट'], ['builder', '🧱 Store App Page Builder'], ['sections', '🗂️ सेक्शन'], ['services', '🛠️ सर्विसेज़'],
+  ['feedback', '⭐ फ़ीडबैक'], ['videos', '🖼️ App मीडिया'], ['formguide', '📝 फ़ॉर्म व गाइड'], ['pages', '📄 पेज/पॉलिसी'], ['settings', '⚙️ स्टोर सेटिंग्स (जानकारी, रंग व ग्रीटिंग)'], ['excel', '📊 Excel / Feed']];
+var TABS = TABS_FULL.slice();
+/* Round 22: the old Home-layout and Slideshow tabs do nothing once the Store App Page Builder is ON (it replaces them) - hide them then, show them again if the builder is turned off */
+/* Round 30: Section menu <-> Page Builder stay in step: a new section gets its own Product Row, a deleted section loses it */
+function bldSecAdd(ns) { try { var c = SPBLD.norm(D.builder); if (SPBLD.addSecRow(c, ns)) { D.builder = c; if (window.SPBA) SPBA.reset(); } } catch (e) {} }
+function bldSecSync(o, nw) { try { var c = SPBLD.norm(D.builder); if (SPBLD.syncSecRows(c, o, nw)) { D.builder = c; if (window.SPBA) SPBA.reset(); } } catch (e) {} }
+function bldSecDrop(id) { try { var c = SPBLD.norm(D.builder); if (SPBLD.dropSecRows(c, id)) { D.builder = c; if (window.SPBA) SPBA.reset(); } } catch (e) {} }
+/* is this section drawn on the Store page? (Page Builder when it is the source, else the old layout) */
+function secOnHome(id) { try { var c = SPBLD.norm(D.builder); if (c.sv) return Object.keys(c.comps).some(function (k) { var o = c.comps[k]; return o.pages.store && ((o.type === 'product_row' && o.cfg.sec === id) || (o.type === 'raw_category' && (o.cfg.boxes || []).some(function (b) { return b.sec === id; }))); }); } catch (e) {} return D.layout.some(function (b) { return b.ref === id; }); }
+function builderOn() { try { return !!(window.SPBLD && D && SPBLD.isOn(SPBLD.norm(D.builder), 'store')); } catch (e) { return false; } }
+function syncTabs() { var on = builderOn(); TABS.length = 0; TABS_FULL.forEach(function (t) { if (on && (t[0] === 'layout' || t[0] === 'slides')) return; TABS.push(t); }); }
+var HINTS = {builder: 'Store और Shop पेज के सेक्शन यहाँ बनाएँ — जोड़ें, क्रम बदलें, छुपाएँ, नाम बदलें। पहले प्रीव्यू देखें, फिर "बिल्डर चालू" टिक करके 💾 सेव करें। बंद रखने पर पुराना लेआउट बिलकुल वैसा ही रहता है। प्रोडक्ट किस सेक्शन/बॉक्स में दिखेंगे वो "🔗 CRM से आए प्रोडक्ट" में Publish के समय चुनें।', layout: 'होम पेज पर कौन-सा सेक्शन किस क्रम में दिखे — ऊपर/नीचे करें, फिर नीचे Save दबाएँ।', products: 'प्रोडक्ट यहाँ सिर्फ़ देखने/छुपाने के लिए है। नया प्रोडक्ट, कीमत और स्टॉक CRM → Inventory में बदलें — वही सबका एक स्रोत है।', pincode: 'कौन-सा प्रोडक्ट किन पिनकोड पर बिकेगा / नहीं बिकेगा — सभी पिनकोड, State, District, Custom Area या ख़ास पिनकोड के हिसाब से। Excel से भी डालें/हटाएँ।', sections: 'स्टोर के सेक्शन/कैटेगरी के नाम और क्रम। बदलाव के बाद Save दबाना ज़रूरी है।', slides: 'होम की स्लाइड फ़ोटो। साफ़ चौड़ी फ़ोटो लगाएँ; ज़्यादा भारी फ़ोटो न डालें।', services: 'सर्विस कार्ड — नाम, छोटा विवरण और बटन।', feedback: 'ग्राहकों के असली रिव्यू ही डालें। नकली रिव्यू न लगाएँ।', videos: 'YouTube/Cloudinary वीडियो का लिंक चिपकाएँ — वीडियो अपने सर्वर पर सेव नहीं होता।', media: 'वेबसाइट के लिए फ़ोटो/वीडियो। वेबसाइट बदलने के लिए ऊपर Website Admin दबाएँ।', formguide: 'ग्राहक फ़ॉर्म के सवाल और गाइड का टेक्स्ट।', pages: 'Privacy, Terms, Refund जैसे पेज। कानूनी बातें बदलने से पहले किसी जानकार से पूछ लें।', orders: 'ऑर्डर यहीं से देखें व स्टेटस बदलें। हर ऑर्डर का एक ही सीरियल नंबर (ORD/…) CRM बिलिंग से जुड़ता है।', enquiries: 'ग्राहक की पूछताछ। जवाब देने के बाद स्टेटस बदलें; पुरानी बंद पूछताछ CRM → Settings → Storage & Safai से साफ़ होती है।', crm: 'ये प्रोडक्ट CRM Inventory से आए हैं। इन्हें बदलने के लिए CRM में जाएँ।', excel: 'Excel से कई प्रोडक्ट एक साथ डालें। पहले नमूना फ़ाइल डाउनलोड करके वैसा ही रखें।', settings: 'स्टोर का नाम, फ़ोन, पेमेंट और शिपिंग। कोई पासवर्ड/API key यहाँ सार्वजनिक नहीं होती।'};
+function hintBar(t) { return HINTS[t] ? '<div class="note g" data-hint>💡 ' + esc(HINTS[t]) + '</div>' : ''; }
 function shell() {
-  app.innerHTML = '<div class="top"><div class="top-in"><h1><img src="logo-mark.png" alt="" style="height:30px;vertical-align:-7px;margin-right:6px">' + esc(D.settings.storeName) + ' Admin</h1><a class="btn sm out" href="' + esc(storeLink()) + '" target="_blank" rel="noopener">🌐 स्टोर देखें</a>' + (CFG.CRM_URL ? '<a class="btn sm out" href="' + esc(CFG.CRM_URL) + '" target="_blank" rel="noopener">📊 CRM</a>' : '') + '<button class="btn sm gray" id="lo">लॉगआउट</button></div>' +
-    '<div class="tabs">' + TABS.map(function (t) { return '<button class="tab" data-tab="' + t[0] + '">' + t[1] + '<span class="tcnt hide" data-cnt="' + t[0] + '"></span></button>'; }).join('') + '</div></div><main id="main"></main>';
-  startPolling();
-  $('#lo').onclick = async function () { if (dirty && !(await ask('कुछ बदलाव सेव नहीं हुए हैं। फिर भी लॉगआउट करें?', 'लॉगआउट', true))) return; logout(); };
-  $$('.tab').forEach(function (b) { b.onclick = function () { showTab(b.getAttribute('data-tab')); }; });
-  showTab(TABS.some(function (t) { return t[0] === TAB; }) ? TAB : 'layout');
+  syncTabs();
+  app.innerHTML = SPHDR.bar({ title: modeTitle(), back: true, filter: true }) + '<main id="main"></main>';
+  startPolling(); leaveWebBuilder();
+  SP.ss.set('sp_admin_mode', 'store');
+  SPHDR.bind({ back: function () { clearInterval(POLL); if (VIA === 'shop') webHub(); else chooser(); }, filter: function () { return dashFilter(); } }); SPHDR.refresh();
+  showTab(TABS.some(function (t) { return t[0] === TAB; }) ? TAB : 'dash');
 }
 function showTab(t) {
+  syncTabs(); if (t === 'media' || t === 'look') t = t === 'look' ? 'settings' : 'videos'; if (!TABS.some(function (x) { return x[0] === t; })) t = 'dash';
   TAB = t; SP.ss.set('sp_admin_tab', t);
   if (t === 'orders' || t === 'enquiries') LISTDATA[t] = null;
   if (t === 'crm') CRMITEMS = null;
-  $$('.tab').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === t); });
-  var on = $('.tab.on'); if (on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest', inline: 'center' });
+  if (t === 'pincode') SPPIN.reset();
+  if (t === 'sell') SPSELL.reset();
+  if (t === 'sub') SPSUB.reset();
+  if (t === 'delivery') SPSHIP.reset();
+  if (t === 'builder') SPBA.reset();
+  var ttl = document.querySelector('.hd-t span'); if (ttl) ttl.textContent = modeTitle() + ' — ' + (TABS.filter(function (x) { return x[0] === t; })[0] || ['', ''])[1].replace(/^\S+\s/, ''); var fb = document.querySelector('.hd [data-hd="filter"]'); if (fb) fb.classList.toggle('hide', t !== 'dash');
   render();
+}
+/* Round 13: CRM stock alerts (online share under 20% / out of stock) on the Store Admin screens */
+var STK = null, STKTABS = ['layout', 'products', 'crm', 'orders'];
+function paintStk() {
+  var b = $('#stkBn'); if (!b) return;
+  if (!STK || !STK.count) { b.innerHTML = ''; return; }
+  var it = STK.items || [], out = it.filter(function (x) { return x.level === 'out'; }).length;
+  b.innerHTML = '<div class="note r" data-stk>⚠️ <b>स्टॉक अलर्ट:</b> ' + STK.count + ' आइटम में ऑनलाइन स्टोर का ' + STK.pct + '% हिस्सा सुरक्षित नहीं है' + (out ? ' (' + out + ' खत्म)' : '') + '<br><small>' + it.slice(0, 6).map(function (x) { return esc(x.name) + ' — ' + (x.level === 'out' ? 'खत्म' : 'बचा ' + x.left_pct + '%'); }).join(' • ') + (it.length > 6 ? ' • +' + (it.length - 6) + ' और' : '') + '</small></div>';
 }
 function render() {
   var old = $('#main'); if (!old) return;
   var m = old.cloneNode(false); old.parentNode.replaceChild(m, old);
-  var demo = IS_DEMO ? '<div class="note">🧪 <b>अभी डेमो डेटा दिख रहा है</b> (डेटाबेस में अभी कुछ सेव नहीं है)। कोई भी बदलाव सेव करते ही ये सब आपकी वेबसाइट पर लाइव हो जाएगा। <button class="btn sm" id="pubDemo" style="margin-top:6px">✅ डेमो डेटा अभी पब्लिश करें</button></div>' : '';
-  try { m.innerHTML = demo + (V[TAB] ? V[TAB]() : ''); if (V[TAB + '_bind']) V[TAB + '_bind'](m); }
+  var demo = IS_DEMO ? '<div class="note">🧪 <b>अभी शुरुआती डेटा दिख रहा है</b> (डेटाबेस में अभी कुछ सेव नहीं है)। कोई भी बदलाव सेव करते ही ये सब आपकी वेबसाइट पर लाइव हो जाएगा। <button class="btn sm" id="pubDemo" style="margin-top:6px">✅ शुरुआती डेटा अभी पब्लिश करें</button></div>' : '';
+  try { m.innerHTML = demo + viaBand(TAB) + (STKTABS.indexOf(TAB) >= 0 ? '<div id="stkBn"></div>' : '') + hintBar(TAB) + (V[TAB] ? V[TAB]() : ''); if (V[TAB + '_bind']) V[TAB + '_bind'](m); }
   catch (e) { console.error(e); m.innerHTML = '<div class="note r">Error: ' + esc(e.message) + '</div>'; }
-  var pd = $('#pubDemo'); if (pd) pd.onclick = function () { save('✅ डेमो डेटा पब्लिश हो गया').then(render); };
+  paintStk();
+  var pd = $('#pubDemo'); if (pd) pd.onclick = function () { save('✅ शुरुआती डेटा पब्लिश हो गया').then(render); };
 }
 var V = {};
+SPSH.init({ modal: modal, toast: toast, esc: esc, rpc: function (fn, p) { return SP.rpc(fn, p); }, pass: function () { return PASS; }, download: download, today: today });
+SPPIN.init({ rpc: function (fn, p, ms) { return SP.rpc(fn, p, ms); }, pass: function () { return PASS; }, products: function () { return (D && D.products) || []; }, toast: toast, ask: ask, modal: modal, download: download, today: today, render: function () { if (TAB === 'pincode') render(); } });
+SPSELL.init({ rpc: function (fn, p, ms) { return SP.rpc(fn, p, ms); }, pass: function () { return PASS; }, products: function () { return (D && D.products) || []; }, toast: toast, ask: ask, modal: modal, render: function () { render(); } });
+SPSHIP.init({ rpc: function (fn, p, ms) { return SP.rpc(fn, p, ms); }, pass: function () { return PASS; }, products: function () { return (D && D.products) || []; }, toast: toast, ask: ask, modal: modal, render: function () { if (TAB === 'delivery') render(); } });
+initBuilder(function () { if (TAB === 'builder') render(); });
+V.dash = function () { return '<div id="dsHost"></div>'; };
+V.dash_bind = function (m) { SPDASH.mount($('#dsHost', m), { kind: 'store', rpc: function (fn, p) { return SP.rpc(fn, p, 60000); }, pass: function () { return PASS; }, toast: toast, productTitle: function (id) { var p = D && D.products && D.products.filter(function (x) { return x.id === id; })[0]; return p ? p.title : ''; } }); };
+V.builder = function () { return SPBA.html(); };
+V.builder_bind = function (m) { SPBA.bind(m); };
+V.pincode = function () { return SPPIN.html(); };
+V.pincode_bind = function (m) { SPPIN.bind(m); };
+SPSUB.init({ rpc: function (fn, p, ms) { return SP.rpc(fn, p, ms); }, pass: function () { return PASS; }, toast: toast, ask: ask, render: function () { render(); } });
+V.sub = function () { return SPSUB.html(); };
+V.sub_bind = function (m) { SPSUB.bind(m); };
+V.sell = function () { return SPSELL.html(); };
+V.sell_bind = function (m) { SPSELL.bind(m); };
+V.delivery = function () { return SPSHIP.html(); };
+V.delivery_bind = function (m) { SPSHIP.bind(m); };
 
 /* ======================= layout & positions ======================= */
 var SINGLE_LABEL = { services: '🛠️ सर्विसेज़ कार्ड्स', chips: '🔘 कैटेगरी बटन (चिप्स)', form: '📝 Requirement फ़ॉर्म', howto: '🛍️ ऑर्डर कैसे करें (गाइड)', feedback: '⭐ ग्राहकों की राय', videos: '▶️ YouTube वीडियो' };
@@ -478,10 +859,10 @@ var SEC_FIELDS = [
 function sectionModal(s, after) {
   var isNew = !s, obj = s ? s : SP.clone(SP.SECTION_DEF);
   if (isNew) obj.title = '';
-  modal(isNew ? '➕ नया सेक्शन' : '✏️ सेक्शन एडिट', (isNew ? posSelect() : '') + F(SEC_FIELDS, obj), [{ l: 'रद्द करें', cls: 'gray' }, { l: isNew ? '✅ बनाएँ' : '💾 सेव करें', fn: function (md) {
+  modal(isNew ? '➕ नया सेक्शन' : '✏️ सेक्शन एडिट', F(SEC_FIELDS, obj), [{ l: 'रद्द करें', cls: 'gray' }, { l: isNew ? '✅ बनाएँ' : '💾 सेव करें', fn: function (md) {
     var v = readForm(md.body, SEC_FIELDS); if (!v) return false;
-    if (isNew) { var ns = applyTo(SP.clone(SP.SECTION_DEF), v); ns.id = SP.uid('sec'); D.sections.push(ns); insertBlock({ type: 'section', ref: ns.id }, $('#posSel', md.el).value); if (after) after(ns); }
-    else applyTo(s, v);
+    if (isNew) { var ns = applyTo(SP.clone(SP.SECTION_DEF), v); ns.id = SP.uid('sec'); D.sections.push(ns); insertBlock({ type: 'section', ref: ns.id }, D.layout.length); bldSecAdd(ns); if (after) after(ns); }
+    else { var oldS = SP.clone(s); applyTo(s, v); bldSecSync(oldS, s); }
     render(); return save(isNew ? '✅ सेक्शन बन गया' : '✅ सेक्शन सेव हो गया');
   } }], function (md) { bindForm(md.body); });
 }
@@ -492,12 +873,13 @@ async function deleteSection(id) {
   D.sections = D.sections.filter(function (x) { return x.id !== id; });
   D.products.forEach(function (p) { p.sections = p.sections.filter(function (x) { return x !== id; }); });
   D.layout = D.layout.filter(function (b) { return !(b.type === 'section' && b.ref === id); });
+  bldSecDrop(id);
   render(); save('🗑 सेक्शन डिलीट हो गया');
 }
 V.sections = function () {
   return '<div class="bar"><button class="btn" id="addSec2">➕ नया सेक्शन</button></div>' +
     (D.sections.length ? D.sections.map(function (s) {
-      var n = SP.productsOf(D, s.id, true).length, inLayout = D.layout.some(function (b) { return b.ref === s.id; });
+      var n = SP.productsOf(D, s.id, true).length, inLayout = secOnHome(s.id);
       return '<div class="row' + (s.visible === false ? ' dim' : '') + '"><div class="th">' + esc(s.icon || (s.kind === 'update' ? '🔥' : '📦')) + '</div><div class="rm"><b>' + esc(s.title) + '</b><small><span class="tag' + (s.kind === 'update' ? ' o' : '') + '">' + (s.kind === 'update' ? 'Update' : 'Category') + '</span>' + n + ' प्रोडक्ट • होम पर ' + s.limit + (inLayout ? '' : ' • <b style="color:var(--red)">होम पेज पर नहीं</b>') + (s.visible === false ? ' • छुपा है' : '') + '</small></div>' +
         '<div class="acts"><button class="btn sm out" data-sp="' + esc(s.id) + '">प्रोडक्ट</button><button class="ib" data-se="' + esc(s.id) + '">✏️</button><button class="ib red" data-sd="' + esc(s.id) + '">🗑</button></div></div>';
     }).join('') : '<div class="empty">कोई सेक्शन नहीं</div>');
@@ -513,56 +895,94 @@ V.sections_bind = function (m) {
 };
 
 /* ======================= products ======================= */
-function productFields() {
+/* Round 63: CRM se jude product ke jo fields Inventory se apne-aap aate hain, wo yahan dobara nahi bharte */
+var CRM_OWNED = ['title', 'titleEn', 'mrp', 'gst', 'offer', 'tagline', 'desc', 'descEn', 'unit', 'weight', 'sku', 'brand'];
+function productFields(linked) {
   return [
     { k: 'sections', l: 'ये प्रोडक्ट किस सेक्शन में दिखेगा? (एक से ज़्यादा चुन सकते हैं)', t: 'multisec', req: true },
     { k: 'title', l: 'प्रोडक्ट का नाम (मुख्य)', t: 'text', req: true, ph: 'जैसे: मोनो PERC सोलर पैनल 540W' },
-    { k: 'titleEn', l: 'English नाम (Google/Facebook के लिए अच्छा)', t: 'text', ph: 'Mono PERC Solar Panel 540W' },
+    { k: 'titleEn', adv: true, l: 'English नाम (Google/Facebook के लिए अच्छा)', t: 'text', ph: 'Mono PERC Solar Panel 540W' },
     { k: 'mrp', l: 'Sale Price / MRP (₹)', t: 'number', min: 0, ph: '16500' },
+    { k: 'gst', l: 'GST % (Invoice ke liye — price me shamil)', t: 'number', min: 0, max: 28, ph: '12' },
     { k: 'offer', l: 'Offer Price (₹) — छूट वाली कीमत', t: 'number', min: 0, ph: '13999', h: 'ख़ाली या 0 = कोई छूट नहीं (Sale Price ही दिखेगा)' },
-    { k: 'tagline', l: 'टैगलाइन (कार्ड पर छोटी लाइन)', t: 'text', ph: '25 साल वारंटी' },
-    { k: 'badge', l: 'बैज (वैकल्पिक)', t: 'text', ph: 'Bestseller / New / Sale' },
-    { k: 'image', l: 'मुख्य फ़ोटो (Main image)', t: 'image', h: 'सबसे अच्छा: चौकोर (1:1) फ़ोटो, सफ़ेद बैकग्राउंड' },
-    { k: 'images', l: 'और फ़ोटो (Additional images)', t: 'images' },
+    { k: 'tagline', adv: true, l: 'टैगलाइन (कार्ड पर छोटी लाइन)', t: 'text', ph: '25 साल वारंटी' },
+    { k: 'badge', adv: true, l: 'बैज (वैकल्पिक)', t: 'text', ph: 'Bestseller / New / Sale' },
+    { k: 'media', l: 'फ़ोटो / वीडियो (कुल 5, इनमें अधिकतम 2 वीडियो)', t: 'media', h: 'जिस पर "मुख्य" टिक होगा वही कार्ड पर पहले दिखेगा (फ़ोटो या वीडियो, कोई भी)। चौकोर (1:1) फ़ोटो, सफ़ेद बैकग्राउंड सबसे अच्छी। फ़ोटो सिर्फ़ यहीं से डालें।' },
     { k: 'desc', l: 'विवरण (Description)', t: 'textarea', rows: 5 },
-    { k: 'descEn', l: 'English Description (वैकल्पिक)', t: 'textarea', rows: 3 },
+    { k: 'descEn', adv: true, l: 'English Description (वैकल्पिक)', t: 'textarea', rows: 3 },
     { k: 'stock', l: 'स्टॉक', t: 'select', o: [['in', '✅ स्टॉक में है'], ['out', '❌ स्टॉक ख़त्म']] },
-    { k: 'unit', l: 'यूनिट (वैकल्पिक)', t: 'text', ph: 'पीस / सेट / kW' },
-    { k: 'emoji', l: 'फ़ोटो न हो तो Emoji', t: 'text', max: 8 },
-    { k: 'bg', l: 'कार्ड का बैकग्राउंड रंग', t: 'color', d: '#e8f5e9' },
-    { k: 'link', l: 'बाहरी लिंक (वैकल्पिक — "और जानकारी" बटन)', t: 'text', ph: 'https://...' },
-    { k: 'sku', l: 'SKU / मॉडल नंबर', t: 'text' },
-    { k: 'brand', l: 'ब्रांड', t: 'text', ph: 'Sunpowers' },
-    { k: 'sort', l: 'क्रम संख्या (छोटी संख्या पहले दिखेगी)', t: 'number', d: 0, h: 'नया प्रोडक्ट अपने आप सबसे पहले दिखता है' },
-    { k: 'visible', l: 'वेबसाइट पर दिखाएँ (Publish)', t: 'check', d: true }];
+    { k: 'showLeft', l: 'दुकान पर बचा हुआ स्टॉक दिखाएँ (“सिर्फ़ N बचे”)', t: 'check', d: false, h: 'टिक = ग्राहक को कार्ड/पेज पर बचा हुआ ऑनलाइन स्टॉक दिखेगा। बिना टिक = सिर्फ़ “स्टॉक में है”। गिनती CRM की Online list से अपने-आप आती है; 0 होते ही प्रोडक्ट अपने-आप “स्टॉक ख़त्म” दिखता है।' },
+    { k: 'unit', adv: true, l: 'यूनिट (वैकल्पिक)', t: 'text', ph: 'पीस / सेट / kW' },
+    { k: 'weight', l: 'वज़न (kg, एक पीस का) — डिलीवरी चार्ज के लिए', t: 'number', min: 0, d: 0, ph: '22', h: 'कूरियर का चार्ज वज़न और पिनकोड से तय होता है। 0 = वज़न नहीं जोड़ा जाएगा।' },
+    { k: 'installOk', l: '🔧 इंस्टालेशन सेवा उपलब्ध (वैकल्पिक add-on)', t: 'check', d: false, h: 'टिक करने पर ग्राहक ऑर्डर के बाद इंस्टालेशन माँग सकता है। Demo / self-install वीडियो ऊपर फ़ोटो-वीडियो में डालें।' },
+    { k: 'installPrice', l: 'इंस्टालेशन चार्ज (₹)', t: 'number', min: 0, d: 0, ph: '1500', h: 'सिर्फ़ तब जब ऊपर इंस्टालेशन सेवा टिक हो' },
+    { k: 'emoji', adv: true, l: 'फ़ोटो न हो तो Emoji', t: 'text', max: 8 },
+    { k: 'bg', adv: true, l: 'कार्ड का बैकग्राउंड रंग', t: 'color', d: '#e8f5e9' },
+    { k: 'link', adv: true, l: 'बाहरी लिंक (वैकल्पिक — "और जानकारी" बटन)', t: 'text', ph: 'https://...' },
+    { k: 'sku', adv: true, l: 'SKU / मॉडल नंबर', t: 'text' },
+    { k: 'brand', adv: true, l: 'ब्रांड', t: 'text', ph: 'Sunpowers' },
+    { k: 'sort', adv: true, l: 'क्रम संख्या (छोटी संख्या पहले दिखेगी)', t: 'number', d: 0, h: 'नया प्रोडक्ट अपने आप सबसे पहले दिखता है' },
+    { k: 'visible', l: 'वेबसाइट पर दिखाएँ (Publish)', t: 'check', d: true },
+    { k: 'web', l: 'मुख्य वेबसाइट के Shop पेज पर भी दिखाएँ', t: 'check', d: true, h: 'टिक = स्टोर और वेबसाइट Shop दोनों पर। हटाएँ तो सिर्फ़ स्टोर ऐप पर दिखेगा।' }].filter(function (f) { return !linked || CRM_OWNED.indexOf(f.k) < 0; });
 }
 function validPrice(v) {
   if (SP.num(v.mrp) <= 0 && SP.num(v.offer) <= 0) { toast('Sale Price या Offer Price में से कम से कम एक भरें', true); return false; }
   if (SP.num(v.mrp) > 0 && SP.num(v.offer) > SP.num(v.mrp)) { toast('Offer Price, Sale Price/MRP से ज़्यादा नहीं हो सकता', true); return false; }
   return true;
 }
+/* Round 63: CRM se jude product — jo Inventory se aata hai wo sirf dikhta hai (badalna ho to CRM me), yahan sirf photo / jagah / delivery / subsidy */
+function crmSummary(p, x) {
+  var d = x ? (x.data || {}) : null, row = function (a, b) { return b === '' || b == null ? '' : '<tr><td style="color:var(--mut);padding:2px 12px 2px 0">' + a + '</td><td><b>' + esc(b) + '</b></td></tr>'; };
+  var nm = d ? (d.name || x.title) : p.title, br = d ? d.brand : p.brand, md = d ? d.mpn : p.model, pr = d ? crmPrice(d) : SP.price(p), wr = d ? d.warranty : (p.warranty || ''),
+      ns = d ? Object.keys(d.specs || {}).filter(function (k) { return k.charAt(0) !== '_'; }).length : (p.specs || []).length;
+  return '<div class="note g" style="margin-bottom:12px">🔒 <b>ये सब CRM → Inventory से अपने-आप आता है</b> — यहाँ दोबारा नहीं भरना। बदलना हो तो CRM में उस आइटम को खोलकर बदलें; यहाँ अपने-आप आ जाएगा।' +
+    '<table style="margin-top:8px;font-size:13.5px">' + row('नाम', nm) + row('ब्रांड / मॉडल', [br, md].filter(Boolean).join(' · ')) + row('कीमत (GST सहित)', pr ? SP.money(pr) : '') + row('वारंटी', wr) + row('Specification', ns ? ns + ' बातें' : '') + '</table></div>';
+}
 function productModal(p, preSecs, opt) {
   opt = opt || {};
-  var isNew = !p, obj = p ? (opt.prefill ? Object.assign(SP.clone(p), opt.prefill) : p) : Object.assign(SP.clone(SP.PRODUCT_DEF), opt.prefill || {}), fields = productFields();
+  var linked = !!((p && p.crm) || opt.crm), isNew = !p, obj = p ? (opt.prefill ? Object.assign(SP.clone(p), opt.prefill) : p) : Object.assign(SP.clone(SP.PRODUCT_DEF), opt.prefill || {}), fields = productFields(linked);
+  if (!(obj.media && obj.media.length)) obj.media = SP.mediaFromLegacy(obj);
   if (isNew) { obj.sections = preSecs || obj.sections || []; obj.brand = obj.brand || D.settings.brand || ''; obj.sort = Math.min(0, Math.min.apply(null, D.products.map(function (x) { return SP.num(x.sort); }).concat([0]))) - 1; }
-  modal(opt.title || (isNew ? '➕ नया प्रोडक्ट — विवरण भरें' : '✏️ प्रोडक्ट एडिट'), (opt.top || '') + F(fields, obj), [{ l: 'रद्द करें', cls: 'gray' }, { l: opt.okLabel || (isNew ? '🚀 Publish करें' : '💾 सेव करें'), fn: async function (md) {
+  modal(opt.title || (isNew ? '➕ नया प्रोडक्ट — विवरण भरें' : '✏️ प्रोडक्ट एडिट'), (opt.top || '') + (linked ? crmSummary(p, opt.crm) : '') + FA(fields, obj) + SPSUB.hostHtml(obj) + SPSELL.hostHtml(), [{ l: 'रद्द करें', cls: 'gray' }, { l: opt.okLabel || (isNew ? '🚀 Publish करें' : '💾 सेव करें'), fn: async function (md) {
     if (opt.check && !opt.check(md)) return false;
-    var v = readForm(md.body, fields); if (!v || !validPrice(v)) return false;
+    var v = readForm(md.body, fields); if (!v || (!linked && !validPrice(v))) return false;
     if (v.link && !/^https?:\/\//i.test(v.link)) v.link = 'https://' + v.link;
+    var sbv = SPSUB.read(md.body); if (sbv !== undefined) v.sub = sbv;   /* Round 61: sarkari subsidy (sirf jankari) */
     var np = p;
-    if (isNew) { np = applyTo(SP.clone(SP.PRODUCT_DEF), v); np.id = SP.uid('p'); D.products.push(np); } else applyTo(p, v);
+    if (isNew) { np = applyTo(SP.clone(SP.PRODUCT_DEF), Object.assign({}, linked ? (opt.prefill || {}) : {}, v)); np.id = SP.uid('p'); D.products.push(np); }
+    else applyTo(p, v);
     render(); await save(isNew ? '🚀 प्रोडक्ट पब्लिश हो गया' : '✅ प्रोडक्ट सेव हो गया');
     if (dirty) return false;
+    await SPSELL.saveFor(np.id, md.body);
     if (opt.after) await opt.after(np);
-  } }], function (md) { bindForm(md.body); });
+  } }], function (md) { bindForm(md.body); SPSELL.mount(md.body, isNew ? null : p.id); });
 }
+/* Round 63: naya product sirf CRM Inventory se (ek hi jagah bharna) — yahan se nahi */
 function newProductWizard() {
-  if (!D.sections.length) { toast('पहले एक सेक्शन बनाएँ', true); return sectionModal(null); }
-  var f = [{ k: 'sections', l: 'ये प्रोडक्ट होम पेज पर किस सेक्शन में दिखेगा?', t: 'multisec', req: true }];
-  modal('➕ नया प्रोडक्ट — स्टेप 1/2', '<div class="note g">स्टेप 1: पहले सेक्शन चुनें (जहाँ प्रोडक्ट दिखेगा)। एक से ज़्यादा भी चुन सकते हैं — जैसे "सोलर पैनल" + "आज के ऑफर"।</div>' + F(f, { sections: PROD_FILTER.sec ? [PROD_FILTER.sec] : [] }) +
-    '<button type="button" class="btn sm out" id="wNewSec" style="margin-top:10px">➕ नया सेक्शन बनाएँ</button>',
-    [{ l: 'रद्द करें', cls: 'gray' }, { l: 'आगे ➜', fn: function (md) { var v = readForm(md.body, f); if (!v) return false; setTimeout(function () { productModal(null, v.sections); }, 0); } }],
-    function (md) { $('#wNewSec', md.el).onclick = function () { md.close(); sectionModal(null, function () { setTimeout(newProductWizard, 50); }); }; });
+  modal('➕ नया प्रोडक्ट', '<div class="note g">नया प्रोडक्ट <b>CRM → Inventory</b> में जोड़ें (नाम, ब्रांड, रेट, वारंटी, specification एक ही बार भरें)। फिर वहाँ <b>“Store को भेजें”</b> दबाएँ — वह प्रोडक्ट यहाँ <b>CRM</b> टैब में आ जाएगा। यहाँ सिर्फ़ फ़ोटो/वीडियो, कौन-से सेक्शन में दिखे, डिलीवरी और सब्सिडी जोड़नी है — बाक़ी सब अपने-आप आता है।</div>',
+    [{ l: 'बंद करें', cls: 'gray' }, { l: '📦 CRM टैब खोलें', fn: function () { setTimeout(function () { showTab('crm'); }, 0); } }]);
+}
+/* Round 44: online pool (Web Shop + Store App) — left qty, and "add more quantity" straight from CRM inventory (no new review / photos) */
+var ONL = null;
+async function loadOnl() { try { ONL = await SP.rpc('sp_admin_online_state', { p_pass: PASS }); } catch (e) { ONL = ONL || {}; } return ONL; }
+function onlTag(p) {
+  var s = ONL && ONL[p.id]; if (!s) return '';
+  var out = Number(s.left_total) <= 0;
+  return '<span class="tag ' + (out ? 'r' : '') + '">🛒 Web ' + s.left_web + ' · App ' + s.left_app + (out ? ' — ऑनलाइन स्टॉक ख़त्म' : ' बचे') + '</span>';
+}
+function onlineAddModal(pid) {
+  var s = ONL && ONL[pid]; if (!s) return toast('यह प्रोडक्ट CRM की Online list में नहीं है', true);
+  var free = s.free == null ? '—' : s.free, cl = (typeof crmLink === 'function') ? crmLink() : '';
+  modal('➕ और Quantity — ' + esc(s.name), '<div class="note g">अभी बचा: Web Shop <b>' + s.left_web + '</b> · Store App <b>' + s.left_app + '</b> (बिका: ' + s.sold + ')<br>Inventory में free: <b>' + esc(free) + '</b>' + (s.type === 'project' ? ' <small>(Template के सब items का stock जाँचा जाएगा)</small>' : '') +
+    (cl ? '<br><a href="' + esc(cl) + '#/items" target="_blank" rel="noopener">Inventory में stock बढ़ाने के लिए CRM खोलें ↗</a>' : '') + '</div>' +
+    '<div class="fld"><label>Web Shop के लिए और (संख्या)</label><input type="number" min="0" step="1" id="oaw" value="0"></div><div class="fld"><label>Store App के लिए और (संख्या)</label><input type="number" min="0" step="1" id="oaa" value="0"></div>' +
+    '<small>सिर्फ़ गिनती बढ़ेगी — फ़ोटो / वीडियो / रिव्यू कुछ दोबारा नहीं करना। Inventory का free stock ही जुड़ेगा, उससे ज़्यादा नहीं।</small>',
+    [{ l: 'रद्द करें', cls: 'gray' }, { l: '➕ जोड़ें', fn: async function (md) {
+      var w = Math.max(0, parseInt($('#oaw', md.body).value, 10) || 0), a = Math.max(0, parseInt($('#oaa', md.body).value, 10) || 0);
+      if (w + a <= 0) { toast('Web या App के लिए गिनती लिखें', true); return false; }
+      try { await SP.rpc('sp_admin_online_add', { p_pass: PASS, p_store_id: pid, p_web: w, p_app: a }); } catch (e) { toast(String(e && e.message || e).replace(/^.*?ERROR:\s*/, '').slice(0, 220), true); return false; }
+      toast('✔ Online quantity बढ़ गई — दोबारा रिव्यू नहीं चाहिए'); await loadOnl(); var pl = $('#plist'); if (pl) pl.innerHTML = productListHtml();
+    } }]);
 }
 function productListHtml() {
   var ordered = [];
@@ -576,24 +996,107 @@ function productListHtml() {
   return list.map(function (p) {
     var secs = p.sections.map(function (id) { var s = sec(id); return s ? s.title : ''; }).filter(Boolean).join(', ');
     return '<div class="row' + (p.visible === false ? ' dim' : '') + '">' + thumb(p.image || p.images[0], p.emoji, p.bg) + '<div class="rm"><b>' + esc(p.title) + '</b><small><b style="color:var(--txt)">' + SP.money(SP.price(p)) + '</b>' + (SP.discount(p) ? ' <s>' + SP.money(p.mrp) + '</s> (' + SP.discount(p) + '% छूट)' : '') + '</small>' +
-      '<small>' + (p.visible === false ? '<span class="tag r">छुपा है</span>' : '') + (p.stock === 'out' ? '<span class="tag r">स्टॉक ख़त्म</span>' : '') + esc(secs || '⚠️ कोई सेक्शन नहीं') + '</small></div>' +
-      '<div class="acts"><button class="ib" data-pv="' + esc(p.id) + '" title="दिखाएँ/छुपाएँ">' + (p.visible === false ? '🚫' : '👁') + '</button><button class="ib" data-pe="' + esc(p.id) + '" title="एडिट">✏️</button><button class="ib" data-pc="' + esc(p.id) + '" title="कॉपी">📄</button><button class="ib red" data-pd="' + esc(p.id) + '" title="डिलीट">🗑</button></div></div>';
+      '<small>' + (p.visible === false ? '<span class="tag r">छुपा है</span>' : '') + (!(p.media && p.media.length) && !p.image ? '<span class="tag o">📷 फ़ोटो/वीडियो बाकी</span>' : '') + (p.stock === 'out' ? '<span class="tag r">स्टॉक ख़त्म</span>' : '') + onlTag(p) + SPSELL.chip(p.id) + esc(secs || '⚠️ कोई सेक्शन नहीं') + '</small></div>' +
+      '<div class="acts">' + (ONL && ONL[p.id] ? '<button class="pch" data-oadd="' + esc(p.id) + '" title="Online में और quantity जोड़ें (Inventory से)">➕</button>' : '') + '<button class="pch st' + (p.visible === false ? '' : ' on') + '" data-pv="' + esc(p.id) + '" title="' + (p.visible === false ? 'Store App पर अभी बंद — चालू करें' : 'Store App पर चालू — बंद करें (वेबसाइट Shop से भी हट जाएगा)') + '">🏪</button><button class="pch sh' + (p.visible !== false && p.web !== false ? ' on' : '') + '" data-pw="' + esc(p.id) + '"' + (p.visible === false ? ' disabled' : '') + ' title="' + (p.visible === false ? 'पहले Store पर चालू करें' : p.web === false ? 'Web Shop पर अभी बंद — चालू करें' : 'Web Shop पर चालू — बंद करें') + '">🛍️</button><button class="ib" data-pe="' + esc(p.id) + '" title="एडिट">✏️</button><button class="ib" data-pc="' + esc(p.id) + '" title="कॉपी">📄</button><button class="ib red" data-pd="' + esc(p.id) + '" title="डिलीट">🗑</button></div></div>';
   }).join('');
 }
+
+/* ---- bulk delete (always takes a backup first) + edit-sheet round trip (update existing only) ---- */
+function backupNow(tag) { download(new Blob([JSON.stringify(SP.normalize(D), null, 1)], { type: 'application/json' }), 'sunpowers-backup-' + tag + '-' + today() + '.json'); }
+async function bulkDelete(secId) {
+  var list = secId ? SP.productsOf(D, secId, true) : D.products.slice(), s = secId ? sec(secId) : null;
+  if (!list.length) return toast('हटाने के लिए कोई प्रोडक्ट नहीं है', true);
+  var msg = s ? 'सेक्शन "<b>' + esc(s.title) + '</b>" के <b>' + list.length + '</b> प्रोडक्ट हमेशा के लिए डिलीट करें? (जो प्रोडक्ट दूसरे सेक्शन में भी हैं, वे भी हटेंगे)' : 'सारे <b>' + list.length + '</b> प्रोडक्ट हमेशा के लिए डिलीट करें?';
+  if (!(await ask(msg + '<br><small>पहले अपने-आप बैकअप फ़ाइल डाउनलोड होगी।</small>', 'हाँ, डिलीट करें', true))) return;
+  backupNow(s ? 'before-delete-' + s.id : 'before-delete-all');
+  var gone = {}; list.forEach(function (p) { gone[p.id] = 1; });
+  D.products = D.products.filter(function (p) { return !gone[p.id]; });
+  render(); save('🗑 ' + list.length + ' प्रोडक्ट डिलीट हो गए (बैकअप डाउनलोड हो चुका है)');
+}
+function bulkDeleteCatModal() {
+  if (!D.sections.length) return toast('कोई सेक्शन नहीं है', true);
+  var f = [{ k: 'sec', l: 'किस सेक्शन के प्रोडक्ट डिलीट करने हैं?', t: 'select', o: D.sections.map(function (s) { return [s.id, s.title + ' (' + SP.productsOf(D, s.id, true).length + ')']; }) }];
+  modal('🗑 सेक्शन-वार डिलीट', F(f, {}), [{ l: 'रद्द करें', cls: 'gray' }, { l: 'आगे ➜', cls: 'red', id: 'delCatGo', fn: function (md) { var v = readForm(md.body, f); if (!v) return false; setTimeout(function () { bulkDelete(v.sec); }, 0); } }]);
+}
+var PS_COLS = [['id', 'id'], ['title', 'title'], ['sections (| से अलग)', 'sections'], ['sale_price_mrp', 'mrp'], ['offer_price', 'offer'], ['stock (in/out)', 'stock'], ['visible (yes/no)', 'visible'], ['description', 'desc'], ['tagline', 'tagline'], ['badge', 'badge'], ['sku', 'sku'], ['brand', 'brand']];
+function isoDT(s) { try { var d = new Date(s); if (isNaN(d)) return String(s || ''); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); } catch (e) { return String(s || ''); } }
+var SCOPE_MSG = 'ये शीट बिना कोड की है — इसे सिर्फ़ "📥 Edit के लिए शीट डाउनलोड" से बनी शीट ही वापस ली जाएगी।';
+async function productSheetDown() {
+  if (!D.products.length) return toast('अभी कोई प्रोडक्ट नहीं है', true);
+  var head = PS_COLS.map(function (c) { return c[0]; }), body = D.products.map(function (p) { return PS_COLS.map(function (c) { return cellOut(c[1], p[c[1]]); }); });
+  var out = await SPSH.dl('प्रोडक्ट शीट (Edit के लिए)', { head: head, rows: body }, { multi: [head[2]], lock: ['id'], okLabel: '⬇️ शीट डाउनलोड' });
+  if (!out) return;
+  var iss; try { iss = await SPSH.issue('sp_product', out.rows.map(function (r) { return String(r[0]); }), out.head, out.desc); } catch (e) { return toast('❌ ' + e.message, true); }
+  download(XLSXLite.write([{ name: 'Products', rows: [out.head].concat(out.rows), widths: [14, 34, 30, 12, 12, 10, 10, 50, 24, 12, 12, 12] },
+    { name: 'ReadMe', widths: [100], rows: [['id वाली कॉलम न बदलें। सिर्फ़ इस शीट में दिए प्रोडक्ट/कॉलम अपडेट होंगे — नई लाइन जोड़ने या लाइन हटाने से कुछ नहीं जुड़ेगा/हटेगा।'], ['sections कॉलम में सेक्शन का नाम लिखें, एक से ज़्यादा हों तो | से अलग करें।'], ['शीट का कोड: ' + iss.code + ' (30 दिन मान्य) — "_sp" शीट न हटाएँ।']] },
+    SPSH.metaSheet(iss.code)]), 'sunpowers-products-edit-' + today() + '.xlsx');
+  toast('📥 ' + out.rows.length + ' प्रोडक्ट की शीट डाउनलोड हो गई — एडिट करके वापस अपलोड करें');
+}
+async function productSheetUp(file) {
+  var wb; try { wb = await XLSXLite.read(await file.arrayBuffer()); } catch (e) { return toast('❌ ' + e.message, true); }
+  if (!wb.Products) return toast('❌ "Products" शीट नहीं मिली', true);
+  var code = SPSH.codeOf(wb); if (!code) return toast('❌ ' + SCOPE_MSG, true);
+  var sc; try { sc = await SPSH.check(code, 'sp_product'); } catch (e) { return toast('❌ ' + e.message, true); }
+  var scopeIds = {}, scopeCols = {}; (sc.ids || []).forEach(function (i) { scopeIds[String(i)] = 1; }); (sc.cols || []).forEach(function (c) { scopeCols[String(c)] = 1; });
+  var errors = [], rows = sheetObjects(wb.Products, PS_COLS, 'Products', errors), byId = {}, seen = {}, changes = [], skipped = [], outScope = 0;
+  D.products.forEach(function (p) { byId[p.id] = p; });
+  rows.forEach(function (o) {
+    PS_COLS.forEach(function (c) { if (c[1] !== 'id' && !scopeCols[c[0]] && o._has[c[1]]) { o._has[c[1]] = false; } });
+    var id = String(o.id || '').trim();
+    if (!id) { skipped.push('लाइन ' + o._row + ': id ख़ाली — नया प्रोडक्ट इस तरह नहीं जुड़ता (छोड़ा)'); return; }
+    if (!byId[id]) { skipped.push('लाइन ' + o._row + ': id "' + id + '" स्टोर में नहीं है (छोड़ा)'); return; }
+    if (!scopeIds[id]) { outScope++; skipped.push('लाइन ' + o._row + ': id "' + id + '" इस शीट के दायरे में नहीं था (छोड़ा)'); return; }
+    if (seen[id]) { errors.push('लाइन ' + o._row + ': id "' + id + '" दो बार है'); return; } seen[id] = 1;
+    var old = byId[id], n = SP.clone(old), bad = false;
+    PS_COLS.forEach(function (c) {
+      var k = c[1]; if (k === 'id' || !o._has[k]) return;
+      if (k === 'sections') {
+        var ids = [];
+        String(o.sections || '').split('|').forEach(function (tok) {
+          tok = tok.trim(); if (!tok) return;
+          var sx = D.sections.filter(function (x) { return x.id === tok || x.title.trim().toLowerCase() === tok.toLowerCase() || (x.titleEn || '').trim().toLowerCase() === tok.toLowerCase(); })[0];
+          if (sx) { if (ids.indexOf(sx.id) < 0) ids.push(sx.id); } else { errors.push('लाइन ' + o._row + ': सेक्शन "' + tok + '" नहीं मिला'); bad = true; }
+        });
+        n.sections = ids;
+      } else n[k] = conv(k, o[k], old[k]);
+    });
+    if (!String(n.title || '').trim()) { errors.push('लाइन ' + o._row + ': title ख़ाली है'); bad = true; }
+    if (SP.num(n.mrp) > 0 && SP.num(n.offer) > SP.num(n.mrp)) { errors.push('लाइन ' + o._row + ': Offer Price, MRP से ज़्यादा है'); bad = true; }
+    if (!bad && JSON.stringify(n) !== JSON.stringify(old)) changes.push(n);
+  });
+  var body = (errors.length ? '<div class="note r"><b>❌ ये गलतियाँ ठीक करके दोबारा अपलोड करें:</b><br>' + errors.slice(0, 40).map(esc).join('<br>') + '</div>' : '') +
+    '<p>शीट कोड <b>' + esc(code) + '</b> · दायरा: ' + (sc.ids || []).length + ' प्रोडक्ट</p>' +
+    '<p><b>' + changes.length + '</b> प्रोडक्ट बदलेंगे, <b>' + (rows.length - skipped.length - changes.length > 0 ? rows.length - skipped.length - changes.length : 0) + '</b> जैसे थे वैसे रहेंगे।</p>' +
+    (skipped.length ? '<div class="note"><b>⚠️ छोड़ी गई लाइनें:</b><br>' + skipped.slice(0, 30).map(esc).join('<br>') + '</div>' : '');
+  modal('📤 प्रोडक्ट शीट — जाँच', body, errors.length ? [{ l: 'बंद करें', cls: 'gray' }] : [{ l: 'रद्द करें', cls: 'gray' }, { l: '✅ लागू करें और सेव करें', id: 'psOk', fn: function () {
+    if (!changes.length) { toast('कोई बदलाव नहीं मिला'); return; }
+    var m = {}; changes.forEach(function (n) { m[n.id] = n; });
+    D.products = D.products.map(function (p) { return m[p.id] || p; });
+    render(); return save('✅ ' + changes.length + ' प्रोडक्ट शीट से अपडेट हुए');
+  } }]);
+}
 V.products = function () {
-  return '<div class="bar"><button class="btn" id="addP">➕ नया प्रोडक्ट</button><input class="inp grow" id="pq" placeholder="🔍 प्रोडक्ट खोजें" value="' + esc(PROD_FILTER.q) + '">' +
+  return '<div class="bar"><button class="btn" id="addP">➕ नया प्रोडक्ट</button>' + SPSELL.emgBar() + '<input class="inp grow" id="pq" placeholder="🔍 प्रोडक्ट खोजें" value="' + esc(PROD_FILTER.q) + '">' +
     '<select class="inp" id="psec" style="width:auto;max-width:100%"><option value="">सभी सेक्शन (' + D.products.length + ')</option>' + D.sections.map(function (s) { return '<option value="' + esc(s.id) + '"' + (PROD_FILTER.sec === s.id ? ' selected' : '') + '>' + esc(s.title) + ' (' + SP.productsOf(D, s.id, true).length + ')</option>'; }).join('') +
     '<option value="__none"' + (PROD_FILTER.sec === '__none' ? ' selected' : '') + '>⚠️ बिना सेक्शन वाले</option></select></div>' +
+    '<div class="bar" id="ptools"><button class="btn sm out" id="pSheetDown">📥 Edit के लिए शीट डाउनलोड</button><span class="btn sm out upl">📤 Edit की हुई शीट अपलोड<input type="file" id="pSheetUp" accept=".xlsx"></span>' +
+    '<button class="btn sm red" id="pDelCat">🗑 सेक्शन-वार डिलीट</button><button class="btn sm red" id="pDelAll">🗑 सारे प्रोडक्ट डिलीट</button></div>' +
     '<div id="plist">' + productListHtml() + '</div>';
 };
 V.products_bind = function (m) {
-  $('#addP').onclick = newProductWizard;
+  $('#addP').onclick = newProductWizard; SPSELL.emgBind(m);
+  SPSELL.loadOv().then(function () { var pl = $('#plist'); if (pl && TAB === 'products') pl.innerHTML = productListHtml(); });
+  loadOnl().then(function () { var pl = $('#plist'); if (pl && ONL && Object.keys(ONL).length) pl.innerHTML = productListHtml(); });
+  $('#pSheetDown').onclick = productSheetDown; $('#pSheetUp').onchange = function () { var f = this.files[0]; this.value = ''; if (f) productSheetUp(f); };
+  $('#pDelAll').onclick = function () { bulkDelete(null); }; $('#pDelCat').onclick = bulkDeleteCatModal;
   $('#pq').addEventListener('input', SP.debounce(function () { PROD_FILTER.q = $('#pq').value; $('#plist').innerHTML = productListHtml(); }, 250));
   $('#psec').onchange = function () { PROD_FILTER.sec = this.value; render(); };
   m.addEventListener('click', async function (e) {
     var b;
-    if ((b = e.target.closest('[data-pe]'))) productModal(prod(b.getAttribute('data-pe')));
-    else if ((b = e.target.closest('[data-pv]'))) { var p = prod(b.getAttribute('data-pv')); p.visible = p.visible === false; render(); save(p.visible ? '👁 प्रोडक्ट दिख रहा है' : '🚫 प्रोडक्ट छुपा दिया'); }
+    if ((b = e.target.closest('[data-oadd]'))) onlineAddModal(b.getAttribute('data-oadd'));
+    else if ((b = e.target.closest('[data-pe]'))) productModal(prod(b.getAttribute('data-pe')));
+    else if ((b = e.target.closest('[data-pw]'))) { if (b.disabled) return; var pw = prod(b.getAttribute('data-pw')); pw.web = pw.web === false; render(); save(pw.web === false ? '🛍️ Web Shop से हटाया (Store App पर चालू)' : '🛍️ Web Shop पर चालू'); }
+    else if ((b = e.target.closest('[data-pv]'))) { var p = prod(b.getAttribute('data-pv')); p.visible = p.visible === false; render(); save(p.visible ? '🏪 Store App पर चालू' + (p.web === false ? ' (Web Shop पर बंद)' : ' और Web Shop पर भी') : '🚫 प्रोडक्ट छुपा दिया (Store App और Web Shop दोनों से)'); }
     else if ((b = e.target.closest('[data-pc]'))) { var o = prod(b.getAttribute('data-pc')), c = SP.clone(o); c.id = SP.uid('p'); c.title = o.title + ' (कॉपी)'; c.visible = false; c.sku = ''; D.products.splice(D.products.indexOf(o) + 1, 0, c); render(); save('📄 कॉपी बन गई (छुपी हुई) — एडिट करके Publish करें'); }
     else if ((b = e.target.closest('[data-pd]'))) { var d = prod(b.getAttribute('data-pd')); if (await ask('प्रोडक्ट "<b>' + esc(d.title) + '</b>" हमेशा के लिए डिलीट करें?', 'डिलीट', true)) { D.products = D.products.filter(function (x) { return x !== d; }); render(); save('🗑 प्रोडक्ट डिलीट हो गया'); } }
   });
@@ -616,7 +1119,7 @@ var SLIDE_FIELDS = [
   { k: 'button', l: 'बटन का टेक्स्ट (वैकल्पिक)', t: 'text', ph: 'देखें' },
   { k: 'ribbon', l: 'चलती रिबन टैगलाइन (नीचे स्क्रॉल होगी)', t: 'text', ph: '☀️ फ्री साइट सर्वे • आसान EMI' },
   { k: 'link', l: 'क्लिक करने पर क्या खुले?', t: 'link' },
-  { k: 'bg', l: 'बैकग्राउंड रंग (फ़ोटो न हो तो)', t: 'color', d: '#1b5e20' },
+  { k: 'bg', l: 'बैकग्राउंड रंग (फ़ोटो न हो तो)', t: 'color', d: 'var(--g-d)' },
   { k: 'emoji', l: 'बड़ा Emoji (फ़ोटो न हो तो)', t: 'text', max: 8 },
   { k: 'visible', l: 'ये स्लाइड दिखाएँ', t: 'check', d: true }];
 function slideshowModal(ss) {
@@ -626,11 +1129,11 @@ function slideshowModal(ss) {
     var v = readForm(md.body, SS_FIELDS); if (!v) return false;
     if (isNew) {
       var n = applyTo(SP.clone(SP.SLIDESHOW_DEF), v); n.id = SP.uid('ss');
-      n.slides = [{ id: SP.uid('sl'), image: '', bg: '#1b5e20', emoji: '☀️', title: 'नई स्लाइड', subtitle: 'इसे एडिट करें', button: 'देखें', ribbon: '', linkType: 'none', link: '', visible: true }];
+      n.slides = [{ id: SP.uid('sl'), image: '', bg: 'var(--g-d)', emoji: '☀️', title: 'नई स्लाइड', subtitle: 'इसे एडिट करें', button: 'देखें', ribbon: '', linkType: 'none', link: '', visible: true }];
       D.slideshows.push(n); insertBlock({ type: 'slideshow', ref: n.id }, $('#posSel', md.el).value);
       setTimeout(function () { showTab('slides'); }, 0);
     } else applyTo(ss, v);
-    render(); return save(isNew ? '✅ स्लाइडशो बन गया (1 डेमो स्लाइड के साथ)' : '✅ सेव हो गया');
+    render(); return save(isNew ? '✅ स्लाइडशो बन गया (1 शुरुआती स्लाइड के साथ)' : '✅ सेव हो गया');
   } }], function (md) { bindForm(md.body); });
 }
 async function deleteSlideshow(id) {
@@ -729,8 +1232,80 @@ V.services = function () { return '<div class="note g">होम पेज क�
 V.services_bind = listBind;
 V.feedback = function () { return '<div class="note r">⚠️ सिर्फ़ <b>असली</b> ग्राहकों के रिव्यू डालें, उनके अपने शब्दों में। नकली रिव्यू पर Google/Meta अकाउंट बंद कर सकते हैं।</div><div class="note g">Google रिव्यू का टेक्स्ट Google Maps से कॉपी करके यहाँ डालें और "Google review" चुनें। रिव्यू न हों तब भी होम पेज पर ⭐ रेटिंग और "Google पर सभी रिव्यू देखें" बटन दिखेगा (⚙️ सेटिंग्स → रिव्यू)।</div>' + listView('feedback'); };
 V.feedback_bind = listBind;
-V.videos = function () { return listView('videos'); };
-V.videos_bind = listBind;
+
+/* ======================= App media (Round 22): only the Store App's own photos / videos, with its own download ======================= */
+function appMediaList() {
+  var out = [], seen = {};
+  function add(kind, name, u) { u = typeof u === 'string' ? u.trim() : ''; if (!/^(https?:\/\/|\/img\/)/i.test(u) || seen[u]) return; seen[u] = 1; out.push({ kind: kind, name: name, url: u, apply: function (nv) { var n = 0; Object.keys(D).forEach(function (k) { if (k !== 'builder') n += deepRep(D[k], u, nv); }); if (D.settings && D.settings.logoImg === u) { D.settings.logoImg = nv; n++; } return n; } }); }
+  var st = D.settings || {};
+  add('logo', 'logo', st.logoImg);
+  var si = 0; (D.slideshows || []).forEach(function (ss) { (ss.slides || []).forEach(function (x) { si++; add('slide', 'slide-' + si, x && x.image); }); });
+  (D.products || []).forEach(function (p) { if (!p) return; var n = (p.id || '') + ''; add('product', 'product-' + n, p.image); (Array.isArray(p.images) ? p.images : []).forEach(function (u, i) { add('product', 'product-' + n + '-' + (i + 1), u); }); (Array.isArray(p.media) ? p.media : []).forEach(function (m2, i) { if (m2 && m2.url) add('product', 'product-' + n + '-m' + (i + 1), m2.url); }); });
+  ((D.videos && D.videos.items) || []).forEach(function (v, i) { add('video', 'video-' + (i + 1), v && v.url); });
+  builderMedia('store').forEach(function (x) { if (seen[x.url]) return; seen[x.url] = 1; out.push({ kind: x.kind === 'video' ? 'video' : 'builder', name: 'page-builder · ' + x.name, url: x.url, apply: function (nv) { return builderMediaSet('store', x.url, nv); } }); });
+  return out;
+}
+
+/* ======================= Round 27: media library rows — every photo / video of a part (Website · Web Shop · Store App) can be REPLACED (upload or link) or DELETED ======================= */
+function deepRep(o, old, nv) {
+  var n = 0;
+  (function w(v) {
+    if (Array.isArray(v)) {
+      for (var i = v.length - 1; i >= 0; i--) {
+        var x = v[i];
+        if (typeof x === 'string') { if (x.trim() === old) { n++; if (nv === '') v.splice(i, 1); else v[i] = nv; } }
+        else if (x && typeof x === 'object') { if (nv === '' && typeof x.url === 'string' && x.url.trim() === old && 'type' in x) { n++; v.splice(i, 1); } else w(x); }
+      }
+    } else if (v && typeof v === 'object') Object.keys(v).forEach(function (k) { var x = v[k]; if (typeof x === 'string') { if (x.trim() === old) { n++; v[k] = nv; } } else if (x && typeof x === 'object') w(x); });
+  })(o);
+  return n;
+}
+function mmHtml(items) {
+  if (!items.length) return '<p style="color:var(--mut);font-size:13px">अभी कोई फ़ोटो / वीडियो नहीं है।</p>';
+  return items.map(function (x, i) {
+    var th = x.kind === 'video' ? '<video src="' + esc(x.url) + '#t=0.5" muted preload="metadata" playsinline style="width:100%;height:100%;object-fit:cover"></video>' : '<img src="' + esc(absU(x.url)) + '" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.style.opacity=.2">';
+    return '<div class="row" style="align-items:center;flex-wrap:wrap;gap:8px"><div style="width:64px;height:64px;border-radius:10px;overflow:hidden;background:#111;flex:none">' + th + '</div><div class="rm" style="min-width:140px"><b>' + (x.kind === 'video' ? '🎬 ' : '🖼️ ') + esc(x.name) + '</b><small style="word-break:break-all">' + esc(x.url) + '</small></div>' +
+      '<div class="acts" style="flex-wrap:wrap"><button class="btn sm out" data-mmr="' + i + '">🔄 Replace (upload)</button><button class="btn sm out" data-mml="' + i + '">🔗 Replace (link)</button><button class="btn sm gray" data-mmd="' + i + '">🗑 Delete</button></div></div>';
+  }).join('');
+}
+function mmBind(m, items, done) {
+  m.addEventListener('click', async function (e) {
+    var b, x, i;
+    async function fin(msg) { await ((x && x.save) || save)(msg); if (done) done(); }
+    if ((b = e.target.closest('[data-mmr]'))) { i = +b.getAttribute('data-mmr'); x = items[i]; if (!x) return; pickFile(x.kind === 'video' ? 'video' : 'image', async function (f) { try { toast('⏳ अपलोड हो रहा है…'); var u = x.kind === 'video' ? await handleVideo(f) : await handleUpload(f); x.apply(u); await fin('🔄 बदल गया'); } catch (er) { toast(er.message, true); } }); }
+    else if ((b = e.target.closest('[data-mml]'))) { i = +b.getAttribute('data-mml'); x = items[i]; if (!x) return; askMediaUrl(x.kind === 'video' ? 'video' : 'image', async function (u) { x.apply(u); await fin('🔄 बदल गया'); }); }
+    else if ((b = e.target.closest('[data-mmd]'))) { i = +b.getAttribute('data-mmd'); x = items[i]; if (!x) return; if (await ask('"<b>' + esc(x.name) + '</b>" हटाएँ?<br><small>जहाँ-जहाँ यही फ़ाइल लगी है वहाँ से हट जाएगी।</small>', 'हटाएँ', true)) { x.apply(''); await fin('🗑 हट गया'); } }
+  });
+}
+window.SPMM = { html: mmHtml, bind: mmBind, rep: deepRep };
+async function downloadMedia(list, fname, say) {
+  if (!list.length) return toast('डाउनलोड करने लायक कोई फ़ोटो/वीडियो नहीं', true);
+  var files = [], fail = [];
+  for (var i = 0; i < list.length; i++) {
+    var it = list[i];
+    if (it.kind === 'video') { fail.push(it); continue; }
+    try { var r = await fetch(it.url, { mode: 'cors' }); if (!r.ok) throw 0; var b = await r.blob(), ext = (b.type.split('/')[1] || (it.url.split('?')[0].split('.').pop() || 'bin')).replace(/[^a-z0-9]/gi, '').slice(0, 5) || 'bin'; if (b.size > 40e6) throw 0; files.push({ name: it.kind + '/' + it.name + '.' + ext, data: new Uint8Array(await b.arrayBuffer()) }); }
+    catch (e) { fail.push(it); }
+  }
+  var links = list.map(function (x) { return x.kind + '\t' + x.name + '\t' + x.url; }).join('\n');
+  if (files.length && window.XLSXLite && XLSXLite.zip) {
+    files.push({ name: 'LINKS.txt', data: '﻿' + links + (fail.length ? '\n\n# नीचे वाली फ़ाइलें ज़िप में नहीं आ पाईं (ब्राउज़र ने रोका) — इन लिंक से सीधे डाउनलोड करें:\n' + fail.map(function (x) { return x.url; }).join('\n') : '') });
+    download(XLSXLite.zip(files), fname + '-' + today() + '.zip'); toast('✅ ' + (files.length - 1) + ' फ़ाइल ज़िप में' + (fail.length ? ' • ' + fail.length + ' के सिर्फ़ लिंक (LINKS.txt में)' : ''));
+  } else { download(new Blob(['﻿' + links], { type: 'text/plain;charset=utf-8' }), fname + '-links-' + today() + '.txt'); toast('ℹ️ फ़ोटो सीधे नहीं उतर पाईं — सबके लिंक की फ़ाइल उतारी'); }
+}
+var APPMEDIA_FIELDS = [{ k: 'settings.logoImg', l: 'ऐप का लोगो (फ़ोटो)', t: 'image', h: 'Emoji की जगह दिखता है। यही ⚙️ स्टोर सेटिंग्स में भी है।' }];
+V.videos = function () {
+  return '<div class="card"><h2>🖼️ Store App मीडिया</h2><div class="note g">सिर्फ़ Store App की फ़ोटो और वीडियो यहाँ हैं। वेबसाइट / Shop पेज की फ़ोटो उनके अपने मेन्यू में हैं। स्लाइडशो की फ़ोटो "स्लाइडशो" (या Store App Page Builder) से और प्रोडक्ट की फ़ोटो "प्रोडक्ट्स" से बदलती हैं।</div>' +
+    F(APPMEDIA_FIELDS, D) + '<div class="bar" style="margin-top:12px"><button class="btn" id="amSave">💾 लोगो सेव करें</button><button class="btn out" id="amDl">⬇️ App मीडिया डाउनलोड (' + appMediaList().length + ')</button></div></div>' +
+    '<div class="card"><h2>🗃️ App की सारी फ़ोटो / वीडियो — बदलें या हटाएँ</h2><div id="amLib">' + mmHtml(appMediaList()) + '</div></div>' +
+    listView('videos');
+};
+V.videos_bind = function (m) {
+  bindForm(m); listBind(m);
+  $('#amSave').onclick = function () { var v = readForm(m, APPMEDIA_FIELDS); if (!v) return; applyTo(D, v); save('✅ लोगो सेव हो गया'); };
+  $('#amDl').onclick = function () { downloadMedia(appMediaList(), 'sunpowers-app-media'); };
+  var lib = appMediaList(); mmBind($('#amLib', m), lib, function () { render(); });
+};
 
 /* ======================= form & guide ======================= */
 var FG_FIELDS = [
@@ -764,7 +1339,7 @@ function pageModal(pg) {
   } }], function (md) { bindForm(md.body); });
 }
 V.pages = function () {
-  var base = String(D.settings.siteUrl || CFG.STORE_URL || location.origin).replace(/\/+$/, '');
+  var base = storeBase() || location.origin.replace(/\/+$/, '');
   return '<div class="note g">ये पेज वेबसाइट के फ़ुटर में दिखते हैं (Google/Meta अप्रूवल के लिए ज़रूरी)। 📋 बटन से टेक्स्ट कॉपी करके मुख्य वेबसाइट (www.sunpowers.in) पर <b>बिल्कुल वैसा ही</b> paste करें।</div>' +
     '<div class="bar"><button class="btn" id="addPg">➕ नया पेज</button><button class="btn out" id="dlPg">⬇️ सारे पेज (.txt) — मुख्य वेबसाइट के लिए</button></div>' +
     (D.pages.length ? D.pages.map(function (pg, i) {
@@ -776,8 +1351,10 @@ V.pages = function () {
 };
 V.pages_bind = function (m) {
   $('#addPg').onclick = function () { pageModal(null); };
-  $('#dlPg').onclick = function () {
-    var txt = D.pages.map(function (pg) { return '==================== ' + pg.title + ' / ' + (pg.titleEn || '') + ' ====================\n\n' + pageText(pg, false) + '\n\n----- English -----\n\n' + pageText(pg, true) + '\n'; }).join('\n\n');
+  $('#dlPg').onclick = async function () {
+    var pgOut = await SPSH.dl('पॉलिसी पेज (.txt)', { head: ['id', 'title', 'title_en', 'footer'], rows: D.pages.map(function (pg) { return [pg.id, pg.title, pg.titleEn || '', pg.footer === false ? 'hidden' : 'footer']; }) }, { lock: ['id', 'title', 'title_en', 'footer'], okLabel: '⬇️ पेज डाउनलोड' });
+    if (!pgOut) return; var want = {}; pgOut.rows.forEach(function (r) { want[r[0]] = 1; });
+    var txt = D.pages.filter(function (pg) { return want[pg.id]; }).map(function (pg) { return '==================== ' + pg.title + ' / ' + (pg.titleEn || '') + ' ====================\n\n' + pageText(pg, false) + '\n\n----- English -----\n\n' + pageText(pg, true) + '\n'; }).join('\n\n');
     download(new Blob(['\ufeff' + txt], { type: 'text/plain;charset=utf-8' }), 'sunpowers-policy-pages-' + today() + '.txt');
   };
   m.addEventListener('click', async function (e) {
@@ -794,6 +1371,8 @@ V.pages_bind = function (m) {
 };
 
 /* ======================= settings ======================= */
+// Payment link must be a full https:// address (blank is allowed = button hidden)
+function linkCheck(x) { return x && !/^https:\/\/[^\s]{4,}$/i.test(x) ? 'पूरा link लिखें जो https:// से शुरू हो' : ''; }
 var SET_GROUPS = [
   ['🏪 स्टोर की जानकारी', [
     { k: 'settings.storeName', l: 'स्टोर का नाम', t: 'text', req: true }, { k: 'settings.tagline', l: 'टैगलाइन', t: 'text' },
@@ -802,7 +1381,7 @@ var SET_GROUPS = [
     { k: 'settings.whatsapp', l: 'WhatsApp नंबर', t: 'text', req: true, v: function (x) { return SP.digits(x).length < 10 ? 'सही नंबर लिखें' : ''; } },
     { k: 'settings.phone', l: 'कॉल नंबर', t: 'text' }, { k: 'settings.email', l: 'ईमेल', t: 'text' }, { k: 'settings.address', l: 'पता', t: 'textarea', rows: 2 },
     { k: 'settings.footerText', l: 'फ़ुटर / स्टोर विवरण (Google में भी दिखेगा)', t: 'textarea', rows: 2 },
-    { k: 'settings.themeColor', l: 'मुख्य रंग (Theme)', t: 'color', d: '#1e8e3e' },
+    { k: 'settings.themeColor', l: 'मुख्य रंग (Theme)', t: 'color', d: 'var(--g)' },
     { k: 'settings.defaultLang', l: 'शुरुआती भाषा', t: 'select', o: [['hi', 'हिंदी'], ['en', 'English']] },
     { k: 'settings.stickyTicker', l: 'नीचे चिपकी फ़ीडबैक पट्टी (sticky ticker) दिखाएँ', t: 'check' },
     { k: 'settings.whatsappButton', l: 'हरा WhatsApp बटन दिखाएँ', t: 'check' }]],
@@ -828,15 +1407,23 @@ var SET_GROUPS = [
     { k: 'settings.shipping.freeAbove', l: 'इतने ₹ से ऊपर के ऑर्डर पर फ़्री (0 = कभी नहीं)', t: 'number', min: 0 },
     { k: 'settings.delivery', l: 'डिलीवरी की एक लाइन (कार्ट/प्रोडक्ट पेज पर)', t: 'text', h: 'ऊपर वाले चार्ज से मेल खानी चाहिए' }]],
   ['💳 पेमेंट सेटिंग्स', [
-    { k: 'settings.payments.cod.enabled', l: '✅ Cash on Delivery (एडवांस के साथ) चालू', t: 'check' },
-    { k: 'settings.payments.cod.advancePct', l: 'COD में एडवांस % (अभी लेना है)', t: 'number', min: 0, max: 100, d: 15 },
-    { k: 'settings.payments.cod.label', l: 'COD का नाम (ग्राहक को दिखेगा)', t: 'text' },
+    { k: 'settings.designFee', l: 'Solar Designer fee (₹, GST samet) — public users', t: 'number', min: 1, max: 5000, d: 49 },
+    { k: 'settings.designGst', l: 'Solar Designer GST % (fee ke andar shamil)', t: 'number', min: 0, max: 28, d: 5 },
     { k: 'settings.payments.upi.enabled', l: '✅ UPI पेमेंट (पूरा भुगतान) चालू', t: 'check' },
     { k: 'settings.payments.upi.upiId', l: 'UPI ID', t: 'text', ph: 'Sunpowers@ybl', v: function (x) { return x && !/^[\w.\-]{2,}@[\w.\-]{2,}$/.test(x) ? 'सही UPI ID लिखें (जैसे name@ybl)' : ''; } },
     { k: 'settings.payments.upi.payeeName', l: 'UPI पर दिखने वाला नाम', t: 'text' },
-    { k: 'settings.payments.upi.label', l: 'UPI का नाम (ग्राहक को दिखेगा)', t: 'text' }]],
+    { k: 'settings.payments.upi.label', l: 'UPI का नाम (ग्राहक को दिखेगा)', t: 'text' },
+    { k: 'settings.payments.links.gpay.enabled', l: '✅ Google Pay बटन दिखाएँ', t: 'check' },
+    { k: 'settings.payments.links.gpay.url', l: 'Google Pay business link (https://...)', t: 'text', ph: 'https://...', v: linkCheck },
+    { k: 'settings.payments.links.phonepe.enabled', l: '✅ PhonePe बटन दिखाएँ', t: 'check' },
+    { k: 'settings.payments.links.phonepe.url', l: 'PhonePe business link (https://...)', t: 'text', ph: 'https://...', v: linkCheck },
+    { k: 'settings.payments.links.paytm.enabled', l: '✅ Paytm बटन दिखाएँ', t: 'check' },
+    { k: 'settings.payments.links.paytm.url', l: 'Paytm link (https://...)', t: 'text', ph: 'https://...', v: linkCheck },
+    { k: 'settings.payments.links.other.enabled', l: '✅ कोई और पेमेंट बटन दिखाएँ', t: 'check' },
+    { k: 'settings.payments.links.other.label', l: 'दूसरे पेमेंट का नाम (जैसे Razorpay)', t: 'text' },
+    { k: 'settings.payments.links.other.url', l: 'दूसरे पेमेंट का link (https://...)', t: 'text', ph: 'https://...', v: linkCheck }]],
   ['🌐 सोशल व मार्केटिंग (Google / Meta)', [
-    { k: 'settings.siteUrl', l: 'वेबसाइट URL (प्रोडक्ट फ़ीड के लिए)', t: 'text', ph: 'https://www.sunpowers.in' },
+    { k: 'settings.siteUrl', l: 'Online Store का URL (प्रोडक्ट लिंक / फ़ीड के लिए)', t: 'text', ph: 'https://store.sunpowers.in' },
     { k: 'settings.brand', l: 'ब्रांड नाम', t: 'text' },
     { k: 'settings.social.facebook', l: 'Facebook पेज लिंक', t: 'text' }, { k: 'settings.social.instagram', l: 'Instagram लिंक', t: 'text' },
     { k: 'settings.social.youtube', l: 'YouTube चैनल लिंक', t: 'text' },
@@ -847,15 +1434,15 @@ V.settings = function () {
   return SET_GROUPS.map(function (g, i) { return '<div class="card" data-sg="' + i + '"><h2>' + g[0] + '</h2>' + F(g[1], D) + '<button class="btn" data-sgs="' + i + '" style="margin-top:14px">💾 सेव करें</button></div>'; }).join('') +
     '<div class="card"><h2>🔑 Admin पासवर्ड बदलें</h2><div class="fg"><div class="fld"><label class="l" for="pw1">नया पासवर्ड (कम से कम 6 अक्षर)</label><input type="password" id="pw1" autocomplete="new-password"></div>' +
     '<div class="fld"><label class="l" for="pw2">नया पासवर्ड दोबारा</label><input type="password" id="pw2" autocomplete="new-password"></div></div><button class="btn" id="pwSave" style="margin-top:12px">🔑 पासवर्ड बदलें</button></div>' +
-    '<div class="card"><h2>💾 बैकअप</h2><p style="color:var(--mut);margin-bottom:10px">पूरी वेबसाइट का डेटा एक फ़ाइल में सेव करें / वापस लाएँ।</p><div class="bar"><button class="btn out" id="bkDown">⬇️ बैकअप डाउनलोड (.json)</button>' +
-    '<span class="btn out upl">⬆️ बैकअप से वापस लाएँ<input type="file" accept=".json,application/json" id="bkUp"></span><button class="btn red" id="rsDemo">♻️ डेमो डेटा पर रीसेट</button></div></div>';
+    '<div class="card"><h2>🎨 स्टोर के रंग व ग्रीटिंग</h2><div id="lkStore"></div></div>' +
+    '<div class="card"><h2>♻️ रीसेट</h2><p style="color:var(--mut);margin-bottom:10px">बैकअप / वापस लाने के लिए ऊपर मेन्यू (☰) में "Get full backup" और "Download backup" हैं।</p><div class="bar"><button class="btn red" id="rsDemo">♻️ शुरुआती डेटा पर रीसेट</button></div></div>';
 };
 V.settings_bind = function (m) {
-  bindForm(m);
+  bindForm(m); var io = lookIO(); SPLOOKUI.mount($('#lkStore', m), { app: 'store', label: 'Online Store', lang: 'hi', load: io.load, save: io.save, users: io.users, toast: toast });
   $$('[data-sgs]', m).forEach(function (b) {
     b.onclick = function () {
       var i = +b.getAttribute('data-sgs'), card = $('[data-sg="' + i + '"]', m), v = readForm(card, SET_GROUPS[i][1]); if (!v) return;
-      if (i === PAYG && !v['settings.payments.cod.enabled'] && !v['settings.payments.upi.enabled']) toast('⚠️ दोनों पेमेंट बंद हैं — ग्राहक सिर्फ़ WhatsApp से ऑर्डर कर पाएँगे', true);
+      if (i === PAYG && !v['settings.payments.upi.enabled']) toast('⚠️ दोनों पेमेंट बंद हैं — ग्राहक सिर्फ़ WhatsApp से ऑर्डर कर पाएँगे', true);
       if (i === PAYG && v['settings.payments.upi.enabled'] && !v['settings.payments.upi.upiId']) return toast('UPI चालू है तो UPI ID ज़रूरी है', true);
       applyTo(D, v); save().then(function () { var h = $('.top h1'); if (h) h.textContent = '⚙️ ' + D.settings.storeName + ' Admin'; });
     };
@@ -866,68 +1453,136 @@ V.settings_bind = function (m) {
     try { await SP.rpc('sp_change_password', { p_old: PASS, p_new: a }); if (!isTok(PASS)) { PASS = a; SP.ss.set('sp_admin_pass', a); if (SP.ls.get('sp_admin_pass_keep', null)) SP.ls.set('sp_admin_pass_keep', a); } $('#pw1').value = $('#pw2').value = ''; toast('✅ पासवर्ड बदल गया'); }
     catch (e) { toast('❌ ' + e.message, true); }
   };
-  $('#bkDown').onclick = function () { download(new Blob([JSON.stringify(SP.normalize(D), null, 1)], { type: 'application/json' }), 'sunpowers-backup-' + today() + '.json'); };
-  $('#bkUp').onchange = async function () {
-    var f = this.files[0]; this.value = ''; if (!f) return;
-    try {
-      var d = JSON.parse(await f.text()); if (!isObj(d) || !Array.isArray(d.layout) || !Array.isArray(d.products)) throw new Error('ये सही बैकअप फ़ाइल नहीं है');
-      if (!(await ask('बैकअप (' + d.products.length + ' प्रोडक्ट) से पूरी वेबसाइट बदल दें? अभी का डेटा हट जाएगा।', 'हाँ, वापस लाएँ', true))) return;
-      D = SP.normalize(d); render(); save('✅ बैकअप से डेटा वापस आ गया');
-    } catch (e) { toast('❌ ' + e.message, true); }
-  };
   $('#rsDemo').onclick = async function () {
-    if (!(await ask('सारे प्रोडक्ट, सेक्शन, स्लाइडशो हटाकर <b>डेमो डेटा</b> वापस लाएँ? (पहले बैकअप ले लें)', 'हाँ, रीसेट करें', true))) return;
-    var keep = SP.clone(D.settings); D = SP.normalize(SP.demo()); D.settings = keep; render(); save('♻️ डेमो डेटा रीसेट हो गया');
+    if (!(await ask('सारे प्रोडक्ट, सेक्शन, स्लाइडशो हटाकर <b>शुरुआती डेटा</b> वापस लाएँ? (पहले बैकअप ले लें)', 'हाँ, रीसेट करें', true))) return;
+    var keep = SP.clone(D.settings); D = SP.normalize(SP.demo()); D.settings = keep; render(); save('♻️ शुरुआती डेटा रीसेट हो गया');
   };
 };
 
 /* ======================= orders & enquiries ======================= */
 /* ======================= CRM → Store review (Google / Meta check) → Publish ======================= */
-var CRMITEMS = null, CRMF = 'pending', CRMSTAT = { pending: ['⏳ रिव्यू बाकी', 'o'], published: ['✅ स्टोर पर लाइव', ''], rejected: ['↩️ लौटाया', 'r'] };
+var CRMITEMS = null, CRMF = 'ready', CRMSTAT = { pending: ['⏳ रिव्यू बाकी', 'o'], published: ['✅ स्टोर पर लाइव', ''], rejected: ['↩️ लौटाया', 'r'] };
 async function loadCrm() {
   try { CRMITEMS = await SP.rpc('sp_admin_crm_items', { p_pass: PASS }); }
   catch (e) { CRMITEMS = { error: /Could not find|PGRST202|crm_records/i.test(e.message) ? 'CRM का डेटाबेस अभी सेटअप नहीं है — CRM वाली crm-setup.sql चलाएँ।' : e.message }; }
   if (TAB === 'crm') render();
 }
 function crmPrice(d) { return Math.round(SP.num(d.price) * (1 + SP.num(d.gst) / 100)); }
-function crmDesc(d) { var l = String(d.desc || '').split('\n').map(function (x) { return x.trim(); }).filter(Boolean); return l.map(function (x) { return '• ' + x; }).join('\n') + (d.more ? (l.length ? '\n\n' : '') + d.more : ''); }
+function crmDesc(d) { var b = crmDesc0(d); return (d.type === 'project' && d.kw) ? 'सिस्टम साइज़: ' + d.kw + ' kW' + (b ? '\n\n' + b : '') : b; }
+function crmDesc0(d) { if ((d.type === 'project') && Array.isArray(d.proj_items) && d.proj_items.length) { var pl = d.proj_items.map(function (x) { return '• ' + ((x.title ? x.title + ' – ' : '') + (x.name || '')).trim() + (x.qty && String(x.qty) !== '1' ? ' × ' + x.qty : ''); }); return (d.desc ? String(d.desc).trim() + '\n\n' : '') + 'इस पैकेज में शामिल:\n' + pl.join('\n'); }
+  var l = String(d.desc || '').split('\n').map(function (x) { return x.trim(); }).filter(Boolean); return l.map(function (x) { return '• ' + x; }).join('\n'); }
+/* ---- auto-check: does the item have everything Meta / Google / the website need? ---- */
+var CLAIM_RE = /100\s*%\s*(free|मुफ्त|फ्री)|free\s*(bijli|electricity)|(मुफ़्त|मुफ्त|फ्री)\s*बिजली|zero\s*bill|guaranteed\s*(profit|return)|सरकारी\s*योजना\s*(से|का)?\s*फ्री/i;
+function autoCheck(x) {
+  var d = x.data || {}, st = d.store || {}, issues = [], warns = [], name = String(d.name || x.title || '').trim(), desc = crmDesc(d), price = crmPrice(d);
+  if (name.length < 3) issues.push('नाम बहुत छोटा/ख़ाली'); else if (name.length > 150) issues.push('नाम 150 अक्षर से लंबा');
+  if (/https?:|www\.|\d{10}/i.test(name)) issues.push('नाम में फ़ोन/लिंक नहीं होना चाहिए');
+  if (!(price > 0)) issues.push('कीमत नहीं भरी');
+  var nsp = Object.keys(d.specs || {}).filter(function (k) { return k.charAt(0) !== '_'; }).length;
+  if (desc.replace(/\s+/g, ' ').length + nsp * 15 < 30) issues.push('खास बातें / specification बहुत कम (CRM में भरें)');
+  if (CLAIM_RE.test(name + ' ' + desc + ' ' + (st.tagline || '') + ' ' + (st.offer_text || ''))) issues.push('झूठा/बढ़ा-चढ़ा दावा दिख रहा है ("100% फ़्री बिजली" आदि)');
+  if (!String(d.brand || '').trim()) warns.push('ब्रांड नहीं');
+  if (!String(d.mpn || d.sku || '').trim()) warns.push('मॉडल नंबर नहीं');
+  if (!String(d.warranty || '').trim()) warns.push('वारंटी नहीं भरी');
+  if (!String(st.tagline || '').trim()) warns.push('टैगलाइन नहीं');
+  if (name.length > 6 && name === name.toUpperCase() && /[A-Z]{6}/.test(name)) warns.push('नाम सब CAPITAL में');
+  warns.push('स्टोर की फ़ोटो/वीडियो यहीं Admin से डालें' + ((d.images || []).length ? ' (CRM की फ़ोटो पहली बार Publish पर अपने-आप आ जाएँगी)' : ''));
+  if (SP.num(d.mrp) > 0 && SP.num(d.mrp) < price) warns.push('MRP कीमत से कम है (छूट नहीं दिखेगी)');
+  return { ok: !issues.length, issues: issues, warns: warns };
+}
+function crmState(x) { var st = (x.data.store || {}).status; if (st === 'pending') return autoCheck(x).ok ? 'ready' : 'needs'; return st || ''; }
+var CRMSEL = {};
 V.crm = function () {
   if (!CRMITEMS) { loadCrm(); return '<div class="empty"><span class="spin"></span> लोड हो रहा है…</div>'; }
   if (CRMITEMS.error) return '<div class="note r">⚠️ ' + esc(CRMITEMS.error) + '</div>';
-  var cnt = { pending: 0, published: 0, rejected: 0 }; CRMITEMS.forEach(function (x) { var st = (x.data.store || {}).status; if (cnt[st] != null) cnt[st]++; });
-  var list = CRMITEMS.filter(function (x) { return !CRMF || (x.data.store || {}).status === CRMF; });
-  return '<div class="note g">🔗 CRM में जोड़े गए प्रोडक्ट यहाँ आते हैं। <b>पहले जाँचें</b> (Google / Meta नियम: असली फ़ोटो, साफ़ कीमत, कोई झूठा दावा नहीं) → फिर <b>Publish</b> करें। बिना Publish किए कुछ भी स्टोर पर नहीं दिखता।</div>' +
-    '<div class="bar">' + [['pending', 'रिव्यू बाकी'], ['published', 'लाइव'], ['rejected', 'लौटाए'], ['', 'सभी']].map(function (f) { return '<button class="btn sm ' + (CRMF === f[0] ? '' : 'out') + '" data-cf="' + f[0] + '">' + f[1] + (f[0] ? ' (' + cnt[f[0]] + ')' : '') + '</button>'; }).join('') + '<button class="btn sm gray" data-cf-reload>🔄</button></div>' +
+  var cnt = { ready: 0, needs: 0, published: 0, rejected: 0 }; CRMITEMS.forEach(function (x) { var s = crmState(x); if (cnt[s] != null) cnt[s]++; });
+  var list = CRMITEMS.filter(function (x) { return !CRMF || crmState(x) === CRMF; });
+  var selN = Object.keys(CRMSEL).filter(function (k) { return CRMSEL[k]; }).length;
+  return '<div class="note g">🔗 CRM से आए आइटम की <b>अपने-आप जाँच</b> होती है (नाम, फ़ोटो, कीमत, विवरण, झूठे दावे — Meta/Google/वेबसाइट के नियम)। जो पास हों वे <b>✅ Publish के लिए तैयार</b> में आते हैं; जिनमें कमी हो वे <b>⚠️ कमी वाले</b> में कारण के साथ रहते हैं (CRM में वापस भी भेज सकते हैं)। बिना Publish किए कुछ भी स्टोर पर नहीं जाता।</div>' +
+    '<div class="bar">' + [['ready', '✅ Publish के लिए तैयार'], ['needs', '⚠️ कमी वाले'], ['published', '🚀 लाइव'], ['rejected', '↩️ लौटाए'], ['', 'सभी']].map(function (f) { return '<button class="btn sm ' + (CRMF === f[0] ? '' : 'out') + '" data-cf="' + f[0] + '">' + f[1] + (f[0] ? ' (' + cnt[f[0]] + ')' : '') + '</button>'; }).join('') + '<button class="btn sm gray" data-cf-reload>🔄</button></div>' +
+    (CRMF === 'ready' && list.length ? '<div class="bar" id="cBulk"><label class="chk" style="margin:0"><input type="checkbox" id="cSelAll"> सब चुनें</label><span class="grow" id="cSelN">' + selN + ' चुने</span><button class="btn sm" id="cBulkPub"' + (selN ? '' : ' disabled') + '>🚀 चुने हुए Publish करें…</button></div>' : '') +
+    (CRMF === 'needs' && list.length ? '<div class="bar"><span class="grow">कमी वाले आइटम CRM में सुधरेंगे; यहाँ से सबको कारण के साथ वापस भेज सकते हैं।</span><button class="btn sm red" id="cRetAll">↩️ सब कमी वाले CRM को लौटाएँ</button></div>' : '') +
+    (CRMF === 'published' && list.length ? '<div class="bar"><label class="chk" style="margin:0"><input type="checkbox" id="cSelAll"> सब चुनें</label><span class="grow" id="cSelN">' + selN + ' चुने</span><button class="btn sm" id="cBulkPlace"' + (selN ? '' : ' disabled') + '>📍 जगह जोड़ें / हटाएँ…</button></div>' : '') +
     (list.length ? list.map(function (x) {
-      var d = x.data, st = (d.store || {}).status || 'pending', sl = CRMSTAT[st] || [st, ''], img = (d.images || [])[0], live = d.store && d.store.store_id && prod(d.store.store_id);
-      return '<div class="row" data-crow="' + x.id + '">' + thumb(img, '📦', '#e8f5e9') + '<div class="rm"><b>' + esc(d.name || x.title) + '</b><small><span class="tag ' + sl[1] + '">' + sl[0] + '</span> CRM रेट: ' + SP.money(SP.num(d.price)) + ' + GST ' + esc(d.gst || 0) + '% = <strong>' + SP.money(crmPrice(d)) + '</strong>' + (SP.num(d.mrp) ? ' • MRP ' + SP.money(d.mrp) : '') + '</small>' +
-        '<small>' + (d.store && d.store.sent_by ? 'भेजा: ' + esc(d.store.sent_by) : '') + (d.store && d.store.note ? ' • नोट: ' + esc(d.store.note) : '') + ((d.images || []).length ? ' • 🖼️ ' + d.images.length + ' फ़ोटो' : ' • ⚠️ फ़ोटो नहीं') + '</small></div>' +
-        '<div class="acts"><button class="btn sm" data-cpub="' + x.id + '">' + (live ? '🔄 अपडेट' : '🚀 जाँचें व Publish') + '</button>' + (st !== 'rejected' ? '<button class="btn sm red" data-crej="' + x.id + '">↩️ लौटाएँ</button>' : '') + '</div></div>';
+      var d = x.data, st = (d.store || {}).status || 'pending', s = crmState(x), sl = CRMSTAT[st] || [st, ''], img = '', live = d.store && d.store.store_id && prod(d.store.store_id), ac = st === 'pending' ? autoCheck(x) : null;
+      var pick = (s === 'ready' || s === 'published') && CRMF === s ? '<input type="checkbox" class="selbox" data-csel="' + x.id + '"' + (CRMSEL[x.id] ? ' checked' : '') + ' aria-label="चुनें" style="margin-right:6px">' : '';
+      return '<div class="row" data-crow="' + x.id + '">' + pick + thumb(img, '📦', '#e8f5e9') + '<div class="rm"><b>' + esc(d.name || x.title) + '</b><small><span class="tag ' + (s === 'ready' ? '' : (s === 'needs' ? 'r' : sl[1])) + '">' + (s === 'ready' ? '✅ तैयार' : (s === 'needs' ? '⚠️ कमी' : sl[0])) + '</span> ' + (d.type === 'project' ? '🧩 प्रोजेक्ट • ' : '') + 'CRM रेट: ' + SP.money(SP.num(d.price)) + ' + GST ' + esc(d.gst || 0) + '% = <strong>' + SP.money(crmPrice(d)) + '</strong>' + (SP.num(d.mrp) ? ' • MRP ' + SP.money(d.mrp) : '') + '</small>' +
+        (ac && ac.issues.length ? '<small style="color:var(--red)">❌ ' + ac.issues.map(esc).join(' • ') + '</small>' : '') + (ac && ac.warns.length ? '<small style="color:#b26a00">💡 ' + ac.warns.map(esc).join(' • ') + '</small>' : '') +
+        '<small>' + (d.store && d.store.sent_by ? 'भेजा: ' + esc(d.store.sent_by) : '') + (d.store && d.store.note ? ' • नोट: ' + esc(d.store.note) : '') + '' + '</small></div>' +
+        '<div class="acts"><button class="btn sm" data-cpub="' + x.id + '">' + (live ? '🔄 अपडेट' : (s === 'ready' ? '🚀 देखें व Publish' : '✏️ विवरण भरकर Publish')) + '</button>' + (st !== 'rejected' ? '<button class="btn sm red" data-crej="' + x.id + '">↩️ लौटाएँ</button>' : '') + '</div></div>';
     }).join('') : '<div class="empty">इस लिस्ट में कुछ नहीं</div>');
 };
-async function crmImages(d) {
-  var out = [];
-  for (var i = 0; i < (d.images || []).length; i++) {
-    var u = d.images[i];
-    if (!/^data:/.test(u)) { out.push(u); continue; }
-    try { var b = await (await fetch(u)).blob(), r = await SP.storeImage(new File([b], 'crm-' + Date.now() + '-' + i + '.jpg', { type: b.type || 'image/jpeg' })); out.push(r.url); } catch (e) { out.push(u); }
+function selIds() { return Object.keys(CRMSEL).filter(function (k) { return CRMSEL[k]; }).map(Number); }
+function placeBoxes(def) {
+  var pl = SPBA.placements();
+  if (!pl.length) return '<div class="note r">पहले कोई सेक्शन बनाएँ (🗂️ सेक्शन या 🧱 Store App Page Builder → Raw Category → Add Box)।</div>';
+  return '<div class="secs" id="bpSecs">' + pl.map(function (s) { return '<label><input type="checkbox" value="' + esc(s.id) + '"' + (def && def.indexOf(s.id) >= 0 ? ' checked' : '') + '> ' + esc(s.title) + (s.uses.length ? ' <small style="color:var(--mut)">(' + s.uses.map(esc).join(' • ') + ')</small>' : '') + '</label>'; }).join('') + '</div>';
+}
+async function crmBulkPublish() {
+  var items = CRMITEMS.filter(function (x) { return CRMSEL[x.id] && crmState(x) === 'ready'; });
+  if (!items.length) return toast('कोई तैयार आइटम चुना नहीं', true);
+  if (!D.sections.length) { toast('पहले एक सेक्शन बनाएँ', true); return; }
+  modal('🚀 ' + items.length + ' आइटम एक साथ Publish', '<div class="note g"><b>चुने हुए:</b> ' + items.slice(0, 12).map(function (x) { return esc(x.data.name || x.title); }).join(' • ') + (items.length > 12 ? ' … +' + (items.length - 12) : '') + '</div>' +
+    '<div class="fld full"><label class="l">📍 कहाँ-कहाँ दिखाएँ? (एक या कई जगह टिक करें — सेक्शन / कैटेगरी / Raw Category बॉक्स)</label>' + placeBoxes() + '</div>' +
+    '<label class="chk"><input type="checkbox" id="bpWeb" checked> 🛍️ वेबसाइट के Shop पेज पर भी दिखाएँ</label><div class="note">ℹ️ प्रोडक्ट शुरू में <b>छुपे</b> बनेंगे (CRM में पहले से फ़ोटो थी तो वही आ जाएगी)। हर प्रोडक्ट में फ़ोटो/वीडियो डालकर 👁 दबाएँ, तब वह लाइव होगा।</div>' +
+    '<div class="note">✅ <b>Google / Meta नियम</b> — एक बार पुष्टि: <label class="chk2"><input type="checkbox" id="bpOk"> फ़ोटो असली हैं, कीमत सही है, कोई झूठा दावा नहीं, नाम/विवरण सही हैं</label></div>',
+    [{ l: 'रद्द करें', cls: 'gray' }, { l: '🚀 Publish करें', id: 'bpGo', fn: async function (md) {
+      var secs = $$('#bpSecs input:checked', md.el).map(function (c) { return c.value; }); if (!secs.length) { toast('कम से कम एक जगह चुनें', true); return false; }
+      if (!$('#bpOk', md.el).checked) { toast('पहले Google/Meta पुष्टि पर टिक करें', true); return false; }
+      var web = $('#bpWeb', md.el).checked, done = [], minSort = Math.min.apply(null, D.products.map(function (p) { return SP.num(p.sort); }).concat([0]));
+      toast('⏳ ' + items.length + ' आइटम तैयार हो रहे हैं…');
+      for (var i = 0; i < items.length; i++) {
+        var x = items[i], d = x.data, st = d.store || {}, ex = st.store_id ? prod(st.store_id) : null, price = crmPrice(d), mrp = SP.num(d.mrp);
+        var f = { title: d.name || x.title, titleEn: ex ? ex.titleEn : (d.name || x.title), tagline: st.tagline || (ex && ex.tagline) || (d.type === 'project' && d.kw ? d.kw + ' kW सोलर सिस्टम' : ''), desc: crmDesc(d), mrp: mrp > price ? mrp : price, offer: mrp > price ? price : 0, sku: d.sku || '', brand: d.brand || D.settings.brand || '', unit: d.unit || '', stock: d.stock != null && SP.num(d.stock) <= 0 ? 'out' : 'in', crm: x.id, proj: d.type === 'project' };
+        if (!ex && (d.images || []).length) { var pm = await crmPhotos(x); if (pm.length) f.media = pm; }
+        var sbk = SPSUB.fromCrm(d); if (sbk) f.sub = sbk;
+        if (SP.num(d.weight) > 0) f.weight = SP.num(d.weight);
+        var np = ex; if (ex) applyTo(ex, f); else { np = applyTo(SP.clone(SP.PRODUCT_DEF), f); np.id = SP.uid('p'); np.sort = minSort - 1 - i; np.visible = false; np.web = web; D.products.push(np); }
+        np.sections = (np.sections || []).concat(secs.filter(function (s) { return (np.sections || []).indexOf(s) < 0; })); done.push([x, np]);
+      }
+      render(); await save('🚀 ' + done.length + ' प्रोडक्ट बन गए — फ़ोटो/वीडियो डालकर "दिखाएँ" करें (शुरू में छुपे रहते हैं)'); if (dirty) return false;
+      var bad = 0; for (var j = 0; j < done.length; j++) { try { await SP.rpc('sp_admin_crm_item_set', { p_pass: PASS, p_id: done[j][0].id, p_status: 'published', p_store_id: done[j][1].id, p_note: '' }); } catch (e) { bad++; } }
+      toast(bad ? '⚠️ प्रोडक्ट पब्लिश हुए, पर ' + bad + ' का CRM स्टेटस अपडेट नहीं हुआ' : '✅ ' + done.length + ' लाइव — CRM में भी "लाइव" दिखेगा', !!bad);
+      CRMSEL = {}; CRMITEMS = null; if (TAB === 'crm') render(); pollCounts();
+    } }]);
+}
+function crmBulkPlace() {
+  var items = CRMITEMS.filter(function (x) { return CRMSEL[x.id] && crmState(x) === 'published' && x.data.store && prod(x.data.store.store_id); });
+  if (!items.length) return toast('कोई लाइव आइटम चुना नहीं', true);
+  modal('📍 ' + items.length + ' लाइव आइटम की जगह बदलें', '<div class="fld"><label class="l">क्या करना है</label><select id="bpMode"><option value="add">➕ चुनी जगहों में जोड़ें</option><option value="rm">➖ चुनी जगहों से हटाएँ</option></select></div><div class="fld full"><label class="l">जगहें</label>' + placeBoxes() + '</div>',
+    [{ l: 'रद्द करें', cls: 'gray' }, { l: '💾 लागू करें', fn: async function (md) {
+      var secs = $$('#bpSecs input:checked', md.el).map(function (c) { return c.value; }); if (!secs.length) { toast('कोई जगह चुनें', true); return false; }
+      var add = $('#bpMode', md.el).value === 'add';
+      items.forEach(function (x) { var p = prod(x.data.store.store_id); p.sections = add ? p.sections.concat(secs.filter(function (s) { return p.sections.indexOf(s) < 0; })) : p.sections.filter(function (s) { return secs.indexOf(s) < 0; }); });
+      render(); await save('✅ ' + items.length + ' प्रोडक्ट की जगह बदल गई'); if (dirty) return false; CRMSEL = {}; render();
+    } }]);
+}
+/* Round 63: CRM me pehle se rakhi photo (agar thi) Store ki photo ban jaati hai — ek hi baar upload; uske baad CRM se hat jaati hai */
+async function crmPhotos(x) {
+  var out = [], l = ((x.data || {}).images || []).slice(0, 3);
+  for (var i = 0; i < l.length; i++) {
+    try { var b = await (await fetch(l[i])).blob(), f = new File([b], 'crm-' + i + '.jpg', { type: b.type || 'image/jpeg' }), r = await SP.storeImage(f, 'product'); out.push({ type: 'image', url: r.url, main: i === 0 }); } catch (e) {}
   }
   return out;
 }
 async function crmPublish(x) {
   var d = x.data, st = d.store || {}, ex = st.store_id ? prod(st.store_id) : null;
-  toast('⏳ फ़ोटो तैयार हो रही हैं…');
-  var imgs = await crmImages(d), price = SP.num(st.offer) || crmPrice(d), mrp = SP.num(d.mrp);
+  var price = crmPrice(d), mrp = SP.num(d.mrp);
   var pre = { title: d.name || x.title, titleEn: d.name || x.title, tagline: st.tagline || '', desc: crmDesc(d), mrp: mrp > price ? mrp : price, offer: mrp > price ? price : 0,
-    image: imgs[0] || '', images: imgs.slice(1), sku: d.sku || '', brand: d.brand || '', unit: d.unit || '', stock: d.stock != null && SP.num(d.stock) <= 0 ? 'out' : 'in', visible: true };
-  if (ex) pre = { title: pre.title, desc: pre.desc, mrp: pre.mrp, offer: pre.offer, tagline: pre.tagline || ex.tagline, image: pre.image || ex.image, images: pre.images.length ? pre.images : ex.images, sku: pre.sku || ex.sku, brand: pre.brand || ex.brand, stock: pre.stock };
+    sku: d.sku || '', gst: d.gst != null ? d.gst : undefined, brand: d.brand || '', unit: d.unit || '', stock: d.stock != null && SP.num(d.stock) <= 0 ? 'out' : 'in', visible: true };
+  if (d.type === 'project') { pre.proj = true; var sbc = SPSUB.fromCrm(d); if (sbc) pre.sub = sbc; }
+  if (ex) pre = { title: pre.title, desc: pre.desc, mrp: pre.mrp, offer: pre.offer, tagline: pre.tagline || ex.tagline, sku: pre.sku || ex.sku, brand: pre.brand || ex.brand, stock: pre.stock, proj: pre.proj, sub: pre.sub };
   var checks = ['फ़ोटो असली प्रोडक्ट की है (किसी दूसरे का लोगो / वॉटरमार्क नहीं)', 'कीमत साफ़ है और GST सहित सही है', 'कोई झूठा दावा नहीं ("100% फ़्री बिजली", "सरकारी योजना" आदि)', 'नाम व विवरण प्रोडक्ट से मेल खाते हैं'];
+  if (!ex && (d.images || []).length) { toast('⏳ CRM की फ़ोटो स्टोर के लिए तैयार हो रही हैं…'); pre.media = await crmPhotos(x); }
   productModal(ex, ex ? null : [], {
-    prefill: pre,
+    crm: x, prefill: pre,
     title: (ex ? '🔄 CRM से अपडेट — ' : '🔗 जाँचें व Publish — ') + (d.name || x.title),
     okLabel: ex ? '💾 अपडेट करें' : '🚀 Publish करें',
     top: '<div class="note">✅ <b>Google / Meta नियम जाँच</b> — चारों पर टिक करें:' + checks.map(function (c, i) { return '<label class="chk2"><input type="checkbox" data-gm="' + i + '"> ' + c + '</label>'; }).join('') + '</div>',
-    check: function (md) { var all = $$('[data-gm]', md.body).every(function (c) { return c.checked; }); if (!all) toast('पहले चारों जाँच पर टिक करें', true); return all; },
+    check: function (md) {
+      var mf = $('.fld[data-t=media]', md.body), vis = $('.fld[data-k=visible] input', md.body);
+      if (mf && vis && vis.checked && !(mf._list || []).length) { toast('स्टोर पर दिखाने के लिए कम से कम 1 फ़ोटो/वीडियो यहीं से डालें', true); return false; }
+      var all = $$('[data-gm]', md.body).every(function (c) { return c.checked; }); if (!all) toast('पहले चारों जाँच पर टिक करें', true); return all; },
     after: async function (np) {
       try { await SP.rpc('sp_admin_crm_item_set', { p_pass: PASS, p_id: x.id, p_status: 'published', p_store_id: np.id, p_note: '' }); toast('🚀 स्टोर पर लाइव — CRM में भी "लाइव" दिखेगा'); }
       catch (e) { toast('प्रोडक्ट सेव हुआ, पर CRM अपडेट नहीं हुआ: ' + e.message, true); }
@@ -936,9 +1591,25 @@ async function crmPublish(x) {
   });
 }
 V.crm_bind = function (m) {
+  m.addEventListener('change', function (e) {
+    var t = e.target, rows = $$('[data-csel]', m);
+    if (t.id === 'cSelAll') rows.forEach(function (c) { c.checked = t.checked; CRMSEL[c.getAttribute('data-csel')] = t.checked; });
+    else if (t.hasAttribute && t.hasAttribute('data-csel')) CRMSEL[t.getAttribute('data-csel')] = t.checked;
+    else return;
+    var n = selIds().length, el = $('#cSelN', m); if (el) el.textContent = n + ' चुने';
+    ['cBulkPub', 'cBulkPlace'].forEach(function (i) { var bt = $('#' + i, m); if (bt) bt.disabled = !n; });
+  });
   m.addEventListener('click', async function (e) {
     var b;
-    if ((b = e.target.closest('[data-cf]'))) { CRMF = b.getAttribute('data-cf'); render(); }
+    if ((b = e.target.closest('[data-cf]'))) { CRMF = b.getAttribute('data-cf'); CRMSEL = {}; render(); }
+    else if (e.target.closest('#cBulkPub')) crmBulkPublish();
+    else if (e.target.closest('#cBulkPlace')) crmBulkPlace();
+    else if (e.target.closest('#cRetAll')) {
+      var bad = CRMITEMS.filter(function (x) { return crmState(x) === 'needs'; }); if (!bad.length) return;
+      if (!(await ask('<b>' + bad.length + '</b> कमी वाले आइटम कारण के साथ CRM को लौटाएँ?', '↩️ हाँ, लौटाएँ', true))) return;
+      for (var i = 0; i < bad.length; i++) { try { await SP.rpc('sp_admin_crm_item_set', { p_pass: PASS, p_id: bad[i].id, p_status: 'rejected', p_store_id: '', p_note: ('ऑटो-जाँच: ' + autoCheck(bad[i]).issues.join('; ')).slice(0, 400) }); } catch (er) { toast(er.message, true); break; } }
+      toast('↩️ ' + bad.length + ' आइटम CRM को लौटा दिए'); CRMITEMS = null; render(); pollCounts();
+    }
     else if (e.target.closest('[data-cf-reload]')) { CRMITEMS = null; render(); }
     else if ((b = e.target.closest('[data-cpub]'))) { var x = CRMITEMS.filter(function (i) { return i.id === +b.getAttribute('data-cpub'); })[0]; if (x) { b.disabled = true; try { await crmPublish(x); } finally { b.disabled = false; } } }
     else if ((b = e.target.closest('[data-crej]'))) {
@@ -955,17 +1626,17 @@ function beep() { try { var A = window.AudioContext || window.webkitAudioContext
 async function pollCounts() {
   if (!PASS || document.hidden) return;
   try {
-    var c = await SP.rpc('sp_admin_counts', { p_pass: PASS });
-    [['orders', c.orders_new], ['enquiries', c.enquiries_new], ['crm', c.crm_pending]].forEach(function (x) { var el = $('[data-cnt="' + x[0] + '"]'); if (el) { el.textContent = x[1]; el.classList.toggle('hide', !x[1]); } });
+    var c = await SP.rpc('sp_admin_counts', { p_pass: PASS }); NAVC = c;
     if (LASTC) {
-      var no = c.last_order > LASTC.last_order, ne = c.last_enquiry > LASTC.last_enquiry, nc = c.crm_pending > LASTC.crm_pending;
-      if (no || ne || nc) {
-        beep(); toast('🔔 ' + [no ? 'नया ऑर्डर आया' : '', ne ? 'नई पूछताछ आई' : '', nc ? 'CRM से नया प्रोडक्ट रिव्यू के लिए' : ''].filter(Boolean).join(' • '));
-        if ((no && TAB === 'orders') || (ne && TAB === 'enquiries')) { LISTDATA[TAB] = null; render(); }
+      var np2 = (c.pay_pending || 0) > (LASTC.pay_pending || 0), no = c.last_order > LASTC.last_order, ne = c.last_enquiry > LASTC.last_enquiry, nc = c.crm_pending > LASTC.crm_pending;
+      if (no || ne || nc || np2) {
+        beep(); toast('🔔 ' + [no ? 'नया ऑर्डर आया' : '', np2 ? 'नया UTR — पेमेंट वेरिफ़ाई करें' : '', ne ? 'नई पूछताछ आई' : '', nc ? 'CRM से नया प्रोडक्ट रिव्यू के लिए' : ''].filter(Boolean).join(' • '));
+        if (((no || np2) && TAB === 'orders') || (ne && TAB === 'enquiries')) { LISTDATA[TAB] = null; render(); }
         if (nc && TAB === 'crm') { CRMITEMS = null; render(); }
       }
     }
     LASTC = c; SP.ls.set('sp_admin_last', c);
+    SP.rpc('sp_admin_stock_alerts', { p_pass: PASS }).then(function (a) { STK = a; paintStk(); }).catch(function () {});
     var n = (c.orders_new || 0) + (c.enquiries_new || 0); document.title = (n ? '(' + n + ') ' : '') + 'Admin — ' + (D ? D.settings.storeName : '');
   } catch (e) {}
 }
@@ -973,6 +1644,7 @@ function startPolling() { clearInterval(POLL); pollCounts(); POLL = setInterval(
 window.spAdminPoll = pollCounts;
 document.addEventListener('visibilitychange', function () { if (!document.hidden && PASS && D) pollCounts(); });
 
+var ENQSRC = 'store';
 var LISTDATA = { orders: null, enquiries: null }, LFILTER = { orders: '', enquiries: '' };
 var STATUSES = { orders: [['new', '🆕 नया'], ['confirmed', '✔️ कन्फ़र्म'], ['paid', '💰 पेमेंट मिला'], ['shipped', '🚚 भेजा गया'], ['delivered', '✅ डिलीवर'], ['cancelled', '❌ कैंसिल']],
   enquiries: [['new', '🆕 नया'], ['contacted', '📞 संपर्क हुआ'], ['closed', '✅ पूरा'], ['cancelled', '❌ बेकार']] };
@@ -983,14 +1655,39 @@ async function loadList(kind) {
 }
 function orderCard(o) {
   var d = o.data || {}, st = STATUSES.orders, items = Array.isArray(d.items) ? d.items : [];
-  var wa = 'नमस्ते ' + (d.name || '') + ' जी, ' + D.settings.storeName + ' से — आपका ऑर्डर #' + o.id + ' (' + SP.money(d.total) + ') मिल गया है।';
-  return '<div class="card"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b style="font-size:17px;flex:1">#' + o.id + ' — ' + esc(d.name) + '</b><span class="status ' + esc(o.status) + '">' + esc((st.filter(function (x) { return x[0] === o.status; })[0] || [0, o.status])[1]) + '</span></div>' +
+  var wa = 'नमस्ते ' + (d.name || '') + ' जी, ' + D.settings.storeName + ' से — आपका ऑर्डर ' + (d.order_no || '#' + o.id) + ' (' + SP.money(d.total) + ') मिल गया है।';
+  return '<div class="card"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b style="font-size:17px;flex:1">' + esc(d.order_no || ('#' + o.id)) + ' — ' + esc(d.name) + '</b><span class="status ' + esc(o.status) + '">' + esc((st.filter(function (x) { return x[0] === o.status; })[0] || [0, o.status])[1]) + '</span></div>' +
     '<small style="color:var(--mut)">' + fmtDate(o.created_at) + '</small>' +
     '<div class="kv"><div><span>📞</span> <a href="tel:' + esc(d.phone) + '">' + esc(d.phone) + '</a></div><div><span>📍</span> ' + esc([d.address, d.city, d.pincode].filter(Boolean).join(', ')) + '</div>' + (d.note ? '<div><span>📝</span> ' + esc(d.note) + '</div>' : '') + '</div>' +
     '<div style="background:#fafcf9;border-radius:10px;padding:8px;font-size:14px">' + items.map(function (l) { return esc(l.title) + ' × ' + esc(l.qty) + ' = <b>' + SP.money(l.amount) + '</b>'; }).join('<br>') +
-    '<div style="border-top:1px dashed var(--line);margin-top:6px;padding-top:6px">' + (d.shipping !== undefined ? 'डिलीवरी: ' + (SP.num(d.shipping) ? SP.money(d.shipping) : 'फ़्री') + ' • ' : '') + '<b>कुल: ' + SP.money(d.total) + '</b> • ' + (d.payment === 'cod' ? 'COD — एडवांस ' + SP.money(d.advance) + ', डिलीवरी पर ' + SP.money(d.due) : d.payment === 'upi' ? 'UPI — पूरा ' + SP.money(d.total) : esc(d.payment)) + '</div></div>' +
-    '<div class="bar" style="margin:10px 0 0"><select class="inp" style="width:auto" data-st="orders|' + o.id + '">' + st.map(function (s) { return '<option value="' + s[0] + '"' + (o.status === s[0] ? ' selected' : '') + '>' + s[1] + '</option>'; }).join('') + '</select>' +
+    '<div style="border-top:1px dashed var(--line);margin-top:6px;padding-top:6px">' + (d.shipping !== undefined ? 'डिलीवरी: ' + (SP.num(d.shipping) ? SP.money(d.shipping) : 'फ़्री') + (d.pickup ? ' (🏬 स्टोर से उठाएँगे)' : d.delivery && d.delivery.reason === 'project' ? ' (कम्प्लीट प्रोजेक्ट)' : d.delivery && d.delivery.courier ? ' (' + esc(d.delivery.courier) + (d.delivery.eta_max ? ', ' + d.delivery.eta_max + ' दिन' : '') + ')' : d.delivery && d.delivery.mode === 'self' ? ' (खुद डिलीवरी)' : '') + ' • ' : '') + '<b>कुल: ' + SP.money(d.total) + '</b> • ' + (d.payment === 'cod' ? 'COD — एडवांस ' + SP.money(d.advance) + ', डिलीवरी पर ' + SP.money(d.due) : d.payment === 'upi' ? 'UPI — पूरा ' + SP.money(d.total) : esc(d.payment)) + '</div></div>' +
+    (d.install && d.install.length ? '<div class="note" style="margin:8px 0">🔧 <b>इंस्टालेशन चाहिए (add-on):</b> ' + d.install.map(function (x) { return esc(x.name) + (SP.num(x.price) ? ' (' + SP.money(x.price) + ')' : ''); }).join(', ') + ' — CRM में Service काम बनाकर अलग से बिल करें।</div>' : '') +
+    payRow(o, d) + dispRow(o, d) +
+    '<div class="bar" style="margin:10px 0 0"><select class="inp" style="width:auto" aria-label="स्टेटस" data-st="orders|' + o.id + '">' + st.map(function (s) { return '<option value="' + s[0] + '"' + (o.status === s[0] ? ' selected' : '') + '>' + s[1] + '</option>'; }).join('') + '</select>' +
     '<a class="btn sm" style="background:#25d366" target="_blank" rel="noopener" href="' + esc(SP.waLink(d.phone, wa)) + '">💬 WhatsApp</a><button class="btn sm red" data-ld="orders|' + o.id + '">🗑</button></div></div>';
+}
+var OPENDSP = {};
+// Dispatch / tracking: customer ke Order page par courier, tracking number, link aur dates dikhte hain
+function dispRow(o, d) {
+  var x = d.dispatch || {}, f = function (k, lab, type, ph) { return '<label style="display:flex;flex-direction:column;gap:3px;font-size:13px;font-weight:600;flex:1;min-width:150px">' + lab + '<input class="inp" data-dk="' + k + '" type="' + (type || 'text') + '" value="' + esc(x[k] || '') + '" placeholder="' + esc(ph || '') + '" maxlength="300"></label>'; };
+  var sum = (x.courier || x.tracking) ? ' — ' + esc(x.courier || '') + ' ' + esc(x.tracking || '') : ' (अभी भरा नहीं)';
+  return '<details class="dsp" data-dspid="' + o.id + '"' + (OPENDSP[o.id] ? ' open' : '') + ' style="margin-top:8px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fbfdfb"><summary style="cursor:pointer;font-weight:700">🚚 Dispatch / Tracking' + sum + '</summary>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><label style="display:flex;flex-direction:column;gap:3px;font-size:13px;font-weight:600;flex:1;min-width:150px">तरीका<select class="inp" data-dk="mode"><option value="courier"' + (x.mode === 'courier' || !x.mode ? ' selected' : '') + '>Courier</option><option value="self"' + (x.mode === 'self' ? ' selected' : '') + '>खुद डिलीवरी</option><option value="pickup"' + (x.mode === 'pickup' || d.pickup && !x.mode ? ' selected' : '') + '>स्टोर से pickup</option></select></label>' +
+    f('courier', 'Courier का नाम', 'text', 'जैसे DTDC') + f('tracking', 'Tracking / LR नंबर', 'text', '') + f('track_url', 'Tracking link (https://…)', 'url', 'https://') +
+    f('disp_date', 'भेजने की तारीख', 'date') + f('eta_date', 'पहुँचने की अनुमानित तारीख', 'date') + f('deliv_date', 'डिलीवर होने की तारीख', 'date') + f('note', 'ग्राहक के लिए नोट', 'text', 'जैसे: 2 दिन में पहुँचेगा') + '</div>' +
+    '<div class="bar" style="margin:10px 0 0"><label style="font-size:13px;font-weight:600">स्टेटस भी बदलें: <select class="inp" style="width:auto" data-dk="status"><option value="">(जैसा है वैसा)</option><option value="shipped">🚚 भेजा गया</option><option value="delivered">✅ डिलीवर</option></select></label><button class="btn sm" data-dsp="' + o.id + '">💾 Dispatch सेव करें</button></div>' +
+    '<small style="color:var(--mut)">ग्राहक को यह जानकारी उसके Profile → Mere Orders → Order page पर दिखेगी।</small></details>';
+}
+// Payment check block: customer's UTR + verify / reject buttons
+function payRow(o, d) {
+  var ps = d.payment_status || '';
+  var inv = d.invoice_no ? '<div style="margin-top:8px;background:#e8f5e9;border-radius:10px;padding:8px;font-size:14px">🧾 <b>Invoice ' + esc(d.invoice_no) + '</b> ग्राहक के Orders details में भेजा जा चुका है</div>' : '';
+  var gen = (!d.invoice_no && ps !== 'rejected') ? '<div style="margin-top:8px"><button class="btn sm" style="background:#1e8e3e;color:#fff;white-space:normal;text-align:left;line-height:1.35" data-vp="' + o.id + '|2">✅ Payment &amp; Location genuine hain — Invoice customer ke Orders details dashboard me bhejein</button></div>' : '';
+  if (d.invoice_no) return inv + (d.utr ? '<div style="margin-top:6px;font-size:13px">UTR: <b>' + esc(d.utr) + '</b></div>' : '');
+  if (!d.utr && ps !== 'verified') return '<div style="margin-top:8px;font-size:13px;color:var(--mut)">⏳ ग्राहक ने UTR नहीं डाला (ज़रूरी नहीं — customer को कॉल करके payment check करें)</div>' + gen;
+  var lbl = ps === 'verified' ? '✅ भुगतान verified' : ps === 'rejected' ? '❌ भुगतान rejected' : '🟡 भुगतान verify करना बाकी';
+  return '<div style="margin-top:8px;background:#fff8e6;border-radius:10px;padding:8px;font-size:14px"><b>' + lbl + '</b><br>UTR: <b>' + esc(d.utr || '—') + '</b>' +
+    (ps === 'submitted' ? '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-vp="' + o.id + '|1">✅ Verify — Dispatch ready</button><button class="btn sm red" data-vp="' + o.id + '|0">❌ Reject</button></div>' : '') + gen + '</div>';
 }
 function enqCard(o) {
   var d = o.data || {}, st = STATUSES.enquiries;
@@ -999,27 +1696,81 @@ function enqCard(o) {
     '<div><span>ज़रूरत:</span> <b>' + esc(d.type) + '</b>' + (d.subject ? ' • 📌 ' + esc(d.subject) : '') + '</div>' +
     (d.bill || d.kw || (d.location && d.location !== d.city) ? '<div>' + (d.bill ? '💡 बिल: <b>' + esc(d.bill) + '</b> ' : '') + (d.kw ? ' ☀️ kW: <b>' + esc(d.kw) + '</b> ' : '') + (d.location && d.location !== d.city ? ' 📍 ' + esc(d.location) : '') + '</div>' : '') +
     (d.message ? '<div style="white-space:pre-wrap">' + esc(d.message) + '</div>' : '') + '<div><span class="tag' + (d.source === 'website' ? ' b' : '') + '">' + (d.source === 'website' ? '🌐 वेबसाइट' : '🛒 स्टोर') + '</span></div></div>' +
-    '<div class="bar" style="margin:10px 0 0"><select class="inp" style="width:auto" data-st="enquiries|' + o.id + '">' + st.map(function (s) { return '<option value="' + s[0] + '"' + (o.status === s[0] ? ' selected' : '') + '>' + s[1] + '</option>'; }).join('') + '</select>' +
+    '<div class="bar" style="margin:10px 0 0"><select class="inp" style="width:auto" aria-label="स्टेटस" data-st="enquiries|' + o.id + '">' + st.map(function (s) { return '<option value="' + s[0] + '"' + (o.status === s[0] ? ' selected' : '') + '>' + s[1] + '</option>'; }).join('') + '</select>' +
     '<a class="btn sm" style="background:#25d366" target="_blank" rel="noopener" href="' + esc(SP.waLink(d.phone, 'नमस्ते ' + (d.name || '') + ' जी, ' + D.settings.storeName + ' से — आपकी पूछताछ के बारे में।')) + '">💬 WhatsApp</a><button class="btn sm red" data-ld="enquiries|' + o.id + '">🗑</button></div></div>';
+}
+
+/* ---- Solar Designer payments (public users, Rs 49): "Payment & Location genuine" -> GST invoice ---- */
+var DESIGNS = null;
+function loadDesigns() { SP.rpc('sp_admin_design_list', { p_pass: PASS }).then(function (r) { DESIGNS = r || []; render(); }, function (e) { DESIGNS = { error: e.message }; render(); }); }
+function designBlock() {
+  if (DESIGNS === null) { loadDesigns(); return ''; }
+  if (DESIGNS.error) return '<div class="note r" style="margin-bottom:10px">Designer payments: ' + esc(DESIGNS.error) + ' (SQL U09 chalayein)</div>';
+  if (!DESIGNS.length) return '';
+  var pend = DESIGNS.filter(function (d) { return d.status === 'submitted'; }).length;
+  return '<details class="card" style="margin-bottom:12px"' + (pend ? ' open' : '') + '><summary style="cursor:pointer;font-weight:700">📐 Solar Designer payments (' + DESIGNS.length + ')' + (pend ? ' — <span style="color:#b3261e">' + pend + ' verify baaki</span>' : '') + '</summary>' + DESIGNS.slice(0, 60).map(function (d) {
+    var loc = d.location || {}, map = loc.lat ? ' <a target="_blank" rel="noopener" href="https://www.google.com/maps?q=' + esc(loc.lat) + ',' + esc(loc.lng) + '">🗺 Map</a>' : '';
+    var lbl = d.status === 'verified' ? '✅ verified' : d.status === 'submitted' ? '🟡 payment check karna baaki' : d.status === 'rejected' ? '❌ rejected' : '⏳ payment nahi aaya';
+    return '<div style="border-top:1px solid #e6ece4;padding:8px 0;font-size:14px"><b>' + esc(d.order_no) + '</b> — ' + esc(d.name || '') + ' · ' + esc(d.mobile || '') + ' · <b>' + SP.money(d.amount) + '</b> <small>(GST ' + esc(d.gst_pct) + '% shamil)</small><br>' + lbl + (d.utr ? ' · UTR <b>' + esc(d.utr) + '</b>' : '') + '<br><small>📍 ' + esc(loc.addr || '—') + map + '</small>' +
+      (d.invoice_no ? '<br>🧾 Invoice <b>' + esc(d.invoice_no) + '</b> customer ke Orders details me hai' + (d.used ? ' · download ho chuka' : '') :
+        (d.status === 'awaiting_payment' ? '' : '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" style="background:#1e8e3e;color:#fff;white-space:normal;text-align:left;line-height:1.35" data-dg="' + d.id + '|1">✅ Payment &amp; Location genuine hain — Invoice customer ke Orders details me bhejein</button><button class="btn sm red" data-dg="' + d.id + '|0">❌ Reject</button></div>')) + '</div>';
+  }).join('') + '</details>';
+}
+function dgAct(b) {
+  var p = b.getAttribute('data-dg').split('|'); b.disabled = true;
+  SP.rpc('sp_admin_design_genuine', { p_pass: PASS, p_id: +p[0], p_ok: p[1] === '1' }).then(function (r) {
+    DESIGNS = null; render(); toast(p[1] === '1' ? '🧾 Invoice ' + ((r && r.invoice_no) || '') + ' customer ke Orders details me bhej diya — design download ab khul gaya' : '❌ Payment reject hua');
+  }, function (e) { b.disabled = false; toast('⚠️ ' + ((e && e.message) || 'Error'), true); });
 }
 function listTab(kind) {
   var data = LISTDATA[kind];
   if (data === null) { loadList(kind); return '<div class="empty"><span class="spin"></span> लोड हो रहा है…</div>'; }
   if (data.error) return '<div class="note r">❌ ' + esc(data.error) + '</div><button class="btn" data-lr="' + kind + '">🔄 दोबारा लोड करें</button>';
+  var webN = 0;
+  if (kind === 'enquiries') { webN = data.filter(function (o) { return o.data && o.data.source === 'website'; }).length; data = data.filter(function (o) { var w = o.data && o.data.source === 'website'; return ENQSRC === 'all' || (ENQSRC === 'website' ? w : !w); }); }
   var f = LFILTER[kind], list = data.filter(function (o) { return !f || o.status === f; }), counts = {};
   data.forEach(function (o) { counts[o.status] = (counts[o.status] || 0) + 1; });
   var stats = kind === 'orders' ? '<div class="stats"><div class="stat"><b>' + data.length + '</b><small>कुल ऑर्डर</small></div><div class="stat"><b>' + (counts['new'] || 0) + '</b><small>नए ऑर्डर</small></div><div class="stat"><b>' +
     SP.money(data.filter(function (o) { return o.status !== 'cancelled'; }).reduce(function (s, o) { return s + SP.num(o.data && o.data.total); }, 0)) + '</b><small>कुल बिक्री (कैंसिल छोड़कर)</small></div></div>' : '';
-  return stats + '<div class="bar"><button class="btn out" data-lr="' + kind + '">🔄 रिफ्रेश</button><select class="inp" style="width:auto" data-lf="' + kind + '"><option value="">सभी (' + data.length + ')</option>' +
+  return (kind === 'orders' ? designBlock() : '') + stats + '<div class="bar"><button class="btn out" data-lr="' + kind + '">🔄 रिफ्रेश</button>' + (kind === 'enquiries' ? '<select class="inp" style="width:auto" data-lsrc aria-label="पूछताछ का स्रोत"><option value="store"' + (ENQSRC === 'store' ? ' selected' : '') + '>🛒 स्टोर की</option><option value="website"' + (ENQSRC === 'website' ? ' selected' : '') + '>🌐 वेबसाइट की (' + webN + ')</option><option value="all"' + (ENQSRC === 'all' ? ' selected' : '') + '>सभी</option></select>' : '') + '<select class="inp" style="width:auto" data-lf="' + kind + '"><option value="">सभी (' + data.length + ')</option>' +
     STATUSES[kind].map(function (s) { return '<option value="' + s[0] + '"' + (f === s[0] ? ' selected' : '') + '>' + s[1] + ' (' + (counts[s[0]] || 0) + ')</option>'; }).join('') + '</select>' +
     (data.length ? '<button class="btn out" data-lx="' + kind + '">⬇️ Excel</button>' : '') + '</div>' +
     (list.length ? list.map(kind === 'orders' ? orderCard : enqCard).join('') : '<div class="empty">' + (kind === 'orders' ? '🧾 अभी कोई ऑर्डर नहीं' : '📨 अभी कोई पूछताछ नहीं') + '</div>');
 }
+function vpAct(vp) {
+      var vparts = vp.getAttribute('data-vp').split('|');
+      (async function () {
+        try {
+          if (vparts[1] === '2') {
+            var iv = await SP.rpc('sp_admin_send_invoice', { p_pass: PASS, p_id: +vparts[0] });
+            LISTDATA.orders.forEach(function (x) { if (x.id === +vparts[0]) { x.data = x.data || {}; x.data.payment_status = 'verified'; x.data.invoice_no = iv && iv.invoice_no; x.status = 'paid'; } });
+            render(); pollCounts(); toast('🧾 Invoice ' + ((iv && iv.invoice_no) || '') + ' customer ke Orders details me bhej diya');
+            return;
+          }
+          await SP.rpc('sp_admin_verify_payment', { p_pass: PASS, p_id: +vparts[0], p_ok: vparts[1] === '1' });
+          LISTDATA.orders.forEach(function (x) { if (x.id === +vparts[0]) { x.data = x.data || {}; x.data.payment_status = vparts[1] === '1' ? 'verified' : 'rejected'; if (vparts[1] === '1') x.status = 'paid'; } });
+          render(); pollCounts(); toast(vparts[1] === '1' ? '✅ भुगतान verified — ऑर्डर dispatch के लिए तैयार' : '❌ भुगतान reject हुआ');
+        } catch (err) { toast('⚠️ ' + ((err && err.message) || 'Error'), true); }
+      })();
+}
 function listTabBind(m) {
   m.addEventListener('click', async function (e) {
     var b;
-    if ((b = e.target.closest('[data-lr]'))) { LISTDATA[b.getAttribute('data-lr')] = null; render(); }
+    if ((b = e.target.closest('[data-lr]'))) { LISTDATA[b.getAttribute('data-lr')] = null; if (b.getAttribute('data-lr') === 'orders') DESIGNS = null; render(); }
     else if ((b = e.target.closest('[data-lx]'))) exportList(b.getAttribute('data-lx'));
+    else if ((b = e.target.closest('[data-vp]'))) vpAct(b);
+    else if ((b = e.target.closest('[data-dg]'))) dgAct(b);
+    else if ((b = e.target.closest('[data-dsp]'))) {
+      var did = +b.getAttribute('data-dsp'), box = b.closest('details'), pl = {};
+      Array.prototype.forEach.call(box.querySelectorAll('[data-dk]'), function (el) { pl[el.getAttribute('data-dk')] = el.value; });
+      if (pl.track_url && !/^https?:\/\//i.test(pl.track_url)) return toast('❌ Tracking link https:// से शुरू होना चाहिए', true);
+      b.disabled = true; OPENDSP[did] = true;
+      try {
+        var rr = await SP.rpc('sp_admin_order_dispatch', { p_pass: PASS, p_id: did, p: pl });
+        LISTDATA.orders.forEach(function (o) { if (o.id === did) { o.data = Object.assign({}, o.data, { dispatch: rr.dispatch }); o.status = rr.status; } });
+        render(); toast('✅ Dispatch की जानकारी सेव हो गई');
+      } catch (err) { b.disabled = false; toast('❌ ' + err.message, true); }
+    }
     else if ((b = e.target.closest('[data-ld]'))) {
       var p = b.getAttribute('data-ld').split('|');
       if (!(await ask('#' + p[1] + ' हमेशा के लिए डिलीट करें?', 'डिलीट', true))) return;
@@ -1027,8 +1778,10 @@ function listTabBind(m) {
       catch (err) { toast('❌ ' + err.message, true); }
     }
   });
+  m.addEventListener('toggle', function (e) { var dt = e.target; if (dt && dt.getAttribute && dt.getAttribute('data-dspid')) OPENDSP[dt.getAttribute('data-dspid')] = dt.open; }, true);
   m.addEventListener('change', async function (e) {
     var s = e.target.closest('[data-st]'), lf = e.target.closest('[data-lf]');
+    if (e.target.closest('[data-lsrc]')) { ENQSRC = e.target.closest('[data-lsrc]').value; render(); return; }
     if (lf) { LFILTER[lf.getAttribute('data-lf')] = lf.value; render(); return; }
     if (!s) return;
     var p = s.getAttribute('data-st').split('|'), val = s.value;
@@ -1036,16 +1789,20 @@ function listTabBind(m) {
     catch (err) { toast('❌ ' + err.message, true); render(); }
   });
 }
-function exportList(kind) {
-  var data = LISTDATA[kind] || [], rows;
+async function exportList(kind) {
+  var data = LISTDATA[kind] || [], rows, head;
   if (kind === 'orders') {
-    rows = [['order_id', 'date', 'status', 'name', 'phone', 'address', 'city', 'pincode', 'items', 'subtotal', 'delivery', 'total', 'payment', 'advance', 'due', 'note']].concat(data.map(function (o) {
-      var d = o.data || {}; return [o.id, fmtDate(o.created_at), o.status, d.name, d.phone, d.address, d.city, d.pincode, (d.items || []).map(function (l) { return l.title + ' x ' + l.qty; }).join(' | '), SP.num(d.subtotal !== undefined ? d.subtotal : d.total), SP.num(d.shipping), SP.num(d.total), d.payment, SP.num(d.advance), SP.num(d.due), d.note];
-    }));
+    head = ['order_id', 'date', 'status', 'name', 'phone', 'address', 'city', 'pincode', 'items', 'subtotal', 'delivery', 'total', 'payment', 'advance', 'due', 'note'];
+    rows = data.map(function (o) {
+      var d = o.data || {}; return [o.id, isoDT(o.created_at), o.status, d.name, d.phone, d.address, d.city, d.pincode, (d.items || []).map(function (l) { return l.title + ' x ' + l.qty; }).join(' | '), SP.num(d.subtotal !== undefined ? d.subtotal : d.total), SP.num(d.shipping), SP.num(d.total), d.payment, SP.num(d.advance), SP.num(d.due), d.note];
+    });
   } else {
-    rows = [['id', 'date', 'status', 'source', 'name', 'phone', 'city / location', 'type', 'monthly bill', 'kW', 'subject', 'message']].concat(data.map(function (o) { var d = o.data || {}; return [o.id, fmtDate(o.created_at), o.status, d.source === 'website' ? 'website' : 'store', d.name, d.phone, d.location || d.city, d.type, d.bill, d.kw, d.subject, d.message]; }));
+    head = ['id', 'date', 'status', 'source', 'name', 'phone', 'city / location', 'type', 'monthly bill', 'kW', 'subject', 'message'];
+    rows = data.map(function (o) { var d = o.data || {}; return [o.id, isoDT(o.created_at), o.status, d.source === 'website' ? 'website' : 'store', d.name, d.phone, d.location || d.city, d.type, d.bill, d.kw, d.subject, d.message]; });
   }
-  download(XLSXLite.write([{ name: kind === 'orders' ? 'Orders' : 'Enquiries', rows: rows, widths: [8, 20, 12, 18, 14, 30, 14, 10, 40, 10, 10, 10, 10, 30] }]), 'sunpowers-' + kind + '-' + today() + '.xlsx');
+  var out = await SPSH.dl(kind === 'orders' ? 'ऑर्डर' : 'पूछताछ', { head: head, rows: rows }, {});
+  if (!out) return;
+  download(XLSXLite.write([{ name: kind === 'orders' ? 'Orders' : 'Enquiries', rows: [out.head].concat(out.rows), widths: [8, 20, 12, 18, 14, 30, 14, 10, 40, 10, 10, 10, 10, 30] }]), 'sunpowers-' + kind + '-' + today() + '.xlsx');
 }
 V.orders = function () { return listTab('orders'); }; V.orders_bind = listTabBind;
 V.enquiries = function () { return listTab('enquiries'); }; V.enquiries_bind = listTabBind;
@@ -1076,7 +1833,44 @@ function cellOut(key, v) {
   if (NUM_KEYS[key]) return SP.num(v);
   return v == null ? '' : v;
 }
-function exportAll() {
+var XSHEETS = [['Products', 'प्रोडक्ट'], ['Sections', 'सेक्शन'], ['Slideshows', 'स्लाइडशो'], ['Slides', 'स्लाइड'], ['Services', 'सर्विस कार्ड'], ['Feedback', 'फ़ीडबैक'], ['Videos', 'वीडियो'], ['Settings', 'सेटिंग्स']];
+function pickSheets() {
+  return new Promise(function (res) {
+    var done = false;
+    var m = modal('📥 Excel डाउनलोड — क्या-क्या चाहिए?', '<div class="note g">पहले चुनें कि कौन सी शीट चाहिए। प्रोडक्ट शीट चुनेंगे तो अगले स्टेप में सेक्शन/स्टॉक/विज़िबल वग़ैरह से फ़िल्टर कर पाएँगे। अपलोड पर सिर्फ़ यहीं चुनी शीट और लाइनें बदल सकेंगी।</div><div style="display:grid;gap:8px;margin-top:10px">' +
+      XSHEETS.map(function (x) { return '<label class="chk"><input type="checkbox" data-xs="' + x[0] + '" checked> ' + x[1] + ' <small style="color:var(--mut)">(' + x[0] + ')</small></label>'; }).join('') + '</div>',
+      [{ l: 'रद्द करें', cls: 'gray', fn: function () { done = true; res(null); } }, { l: 'आगे ➜', id: 'xsOk', fn: function (md) {
+        var sel = Array.prototype.filter.call(md.body.querySelectorAll('[data-xs]'), function (c) { return c.checked; }).map(function (c) { return c.getAttribute('data-xs'); });
+        if (!sel.length) { toast('कम से कम एक शीट चुनें', true); return false; } done = true; res(sel);
+      } }]);
+    var x = m.el.querySelector('[data-x]'); if (x) x.addEventListener('click', function () { if (!done) { done = true; res(null); } });
+  });
+}
+function pickList(title, note, items, okLabel) {
+  return new Promise(function (res) {
+    var done = false;
+    var m = modal(title, '<div class="note g">' + note + '</div><div style="display:grid;gap:8px;margin-top:10px">' + items.map(function (x) { return '<label class="chk"><input type="checkbox" data-pk="' + esc(x[0]) + '" checked> ' + x[1] + '</label>'; }).join('') + '</div>',
+      [{ l: 'रद्द करें', cls: 'gray', fn: function () { done = true; res(null); } }, { l: okLabel || 'आगे ➜', id: 'pkOk', fn: function (md) {
+        var sel = Array.prototype.filter.call(md.body.querySelectorAll('[data-pk]'), function (c) { return c.checked; }).map(function (c) { return c.getAttribute('data-pk'); });
+        if (!sel.length) { toast('कम से कम एक चुनें', true); return false; } done = true; res(sel);
+      } }]);
+    var x = m.el.querySelector('[data-x]'); if (x) x.addEventListener('click', function () { if (!done) { done = true; res(null); } });
+  });
+}
+async function exportAll() {
+  var pick = await pickSheets(); if (!pick) return;
+  var prodHead = XCOLS.Products.map(function (c) { return c[0]; }), allP = D.sections.reduce(function (acc, s) { SP.productsOf(D, s.id, true).forEach(function (p) { if (acc.indexOf(p) < 0) acc.push(p); }); return acc; }, []).concat(D.products.filter(function (p) { return !p.sections.length; }));
+  var pOut = null;
+  if (pick.indexOf('Products') >= 0 && allP.length) {
+    pOut = await SPSH.dl('Excel — प्रोडक्ट शीट', { head: prodHead, rows: allP.map(function (p) { return XCOLS.Products.map(function (c) { return cellOut(c[1], p[c[1]]); }); }) }, { multi: [prodHead[2]], lock: ['id'], okLabel: '⬇️ Excel डाउनलोड' });
+    if (!pOut) return;
+  }
+  var ids = pOut ? pOut.rows.map(function (r) { return String(r[0]); }) : [], cols = pick.map(function (n) { return 'sheet:' + n; });
+  if (pOut) cols = cols.concat(pOut.head.map(function (h) { return 'Products:' + h; }));
+  var iss; try { iss = await SPSH.issue('sp_excel', ids, cols, pick.join(',') + (pOut && pOut.desc ? ' · ' + pOut.desc : '')); } catch (e) { return toast('❌ ' + e.message, true); }
+  exportAllBuild(pick, pOut, iss.code);
+}
+function exportAllBuild(pick, pOut, code) {
   var sheets = [{ name: 'ReadMe', widths: [110], rows: [['📊 Sunpowers Store — Excel से एडिट करने का तरीका'],
     ['1. किसी भी शीट में बदलाव करें (नाम, कीमत, फ़ोटो लिंक, सेक्शन, स्लाइड...)। पहली लाइन (हेडिंग) न बदलें।'],
     ['2. नया आइटम जोड़ने के लिए नई लाइन जोड़ें और "id" ख़ाली छोड़ दें — अपने आप बन जाएगा।'],
@@ -1085,17 +1879,17 @@ function exportAll() {
     ['5. "' + KEEP + '" लिखा हो तो उसे न बदलें — वो अपलोड की गई फ़ोटो है।'],
     ['6. Slides शीट में slideshow_id = Slideshows शीट की id। link_type: none / section / product / form / whatsapp / call / url'],
     ['7. फ़ाइल सेव करके Admin → 📊 Excel → "Excel अपलोड करें" से अपलोड करें। अपलोड से पहले बदलावों की लिस्ट दिखेगी।'],
-    ['8. जो शीट आप फ़ाइल से हटा देंगे, उसका डेटा नहीं बदलेगा।']] }];
-  sheets.push({ name: 'Products', rows: [XCOLS.Products.map(function (c) { return c[0]; })].concat(
-    D.sections.reduce(function (acc, s) { SP.productsOf(D, s.id, true).forEach(function (p) { if (acc.indexOf(p) < 0) acc.push(p); }); return acc; }, []).concat(D.products.filter(function (p) { return !p.sections.length; }))
-      .map(function (p) { return XCOLS.Products.map(function (c) { return cellOut(c[1], p[c[1]]); }); })),
-    widths: [14, 34, 30, 30, 12, 12, 24, 12, 10, 10, 6, 30, 30, 50, 40, 8, 6, 10, 20, 10, 12] });
-  sheets.push({ name: 'Sections', rows: [XCOLS.Sections.map(function (c) { return c[0]; })].concat(D.sections.map(function (s) { return XCOLS.Sections.map(function (c) { return cellOut(c[1], s[c[1]]); }); })), widths: [14, 30, 26, 30, 20, 10, 6, 14] });
-  sheets.push({ name: 'Slideshows', rows: [XCOLS.Slideshows.map(function (c) { return c[0]; })].concat(D.slideshows.map(function (s) { return XCOLS.Slideshows.map(function (c) { return cellOut(c[1], s[c[1]]); }); })), widths: [14, 24, 12, 16, 10, 14, 12, 14, 14] });
+    ['8. जो शीट आप फ़ाइल से हटा देंगे, उसका डेटा नहीं बदलेगा।'],
+    ['9. शीट का कोड: ' + code + ' (30 दिन मान्य) — "_sp" शीट न हटाएँ। सिर्फ़ इसी फ़ाइल में दी शीट/प्रोडक्ट/कॉलम बदलेंगे; बाक़ी जैसे हैं वैसे रहेंगे।']] }];
+  if (pOut) sheets.push({ name: 'Products', rows: [pOut.head].concat(pOut.rows), widths: [14, 34, 30, 30, 12, 12, 24, 12, 10, 10, 6, 30, 30, 50, 40, 8, 6, 10, 20, 10, 12] });
+  var has = function (n) { return pick.indexOf(n) >= 0; };
+  if (has('Sections')) sheets.push({ name: 'Sections', rows: [XCOLS.Sections.map(function (c) { return c[0]; })].concat(D.sections.map(function (s) { return XCOLS.Sections.map(function (c) { return cellOut(c[1], s[c[1]]); }); })), widths: [14, 30, 26, 30, 20, 10, 6, 14] });
+  if (has('Slideshows')) sheets.push({ name: 'Slideshows', rows: [XCOLS.Slideshows.map(function (c) { return c[0]; })].concat(D.slideshows.map(function (s) { return XCOLS.Slideshows.map(function (c) { return cellOut(c[1], s[c[1]]); }); })), widths: [14, 24, 12, 16, 10, 14, 12, 14, 14] });
   var srows = []; D.slideshows.forEach(function (ss) { ss.slides.forEach(function (sl) { var o = SP.clone(sl); o.ssid = ss.id; srows.push(XCOLS.Slides.map(function (c) { return cellOut(c[1], o[c[1]]); })); }); });
-  sheets.push({ name: 'Slides', rows: [XCOLS.Slides.map(function (c) { return c[0]; })].concat(srows), widths: [14, 16, 26, 26, 14, 34, 30, 12, 20, 10, 6, 14] });
-  ['Services', 'Feedback', 'Videos'].forEach(function (n) { var key = n.toLowerCase(); sheets.push({ name: n, rows: [XCOLS[n].map(function (c) { return c[0]; })].concat(D[key].items.map(function (it) { return XCOLS[n].map(function (c) { return cellOut(c[1], it[c[1]]); }); })), widths: [12, 24, 30, 40, 16, 12, 14, 20] }); });
-  sheets.push({ name: 'Settings', rows: [['key', 'value']].concat(flatSettings(D.settings).map(function (kv) { return [kv[0], typeof kv[1] === 'boolean' ? yn(kv[1]) : (kv[0] === 'logoImg' ? imgOut(kv[1]) : kv[1])]; })), widths: [34, 60] });
+  if (has('Slides')) sheets.push({ name: 'Slides', rows: [XCOLS.Slides.map(function (c) { return c[0]; })].concat(srows), widths: [14, 16, 26, 26, 14, 34, 30, 12, 20, 10, 6, 14] });
+  ['Services', 'Feedback', 'Videos'].forEach(function (n) { if (!has(n)) return; var key = n.toLowerCase(); sheets.push({ name: n, rows: [XCOLS[n].map(function (c) { return c[0]; })].concat(D[key].items.map(function (it) { return XCOLS[n].map(function (c) { return cellOut(c[1], it[c[1]]); }); })), widths: [12, 24, 30, 40, 16, 12, 14, 20] }); });
+  if (has('Settings')) sheets.push({ name: 'Settings', rows: [['key', 'value']].concat(flatSettings(D.settings).map(function (kv) { return [kv[0], typeof kv[1] === 'boolean' ? yn(kv[1]) : (kv[0] === 'logoImg' ? imgOut(kv[1]) : kv[1])]; })), widths: [34, 60] });
+  sheets.push(SPSH.metaSheet(code));
   download(XLSXLite.write(sheets), 'sunpowers-store-' + today() + '.xlsx');
   toast('⬇️ Excel डाउनलोड हो गई');
 }
@@ -1151,7 +1945,12 @@ function buildFromRows(N, list, cols, oldList, make, errors, sheet) {
 async function importExcel(file) {
   var wb;
   try { wb = await XLSXLite.read(await file.arrayBuffer()); } catch (e) { return toast('❌ ' + e.message, true); }
+  var code = SPSH.codeOf(wb); if (!code) return toast('❌ ' + SCOPE_MSG, true);
+  var sc; try { sc = await SPSH.check(code, 'sp_excel'); } catch (e) { return toast('❌ ' + e.message, true); }
+  var inSheet = {}, scIds = {}, scHdr = {}; (sc.cols || []).forEach(function (c) { c = String(c); if (c.indexOf('sheet:') === 0) inSheet[c.slice(6)] = 1; else if (c.indexOf('Products:') === 0) scHdr[c.slice(9)] = 1; }); (sc.ids || []).forEach(function (i) { scIds[String(i)] = 1; });
+  var ignored = []; Object.keys(wb).forEach(function (n) { if (n !== 'ReadMe' && n !== '_sp' && !inSheet[n]) { ignored.push(n); delete wb[n]; } });
   var N = SP.clone(D), errors = [], warn = [], summary = [];
+  if (ignored.length) warn.push('ये शीट इस फ़ाइल के दायरे में नहीं थीं, इसलिए छोड़ दी गईं: ' + ignored.join(', '));
   function diff(name, oldL, newL) {
     var oi = {}, ni = {}; oldL.forEach(function (x) { oi[x.id] = x; }); newL.forEach(function (x) { ni[x.id] = x; });
     var add = newL.filter(function (x) { return !oi[x.id]; }).length, del = oldL.filter(function (x) { return !ni[x.id]; }).length;
@@ -1171,7 +1970,11 @@ async function importExcel(file) {
     return s ? s.id : null;
   }
   if (wb.Products) {
-    var ps = buildFromRows(N, sheetObjects(wb.Products, XCOLS.Products, 'Products', errors), XCOLS.Products, D.products, function () { var p = SP.clone(SP.PRODUCT_DEF); p.brand = D.settings.brand || ''; return p; }, errors, 'Products');
+    var pRows = sheetObjects(wb.Products, XCOLS.Products, 'Products', errors), oldScoped = D.products.filter(function (p) { return scIds[p.id]; }), unscoped = D.products.filter(function (p) { return !scIds[p.id]; }), droppedP = 0;
+    pRows = pRows.filter(function (o) { var id = String(o.id || '').trim(); if (id && !scIds[id]) { droppedP++; return false; } return true; });
+    pRows.forEach(function (o) { XCOLS.Products.forEach(function (c) { if (c[1] !== 'id' && !scHdr[c[0]]) o._has[c[1]] = false; }); });
+    if (droppedP) warn.push(droppedP + ' प्रोडक्ट लाइनें इस फ़ाइल के दायरे में नहीं थीं — छोड़ दी गईं');
+    var ps = buildFromRows(N, pRows, XCOLS.Products, oldScoped, function () { var p = SP.clone(SP.PRODUCT_DEF); p.brand = D.settings.brand || ''; return p; }, errors, 'Products');
     ps.forEach(function (p) {
       if (!p.title) errors.push('Products लाइन ' + p._row + ': title ख़ाली है');
       if (p._hasSecs) {
@@ -1183,7 +1986,7 @@ async function importExcel(file) {
       if (SP.num(p.mrp) > 0 && SP.num(p.offer) > SP.num(p.mrp)) warn.push('"' + p.title + '" का Offer Price, MRP से ज़्यादा है — Offer Price ही दिखेगा');
       delete p._row; delete p._ssid; delete p._secs; delete p._hasSecs;
     });
-    diff('प्रोडक्ट', D.products, ps); N.products = ps;
+    diff('प्रोडक्ट', oldScoped, ps); N.products = ps.concat(unscoped);
   } else if (wb.Sections) {
     N.products.forEach(function (p) { p.sections = p.sections.filter(function (id) { return N.sections.some(function (s) { return s.id === id; }); }); });
   }
@@ -1231,15 +2034,17 @@ async function importExcel(file) {
   var formIdx = N.layout.findIndex(function (b) { return b.type === 'form'; }); if (formIdx < 0) formIdx = N.layout.length;
   N.slideshows.forEach(function (s) { if (!inL[s.id]) { N.layout.splice(formIdx++, 0, { id: SP.uid('b'), type: 'slideshow', ref: s.id, hidden: false }); warn.push('नया स्लाइडशो "' + s.name + '" होम पेज पर फ़ॉर्म से पहले जोड़ा गया'); } });
   N.sections.forEach(function (s) { if (!inL[s.id]) { N.layout.splice(formIdx++, 0, { id: SP.uid('b'), type: 'section', ref: s.id, hidden: false }); warn.push('नया सेक्शन "' + s.title + '" होम पेज पर फ़ॉर्म से पहले जोड़ा गया'); } });
+  /* Round 30: Page Builder follows the Excel too - new sections get a Product Row, removed sections lose theirs */
+  try { var nb = SPBLD.norm(N.builder), ch = 0; if (nb.sv || nb.ssv) { D.sections.forEach(function (o) { if (!sIds[o.id]) ch += SPBLD.dropSecRows(nb, o.id); }); N.sections.forEach(function (o) { if (!inL[o.id] && SPBLD.addSecRow(nb, o)) ch++; }); if (ch) { N.builder = nb; } } } catch (e) {}
 
   var body = (errors.length ? '<div class="note r"><b>❌ ये गलतियाँ ठीक करके दोबारा अपलोड करें:</b><br>' + errors.slice(0, 40).map(esc).join('<br>') + (errors.length > 40 ? '<br>…और ' + (errors.length - 40) : '') + '</div>' : '') +
     '<table class="imp"><tr><th>चीज़</th><th>पहले</th><th>अब</th><th>नए</th><th>बदले</th><th>हटेंगे</th></tr>' + summary.map(function (s) { return '<tr><td>' + s[0] + '</td><td>' + s[1] + '</td><td>' + s[2] + '</td><td style="color:var(--g-d)">' + s[3] + '</td><td style="color:#0d47a1">' + s[4] + '</td><td style="color:var(--red)">' + s[5] + '</td></tr>'; }).join('') + '</table>' +
     (warn.length ? '<div class="note" style="margin-top:12px"><b>⚠️ ध्यान दें:</b><br>' + warn.slice(0, 30).map(esc).join('<br>') + (warn.length > 30 ? '<br>…और ' + (warn.length - 30) : '') + '</div>' : '');
-  modal('📊 Excel अपलोड — जाँच', body, errors.length ? [{ l: 'बंद करें', cls: 'gray' }] : [{ l: 'रद्द करें', cls: 'gray' }, { l: '✅ लागू करें और सेव करें', id: 'impOk', fn: function () { D = SP.normalize(N); render(); return save('✅ Excel से अपडेट हो गया — वेबसाइट पर लाइव'); } }]);
+  modal('📊 Excel अपलोड — जाँच', body, errors.length ? [{ l: 'बंद करें', cls: 'gray' }] : [{ l: 'रद्द करें', cls: 'gray' }, { l: '✅ लागू करें और सेव करें', id: 'impOk', fn: function () { D = SP.normalize(N); if (window.SPBA) SPBA.reset(); render(); return save('✅ Excel से अपडेट हो गया — वेबसाइट पर लाइव'); } }]);
 }
 function csvCell(v) { v = String(v == null ? '' : v).replace(/\r?\n/g, ' '); return /[",]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
 function exportFeed() {
-  var base = String(D.settings.siteUrl || CFG.STORE_URL || location.origin).replace(/\/+$/, ''), noImg = 0;
+  var base = storeBase() || location.origin.replace(/\/+$/, ''), noImg = 0;
   var rows = [['id', 'title', 'description', 'availability', 'condition', 'price', 'sale_price', 'link', 'image_link', 'additional_image_link', 'brand', 'product_type', 'identifier_exists', 'mpn']];
   D.products.filter(function (p) { return p.visible !== false; }).forEach(function (p) {
     var imgs = [p.image].concat(p.images).filter(function (u) { return SP.isImg(u) && !/^data:/.test(u); }).map(function (u) { try { return new URL(u, base + '/').href; } catch (e) { return u; } });
@@ -1250,14 +2055,18 @@ function exportFeed() {
       price.toFixed(2) + ' INR', disc ? off.toFixed(2) + ' INR' : '', base + '/?p=' + encodeURIComponent(p.id), imgs[0] || '', imgs.slice(1, 10).join(','),
       p.brand || D.settings.brand || D.settings.storeName, s0 ? (s0.titleEn || s0.title) : '', 'no', p.sku || '']);
   });
+  return SPSH.dl('प्रोडक्ट फ़ीड (CSV)', { head: rows[0], rows: rows.slice(1) }, { lock: rows[0], okLabel: '⬇️ CSV डाउनलोड' }).then(function (out) {
+    if (!out) return;
+    rows = [out.head].concat(out.rows);
   download(new Blob(['﻿' + rows.map(function (r) { return r.map(csvCell).join(','); }).join('\r\n')], { type: 'text/csv;charset=utf-8' }), 'sunpowers-product-feed-' + today() + '.csv');
   if (noImg) toast('⚠️ ' + noImg + ' प्रोडक्ट बिना फ़ोटो के हैं — Google/Meta पर लिस्टिंग के लिए फ़ोटो ज़रूरी है', true); else toast('⬇️ प्रोडक्ट फ़ीड डाउनलोड हो गई');
+  });
 }
 V.excel = function () {
-  return '<div class="card"><h2>📊 पूरी वेबसाइट Excel में</h2><p style="color:var(--mut);margin-bottom:10px">सारे प्रोडक्ट (सेक्शन के हिसाब से), सेक्शन, स्लाइडशो, स्लाइड, सर्विस, फ़ीडबैक, वीडियो और सेटिंग्स — एक Excel फ़ाइल में। Excel में बदलाव करें और वापस अपलोड करें — सब जगह एक साथ अपडेट हो जाएगा।</p>' +
+  return '<div class="card"><h2>📊 पूरा स्टोर Excel में</h2><p style="color:var(--mut);margin-bottom:10px">सारे प्रोडक्ट (सेक्शन के हिसाब से), सेक्शन, स्लाइडशो, स्लाइड, सर्विस, फ़ीडबैक, वीडियो और सेटिंग्स — एक Excel फ़ाइल में। Excel में बदलाव करें और वापस अपलोड करें — सब जगह एक साथ अपडेट हो जाएगा।</p>' +
     '<div class="bar"><button class="btn" id="xDown">⬇️ Excel डाउनलोड करें</button><span class="btn out upl">⬆️ Excel अपलोड करें<input type="file" id="xUp" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></span></div>' +
-    '<p style="font-size:13px;color:var(--mut)">💡 अपलोड करने से पहले बदलावों की लिस्ट दिखेगी — "लागू करें" दबाने पर ही बदलाव होगा। सुरक्षा के लिए पहले ⚙️ सेटिंग्स से बैकअप ले लें।</p></div>' +
-    '<div class="card"><h2>🛍️ Google Merchant / Facebook-Instagram / WhatsApp कैटलॉग</h2><p style="color:var(--mut);margin-bottom:10px">प्रोडक्ट फ़ीड (CSV) डाउनलोड करें और Google Merchant Center या Meta Commerce Manager में अपलोड करें। हर प्रोडक्ट का अपना लिंक होता है: <code>' + esc(String(D.settings.siteUrl || CFG.STORE_URL || location.origin).replace(/\/+$/, '')) + '/?p=ID</code></p>' +
+    '<p style="font-size:13px;color:var(--mut)">💡 अपलोड करने से पहले बदलावों की लिस्ट दिखेगी — "लागू करें" दबाने पर ही बदलाव होगा। सुरक्षा के लिए पहले ऊपर मेन्यू (☰) से "Get full backup" ले लें।</p></div>' +
+    '<div class="card"><h2>🛍️ Google Merchant / Facebook-Instagram / WhatsApp कैटलॉग</h2><p style="color:var(--mut);margin-bottom:10px">प्रोडक्ट फ़ीड (CSV) डाउनलोड करें और Google Merchant Center या Meta Commerce Manager में अपलोड करें। हर प्रोडक्ट का अपना लिंक होता है: <code>' + esc(storeBase() || location.origin) + '/?p=ID</code></p>' +
     '<button class="btn out" id="xFeed">⬇️ प्रोडक्ट फ़ीड (CSV) डाउनलोड</button><p style="font-size:13px;color:var(--mut);margin-top:8px">⚙️ सेटिंग्स में "वेबसाइट URL" सही होना चाहिए। Google/Meta के लिए हर प्रोडक्ट की असली फ़ोटो ज़रूरी है।</p></div>';
 };
 V.excel_bind = function () {
@@ -1270,5 +2079,6 @@ if (!SP.backendReady()) app.innerHTML = '<div class="login"><div class="card"><h
 else if (PASS) boot(); else loginView();
 })();
 </script>
-</body>
+<script>if ('serviceWorker' in navigator && location.protocol === 'https:') addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });</script>
+<script src="sp-switch.js?v=2"></script><script>if (window.SPSwitch) SPSwitch.mount("admin", "admin");</script></body>
 </html>

@@ -1,0 +1,49 @@
+ROUND 52 (PHASE 1) — KYA BADLA (STAGING ke liye; live par kuch nahi)
+=====================================================================
+
+SQL: HAI. Supabase STAGING SQL Editor me ROUND-40-52-SQL-ONLY.sql chalayein (R40..R52 ek saath, dobara chalana safe).
+     Naye column: sp_shares.quote_id / live / expiry_manual / bad_tries / bad_at. Live Supabase / live deploy tab tak nahi jab tak aap na kahen.
+WEBSITE: website/api/d.js badla hai (customer ka link page) — Website ka staging deploy chahiye (master command wahi).
+
+KAAM SIRF MANUAL QUOTATION KA — Online Store ke order / flow ko haath nahi lagaya.
+
+A) EK QUOTATION = EK LINK, ANDAR KAI OPTIONS (brand)
+   Quotation kholo -> "Options (brand / vikalp)" card -> "Option jodein" (naam: Adani 5 kW) -> us option ke items / rate badlein (maximum 5 option).
+   Customer ko ek hi link jata hai: upar sab options ka chhota comparison (kW, kul keemat), neeche har option ke items + apni PDF.
+   Link dobara bhejne par naya link nahi banta — wahi link taaza ho jata hai (rate badle to customer ko naya hi dikhta hai).
+   WhatsApp text me bhi options ki list jati hai.
+
+B) FINAL = LOCK
+   Customer jo option chune use "Ye final" (ya customer link se Accept) -> wo option final (lock). Baaki options customer ko dikhna band; aapke paas "Chune nahi gaye" me record.
+   Final ke baad rate / items badalna: SIRF Manager / Admin, wajah likhni padti hai, record "Rate badlav ka record" me, aur customer ko dobara Accept karna padta hai.
+   "Final wapas lein": sirf Manager / Admin, wajah ke saath — saare options wapas.
+   Kai option hon to Status chip "Accepted" se galti se pehla option lock nahi hota — pehle option chunna padta hai. Bill banana bhi tab tak band jab tak final option na chuna ho.
+   Ek option wali quotation me Accepted dabane se wahi final ho jati hai.
+
+C) CUSTOMER KE LINK PAR BUTTON (har waqt)
+   "Accept karein" — pakka karne ke liye registered mobile ke AAKHRI 4 ANK puchhe jate hain (OTP nahi). 5 galat koshish par us din ke liye ruk jata hai.
+   "Badlav chahiye" (likhkar) aur "Call back" — staff ko turant "Aaj ke kaam" me reminder + bell.
+   Accept hote hi: "Customer ne Accept kiya — advance ke liye call karein" reminder us customer ke assigned staff ko.
+   LINK PAR KOI PAYMENT / UPI / BANK NAHI. Advance staff call karke leta hai (QR / bank details khud bhejta hai).
+   Quotation ki PDF par Bank/UPI dabba ab DEFAULT BAND (Settings -> Bill / Quotation -> checkbox se chalu). Tax Invoice par hamesha rehta hai.
+
+D) LINK KI EXPIRY (Download & Share window me "Pehle bheje gaye links")
+   Accept se pehle: Valid till + 7 din. Valid till badalne / Renew karne par link apne aap badhta hai.
+   Har link ke neeche: +7 / +15 / +30 din, -7 din, "Aaj hi expire", "Roken (Pause)" / "Dobara chalu", "Auto" (haath se set kiya hua wapas Valid-till ke hisab par).
+   Final (Accept) ke baad: link 1 saal tak chalu rehta hai (aage ke phases isi link me aayenge).
+   Expire / ruka hua link ab khaali 404 nahi — "Link expire / ruka hua hai, humse sampark karein" + WhatsApp / Call button.
+   BUG THIK: accepted quotation ko roz ka job "expired" kar deta tha (Valid till ke baad) — ab sirf draft / sent expire hote hain; pehle galti se expire hui accepted wapas theek hoti hain.
+
+E) CRM list me ribbon: "2 options" / "Final: Adani" / "Badlav maanga".
+
+KYA ABHI NAHI (Phase 2 / 3 — agla round):
+   - Link me files / video-link sections, har stage (site visit, blueprint, photos...) par alag Accept, har type ka pehli-baar ka package (project / product / service).
+   - "Payment details bhejein" button + payment ke saath screenshot attach.
+   - Link kitni baar dekha ke hisab se follow-up suggestion ("3 baar dekha, kal call karein") + job timeline.
+   (Link ke "dekha gaya" ginti aur aakhri dekhne ka samay abhi bhi Download & Share me dikhta hai.)
+
+VERSION: CRM core v26, sp-share v4, billing v22, settings v12, service worker v13; website/api/d.js.
+
+TEST (staging copy): SQL — option add/edit/delete/limit, lock (staff / customer), unlock (Admin), live link reuse, expiry add/sub/pause/auto, valid_till change se link badalna, daily job accepted ko expire nahi karta, last-4 galat / sahi / 5 galat par ruk jana, change / callback reminders, staff ke liye Manager-only guard (rate edit, unlock), bill banane par option guard.
+        UI (Playwright) — CRM: Options card, naya option + editor, lock, locked quotation me rate badalne par wajah poochna, unlock, list ribbon, link expiry buttons.
+        Customer link page (phone width 400): comparison, option chunna, Accept (galat / sahi 4 ank), final banner, Badlav, Call back, paused / expired page.

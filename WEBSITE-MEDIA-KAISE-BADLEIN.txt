@@ -1,0 +1,12 @@
+WEBSITE KI PHOTO / VIDEO BINA CODE KE KAISE BADLEIN
+====================================================
+1. Store Admin kholein (admin.sunpowers.in) -> login -> tab "🌐 वेबसाइट मीडिया".
+2. PHOTO badalni ho: us card/photo ke saamne "Upload" dabayein, apni photo chunein, phir neeche "सेव करें".
+   - Photo 5 MB tak; app khud chhota (compress) kar deta hai. Khali chhodne par website ki default photo/design rahegi.
+   - Slots: Residential/Commercial/Industrial/VFD card, 4 project photos, Akash Sir aur Suraj Sir ki photo, video poster.
+3. VIDEO badalna ho: video ko Cloudinary par upload karein, uska https://....mp4 link copy karke
+   "होमपेज वीडियो का लिंक" me paste karein, "सेव करें".
+   Behtareen quality: 1920x1080, H.264, 4-5 Mbps, 10-15 second loop, 6-10 MB. Cloudinary link me q_auto:best laga sakte hain.
+4. Save ke baad website par 1-2 minute me (page refresh karne par) naya dikh jata hai. Redeploy / code ki zarurat nahi.
+5. Gadbad ho to us slot ki photo/link khali karke save karein - website purani default par aa jati hai.
+Note: sirf https:// links chalte hain. Photo Supabase storage me jati hai (setup.sql wala bucket 'sp-images').

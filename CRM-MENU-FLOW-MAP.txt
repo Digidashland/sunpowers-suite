@@ -1,0 +1,39 @@
+CRM KE SAB MENU — HAR EK KA FLOW SE RISHTA (Round 56 final audit)
+==================================================================
+Niyam: ek mobile = ek Customer ID = ek hi record. Naya kaam usi customer ke andar "Kaam" (quotation) banta hai.
+Ek customer ko ek hi khuli quotation; naya brand = usi quotation ke "Options" me. Customer jab ek option Lock kare, baaki apne aap band.
+
+KAAM KE PRAKAR AUR UNKA FLOW (step number)
+  Project (Residential/Commercial/...)  Lead19 > Customer1 > Baat-cheet2 > Files14 > Quotation3 > Confirm6 > SiteVisit4 > Blueprint5 > Apply7 > Loan15 > Handover8 > Install9 > Commissioning10 > NetMeter11 > Finish12 > (Subsidy13 sirf Residential) > Referral16 > AMC17 > Complaint18
+  Product (Items only)                  Lead19 > Customer1 > Baat-cheet2 > Files14 > Quotation3 > Confirm6 > Stock Reserve20 > Finish12 > Dispatch21 > Warranty22 > Referral16 > Complaint18
+  Service                               Lead19 > Customer1 > Baat-cheet2 > Files14 > SiteVisit4 > Quotation3 > Confirm6 > Handover8 > Job Done23 > Finish12 > Referral16 > AMC17 > Complaint18
+  AMC only                              Lead19 > Customer1 > Baat-cheet2 > AMC17
+  Site visit only                       Lead19 > Customer1 > Baat-cheet2 > SiteVisit4
+  Online (Store) order                  Order aate hi customer + Confirmed "Kaam" apne aap banta hai (Store Orders se "Kaam / Flow kholein"). Order cancel = kaam band, wapas = kaam wapas.
+                                        Conversation / Quotation / Demo online me "lagu nahi"; Confirmation = order; Stock = order ke saath; Dispatch = Store Orders ke dispatch se.
+  Offline (phone/walk-in)               Customers > Naya Kaam (ya Quotations) se; sab step upar ke flow ke hisaab se.
+  Aate hi apne aap (auto) step: 1,2,3,6,12,19. Chhod sakte (skip): 4,5,11,13,14,15,16,17,18,20.
+
+MENU                      KYA BANATA HAI                         FLOW SE KAISE JUDTA HAI                      DOUBLING ROKTHAM
+---------------------------------------------------------------------------------------------------------------------------------
+Home / Aaj ke kaam        kuch nahi banata (sirf dikhata)         flow ke kaam dikhata hai                     -
+Leads                     lead (manual, Excel, form, ad)          step 19 -> Customer (1)                      customer ya khuli lead ke mobile par nayi lead nahi
+Pending Inquiries         dikhata hai (stage=inquiry)             step 1/2 ke baad, bill se pehle              -
+Customers                 customer; "Kaam" tab me uske sab kaam   step 1 se aage poora flow                    Quotation tab/button hataya: quotation sirf Kaam ke andar (pehle 2 jagah thi)
+Quotations & Templates    quotation, template                     step 3; customer ke naam se ek pankti        ek customer = ek khuli quotation; options/lock/history uske andar
+Projects                  referral plant, project tracking        step 16 + Live tracking                      -
+Billing                   bill (sirf quotation se), payment       step 12; quotation convert = ek hi bill      ek quote ka ek bill
+Inventory/Stock           items                                   quotation lines + reserve (draft/sent/accepted) online order ka kaam dobara hold nahi karta (order stock alag ginta hai)
+Site Visit                visit                                   step 4                                       bina customer ke nahi
+Project blue print        blueprint                               step 5                                       customer ho to lead nahi
+Accounts                  kharcha, ledger                         customer chunta hai                          -
+Reports / Analytics       kuch nahi banata                        -                                            -
+Maintenance & AMC         AMC contract                            step 17                                      -
+Store Orders              order dikhata, dispatch, status         Online order -> confirmed Kaam; button "Kaam / Flow kholein"   order cancel/wapas = kaam sync
+Commission                commission entry                        step 16                                      -
+Documents & Gallery       file, folder                            step 14                                      -
+Marketing & Grow          lead (campaign)                         step 19                                      wahi lead guard
+Team / Activity / Settings / Connections / Help / Profile   staff, setting, log   flow se bahar                  -
+
+Website / Store / Signup / Enquiry form -> crm_inbound_lead: naya mobile = 1 lead; purana customer = "Dobara sampark".
+Purana clone data: CLONE-CLEANUP.sql (pehle STEP A ginti, phir STEP B).

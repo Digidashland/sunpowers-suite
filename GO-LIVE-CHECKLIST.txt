@@ -1,0 +1,54 @@
+GO-LIVE CHECKLIST — jo cheezein abhi sirf STAGING / TEST ke liye hain, live par jaate waqt hatani ya asli karni hain
+(Ye list har round ke saath badhti rahegi.)
+================================================================================================================
+
+A. SECURITY (aapki zimmedari — live se pehle zaroor)
+ [ ] Admin ka default password badlein.
+ [ ] Emergency login hatayein.
+ [ ] Mapbox token sirf live URLs (sunpowers.in, www, store, admin, crm) ke liye restrict karein.
+
+B. LINKS (Round 32 / 37)
+ [ ] Website ka prod deploy hone ke baad hi live se link bhejein (live par /d/<code> page tabhi chalega). Vercel -> Website project -> Root Directory = website.
+ [ ] Staging links me ?e=s lagta hai (staging database padhta hai). Live app se bane links me ye nahi lagta — live par test link naya banakar check karein.
+ [ ] Staging ke purane links (?e=s) test ke baad ignore karein / CRM se "Band karein".
+ [ ] crm/config.js: SITE_URL_STAGING khali hi rahe (staging ke liye ab apne aap staging website chunti hai). Live par kuch badalna nahi.
+ [ ] admin/config.js: STAGING_SUFFIX sirf staging ke liye hai; live domains par ye use nahi hota (check kar lein).
+
+C. SQL / DATA
+ [ ] Pehle LIVE Supabase ka backup, phir SQL-1-SABSE-PEHLE-CHALAYEIN.sql.
+ [ ] Round 38: STAGING par SQL-1 pehle hi chal chuka hai -> wahan sirf ROUND-38-SQL-ONLY.sql chalayein. LIVE par SQL-1 (usme 37 + 38 dono hain), alag se 38 nahi.
+ [ ] Round 38 SQL purane adhure online orders ke customer bhi bana deta hai (unki purani lead "won" ho jati hai). LIVE par chalane ke baad Customers -> "Details adhuri" filter dekh kar unka pata Conversation me bharein.
+ [ ] CLONE-CLEANUP.sql: LIVE par STEP A (ginti) dekhkar hi STEP B chalayein. STEP C ke double customer khud tay karein.
+ [ ] Staging ka test data (Test Cust, dummy customers / leads / quotations / bills, staging ke dummy shop-builder data) live me nahi jata (alag database) — par staging se kuch export karke live me na daalein.
+ [ ] CRM-STOCK-STARTER ki 133 items ki quantity: CRM -> Products me apni asli quantity bharein.
+ [ ] Placeholder images / dummy product photos asli photos se badlein (IMAGES-KAISE-BADLEIN.txt).
+
+D. ADMIN SETTINGS (live par bharna)
+ [ ] Admin -> Payments: UPI ID, Google Pay / PhonePe link.
+ [ ] Admin -> har product me GST %.
+ [ ] Company terms / "Powered by" line CRM Settings me.
+ [ ] (Round 61) Store Admin -> सब्सिडी: apne rajya ki dar official site se milakar verify tick + chalu; project products me kW / System type / Residential bharein.
+ [ ] (Round 62) CRM Settings -> Company: bijli ka daam + roz ki unit (faayde / bachat ka anumaan), "Aapko kya milega" ka text padh lein, "Customer ko Documents me kya dikhe" tick tay karein.
+
+E. DEPLOY KE BAAD
+ [ ] Ctrl+F5; CRM app (PWA) ek baar band karke kholein.
+ [ ] Live par check (Round 38): Lead -> "Conversation poori" -> Save & Next quotation par; Site Visit / Plant form me customer card (naam-pata dobara nahi); Store order ka customer Customers me (adhura ho to "Details adhuri").
+ [ ] Live par check: quotation Send -> link -> phone par page (Download PDF dikhe), Customer -> Naya Kaam, Leads (same mobile ki dusri lead na bane), Site Visit, Blueprint.
+ [ ] (Round 63) STAGING pe ROUND-40-63-SQL-ONLY.sql chalayein (ya MASTER-UPDATE.sql). Isme FIX-PIN-DELETE bhi shamil hai.
+ [ ] (Round 63) CRM Inventory -> New product: category chunein, sirf usi category ke fields aate hain; warranty ek hi jagah; HSN/GST apne-aap.
+ [ ] (Round 63) Store Admin: naya product sirf CRM Inventory se; "Send to store" ke baad naam/brand/model/warranty/specification apne-aap aate hain; photo Store Admin me jodein.
+ [ ] (Round 63) Online order test: UPI se pay -> order seedha Bill ban jaye (quotation customer ko na dikhe); COD me advance ke baad delivered par baaki jama.
+ [ ] (Round 63) Web Shop / Store App: card par "Add to cart" + "Details", product page par Highlights + Specifications.
+ [ ] (Round 64) Shop Home + Store Home par customer card dikhe; Category/Product/Cart par na dikhe; Account icon dabane par card account page me aaye.
+ [ ] (Round 64) Footer Website / Shop / Store teeno par compact dikhe (mobile + computer).
+ [ ] (Round 65) Phone par Store checkout / Web Shop checkout me "Meri location se bharein" dabayein -> location allow -> pin, shahar, pata bhare; band karke dekhein -> saaf message.
+ [ ] (Round 65) CRM -> Customers -> New -> Country/State/District/Shahar/Pincode/Pata bhar jaye. (Location sirf https par chalti hai.)
+ [ ] (Round 66) Phone (360) / Tab (768) / Computer par Store, Web Shop, Website, CRM, Admin dekhein: koi text bahut chhota ya bahut bada na ho, koi cheez kati/ohlti na ho.
+ [ ] (Round 66) Store/Shop -> Account icon: upar naam + ID, neeche card, fir My orders, Settings list, sabse last Logout. Product / Account / Wishlist page par search bar na dikhe.
+ [ ] (Round 66) CRM Home ke KPI cards me number / sparkline ek dusre par na chadhe (mobile par sparkline nahi dikhta).
+ [ ] (Round 66) Store/Shop header me Cart icon nahi (neeche Cart tab hai); footer me WhatsApp / phone do baar nahi; account card me Refer sirf upar icon par.
+ [ ] (Round 66) CRM Partners -> Verify baaki: pending ID par "WhatsApp par check karein" phone par dikhe aur chat us number par khule.
+ [ ] (Round 66) CRM "Nayi ID banayein": mobile ke neeche WhatsApp Business wali line dikhe.
+ [ ] (Round 67) PEHLE SQL: LIVE Supabase me ROUND-67-SQL-ONLY.sql chalayein (backup ke baad), PHIR files deploy.
+ [ ] (Round 67) CRM -> Settings -> Backup: PIN daal kar "Master backup" dabayein: zip download ho, andar backup.json + backup.xlsx. Alag-alag 6 button bhi ek-ek zip dein.
+ [ ] (Round 67) Website + Web Shop wale zip me sirf website ka data; Store App wale me products/orders; Team + HR me password nahi.
